@@ -8,33 +8,33 @@
 namespace CPC {
 
 
-class CCpu;
-class CMemory;
-class CGateArray;
-class CCrtc;
-class CVideoOutput;
+  class CCpu;
+  class CMemory;
+  class CGateArray;
+  class CCrtc;
+  class CVideoOutput;
 
 
-/**
-** This is the main class in the emulator. It represents the emulated machine (Amstrad CPC)
-** and contains all the sub-systems (CPU, memory, keyboard, etc.) that make up the machine.
-*/
-class CMachine
-{
-public:
+  /**
+  ** This is the main class in the emulator. It represents the emulated machine (Amstrad CPC)
+  ** and contains all the sub-systems (CPU, memory, keyboard, etc.) that make up the machine.
+  */
+  class CMachine
+  {
+  public:
 
     enum TModel
     {
-        CPC_464 = 0,   // 64Kb RAM, 32Kb ROM, tape drive
-        CPC_664,       // 64Kb RAM, 48Kb ROM, disc drive
-        CPC_6128,      // 128Kb RAM, 48Kb ROM, disc drive
+      CPC_464 = 0,   // 64Kb RAM, 32Kb ROM, tape drive
+      CPC_664,       // 64Kb RAM, 48Kb ROM, disc drive
+      CPC_6128,      // 128Kb RAM, 48Kb ROM, disc drive
 
-        CPC_LAST,
-        CPC_INVALID = 0xFFFFFFFF
+      CPC_LAST,
+      CPC_INVALID = 0xFFFFFFFF
     };
 
 
-                            CMachine                  (TModel eType);
+    CMachine                  (TModel eType);
     virtual                ~CMachine                  ()  { FreeVars(); }
 
     /** Returns the model of the emulated machine. */
@@ -69,7 +69,7 @@ public:
     void                    Run                       (unsigned nMicroSecs);
 
 
-private:
+  private:
 
     void                    ResetVars                 ();
     void                    FreeVars                  ();
@@ -85,7 +85,7 @@ private:
     unsigned                m_nTimeFromLastFrame;
     CVideoOutput         *m_pVideoOutput;
 
-};
+  };
 
 
 } //namespace CPC

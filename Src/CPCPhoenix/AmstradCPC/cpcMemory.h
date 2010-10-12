@@ -11,30 +11,30 @@
 namespace CPC {
 
 
-class CMemoryBlock;
+  class CMemoryBlock;
 
 
-/**
-** 
-*/
-class CMemory : public CSubSystem
-{
-public:
+  /**
+  ** 
+  */
+  class CMemory : public CSubSystem
+  {
+  public:
 
     enum TRamConfig
     {
-        RAM_CONFIG_0_1_2_3     = 0,
-        RAM_CONFIG_0_1_2_3s    = 1,
-        RAM_CONFIG_0s_1s_2s_3s = 2,
-        RAM_CONFIG_0_3_2_3s    = 3,
-        RAM_CONFIG_0_0s_2_3    = 4,
-        RAM_CONFIG_0_1s_2_3    = 5,
-        RAM_CONFIG_0_2s_2_3    = 6,
-        RAM_CONFIG_0_3s_2_3    = 7,
+      RAM_CONFIG_0_1_2_3     = 0,
+      RAM_CONFIG_0_1_2_3s    = 1,
+      RAM_CONFIG_0s_1s_2s_3s = 2,
+      RAM_CONFIG_0_3_2_3s    = 3,
+      RAM_CONFIG_0_0s_2_3    = 4,
+      RAM_CONFIG_0_1s_2_3    = 5,
+      RAM_CONFIG_0_2s_2_3    = 6,
+      RAM_CONFIG_0_3s_2_3    = 7,
     };
 
 
-                            CMemory                   (CMachine *pMachine);
+    CMemory                   (CMachine *pMachine);
     virtual                ~CMemory                   ()  { FreeVars(); }
 
     /** Resets the subsystem. */
@@ -55,15 +55,15 @@ public:
     void                    WriteByte                 (cpcWord nAddress, cpcByte nValue);
 
 
-private:
+  private:
 
     typedef                 CSubSystem                inherited;
 
 
     enum
     {
-        MAX_NUM_ROM_BLOCKS = 3,
-        MAX_NUM_RAM_BLOCKS = 8,
+      MAX_NUM_ROM_BLOCKS = 3,
+      MAX_NUM_RAM_BLOCKS = 8,
     };
 
 
@@ -93,7 +93,7 @@ private:
     /** Whether the upper ROM (BASIC or expansion ROM) is visible in the range &C000-&FFFF or not. */
     bool                    m_bUpperRomVisible;
 
-};
+  };
 
 
 } //namespace CPC

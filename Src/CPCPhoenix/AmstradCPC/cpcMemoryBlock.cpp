@@ -12,50 +12,50 @@ namespace CPC {
 
 
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-CMemoryBlock::CMemoryBlock()
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  CMemoryBlock::CMemoryBlock()
+  {
     ResetVars();
 
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** ResetVars
-*/
-void CMemoryBlock::ResetVars()
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** ResetVars
+  */
+  void CMemoryBlock::ResetVars()
+  {
 
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** FreeVars
-*/
-void CMemoryBlock::FreeVars()
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** FreeVars
+  */
+  void CMemoryBlock::FreeVars()
+  {
 
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-cpcByte CMemoryBlock::ReadByte(cpcWord nAddress) const
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  cpcByte CMemoryBlock::ReadByte(cpcWord nAddress) const
+  {
     return m_anBytes[nAddress & LAST_BYTE];
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-void CMemoryBlock::WriteByte(cpcWord nAddress, cpcByte nValue)
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CMemoryBlock::WriteByte(cpcWord nAddress, cpcByte nValue)
+  {
     m_anBytes[nAddress & LAST_BYTE] = nValue;
-}
+  }
 
 } //namespace CPC

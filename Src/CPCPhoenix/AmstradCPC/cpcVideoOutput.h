@@ -8,25 +8,25 @@
 namespace CPC {
 
 
-class CMachine;
+  class CMachine;
 
 
-/**
-** An instance of this class that has been registered in an emulated machine will be notified
-** through its CVideoOutput::NotifyNewFrame method each time the machine is prepared to
-** render a new frame (50 times per second).
-**
-** Host applications must derive this class and implement the method CVideoOutput::NotifyNewFrame
-** in order to render the new frame (in a window, a texture or whatever).
-*/
-class CVideoOutput
-{
-public:
+  /**
+  ** An instance of this class that has been registered in an emulated machine will be notified
+  ** through its CVideoOutput::NotifyNewFrame method each time the machine is prepared to
+  ** render a new frame (50 times per second).
+  **
+  ** Host applications must derive this class and implement the method CVideoOutput::NotifyNewFrame
+  ** in order to render the new frame (in a window, a texture or whatever).
+  */
+  class CVideoOutput
+  {
+  public:
 
     enum
     {
-        MAX_SCREEN_WIDTH  = 640,  // *** TODO - TODO - TODO - Support custom resolutions
-        MAX_SCREEN_HEIGHT = 200,  // *** TODO - TODO - TODO - Support custom resolutions
+      MAX_SCREEN_WIDTH  = 640,  // *** TODO - TODO - TODO - Support custom resolutions
+      MAX_SCREEN_HEIGHT = 200,  // *** TODO - TODO - TODO - Support custom resolutions
     };
 
     virtual                ~CVideoOutput            ()  { FreeVars(); }
@@ -35,10 +35,10 @@ public:
     virtual void            NotifyNewFrame            () = 0;
 
 
-protected:
+  protected:
 
-  // Constructor is protected to avoid instantiating this class
-                            CVideoOutput            (CMachine *pMachine);
+    // Constructor is protected to avoid instantiating this class
+    CVideoOutput            (CMachine *pMachine);
 
     void                    ResetVars                 ();
     void                    FreeVars                  ();
@@ -51,9 +51,9 @@ protected:
     CMachine               *m_pMachine;
 
 
-private:
+  private:
 
-};
+  };
 
 
 } //namespace CPC

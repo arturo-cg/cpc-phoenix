@@ -13,106 +13,106 @@
 namespace CPC {
 
 
-//--------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------
-// Callbacks used by the z80ex library.
-//--------------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------------
+  // Callbacks used by the z80ex library.
+  //--------------------------------------------------------------------------------------
 
-/*read byte from memory <addr> -- called when RD & MREQ goes active.
-m1_state will be 1 if M1 signal is active*/
-Z80EX_BYTE CB_ReadByteFromMemory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, int m1_state, void *user_data)
-{
+  /*read byte from memory <addr> -- called when RD & MREQ goes active.
+  m1_state will be 1 if M1 signal is active*/
+  Z80EX_BYTE CB_ReadByteFromMemory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, int m1_state, void *user_data)
+  {
     return ((CCpu*)user_data)->ReadByteFromMemory( addr );
-}
+  }
 
-/*write <value> to memory <addr> -- called when WR & MREQ goes active*/
-void CB_WriteByteToMemory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, Z80EX_BYTE value, void *user_data)
-{
+  /*write <value> to memory <addr> -- called when WR & MREQ goes active*/
+  void CB_WriteByteToMemory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, Z80EX_BYTE value, void *user_data)
+  {
     ((CCpu*)user_data)->WriteByteToMemory( addr, value );
-}
+  }
 
-/*read byte from <port> -- called when RD & IORQ goes active*/
-Z80EX_BYTE CB_ReadByteFromPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, void *user_data)
-{
+  /*read byte from <port> -- called when RD & IORQ goes active*/
+  Z80EX_BYTE CB_ReadByteFromPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, void *user_data)
+  {
     return ((CCpu*)user_data)->ReadByteFromPort( port );
-}
+  }
 
-/*write <value> to <port> -- called when WR & IORQ goes active*/
-void CB_WriteByteToPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, Z80EX_BYTE value, void *user_data)
-{
+  /*write <value> to <port> -- called when WR & IORQ goes active*/
+  void CB_WriteByteToPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, Z80EX_BYTE value, void *user_data)
+  {
     ((CCpu*)user_data)->WriteByteToMemory( port, value );
-}
+  }
 
-/*read byte of interrupt vector -- called when M1 and IORQ goes active*/
-Z80EX_BYTE CB_ReadByteFromInterruptVector(Z80EX_CONTEXT *cpu, void *user_data)
-{
+  /*read byte of interrupt vector -- called when M1 and IORQ goes active*/
+  Z80EX_BYTE CB_ReadByteFromInterruptVector(Z80EX_CONTEXT *cpu, void *user_data)
+  {
     return ((CCpu*)user_data)->ReadByteFromInterruptVector();
-}
+  }
 
-//--------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------------
 
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-CCpu::CCpu(CMachine *pMachine) : inherited( pMachine )
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  CCpu::CCpu(CMachine *pMachine) : inherited( pMachine )
+  {
     ResetVars();
 
     // Create the Z80 context
     m_pZ80State = z80ex_create( CB_ReadByteFromMemory, this,
-                                CB_WriteByteToMemory, this,
-                                CB_ReadByteFromPort, this,
-                                CB_WriteByteToPort, this,
-                                CB_ReadByteFromInterruptVector, this );
-}
+      CB_WriteByteToMemory, this,
+      CB_ReadByteFromPort, this,
+      CB_WriteByteToPort, this,
+      CB_ReadByteFromInterruptVector, this );
+  }
 
-//----------------------------------------------------------------------------
-/**
-** ResetVars
-*/
-void CCpu::ResetVars()
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** ResetVars
+  */
+  void CCpu::ResetVars()
+  {
     m_pZ80State                    = NULL;
     m_bCompleteInstructionLastStep = true;
     m_nNumSpareCycles              = 0;
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** FreeVars
-*/
-void CCpu::FreeVars()
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** FreeVars
+  */
+  void CCpu::FreeVars()
+  {
     if(m_pZ80State != NULL)
     {
-        z80ex_destroy( m_pZ80State );
-        m_pZ80State = NULL;
+      z80ex_destroy( m_pZ80State );
+      m_pZ80State = NULL;
     }
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-void CCpu::Reset()
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CCpu::Reset()
+  {
     ASSERT( m_pZ80State != NULL );
     z80ex_reset( m_pZ80State );
 
     m_bCompleteInstructionLastStep = true;
     m_nNumSpareCycles              = 0;
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-void CCpu::Run(unsigned nMinNumCycles)
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CCpu::Run(unsigned nMinNumCycles)
+  {
     unsigned nCurrNumCycles;
 
     ASSERT( m_pZ80State != NULL );
@@ -122,7 +122,7 @@ void CCpu::Run(unsigned nMinNumCycles)
 
     while( nCurrNumCycles < nMinNumCycles )
     {
-        nCurrNumCycles += z80ex_step( m_pZ80State );
+      nCurrNumCycles += z80ex_step( m_pZ80State );
     }
 
     // Spare cycles (will be taken into account next time CCpu::Run is called)
@@ -130,61 +130,61 @@ void CCpu::Run(unsigned nMinNumCycles)
 
     // Has last instruction been executed completely?
     m_bCompleteInstructionLastStep = ( z80ex_last_op_type( m_pZ80State ) == 0 );
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-cpcByte CCpu::ReadByteFromMemory(cpcWord nAddr) const
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  cpcByte CCpu::ReadByteFromMemory(cpcWord nAddr) const
+  {
     // The CPC has no memory-mapped devices so we access the CMemory subsystem directly
     return GetMachine()->GetMemory()->ReadByte( nAddr );
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-void CCpu::WriteByteToMemory(cpcWord nAddr, cpcByte nValue)
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CCpu::WriteByteToMemory(cpcWord nAddr, cpcByte nValue)
+  {
     // The CPC has no memory-mapped devices so we access the CMemory subsystem directly
     GetMachine()->GetMemory()->WriteByte( nAddr, nValue );
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-cpcByte CCpu::ReadByteFromPort(cpcWord nPort) const
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  cpcByte CCpu::ReadByteFromPort(cpcWord nPort) const
+  {
     // Tell the machine to read from the specified port (it is the machine's responsability
     // to determine which device is mapped to this port)
     return GetMachine()->ReadByteFromPort( nPort );
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-void CCpu::WriteByteToPort(cpcWord nPort, cpcByte nValue)
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CCpu::WriteByteToPort(cpcWord nPort, cpcByte nValue)
+  {
     // Tell the machine to read from the specified port (it is the machine's responsability
     // to determine which device is mapped to this port)
     GetMachine()->WriteByteToPort( nPort, nValue );
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-cpcByte CCpu::ReadByteFromInterruptVector () const
-{
-//***************************** TODO - TODO - TODO ************************************
-//***************************** TODO - TODO - TODO ************************************
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  cpcByte CCpu::ReadByteFromInterruptVector () const
+  {
+    //***************************** TODO - TODO - TODO ************************************
+    //***************************** TODO - TODO - TODO ************************************
     return 0;
-//***************************** TODO - TODO - TODO ************************************
-//***************************** TODO - TODO - TODO ************************************
-}
+    //***************************** TODO - TODO - TODO ************************************
+    //***************************** TODO - TODO - TODO ************************************
+  }
 
 } //namespace CPC

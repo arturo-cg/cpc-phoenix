@@ -8,19 +8,19 @@
 namespace CPC {
 
 
-/**
-** Represents a 16K memory chunk, which is the smallest memory size
-** the CPC hardware works with (at a macro level).
-** @par
-** This class is used for both RAM and ROM memories to avoid declaring
-** Read and Write methods as virtual. This is not a problem since
-** the CPC hardware makes impossible to write into ROM.
-*/
-class CMemoryBlock
-{
-public:
+  /**
+  ** Represents a 16K memory chunk, which is the smallest memory size
+  ** the CPC hardware works with (at a macro level).
+  ** @par
+  ** This class is used for both RAM and ROM memories to avoid declaring
+  ** Read and Write methods as virtual. This is not a problem since
+  ** the CPC hardware makes impossible to write into ROM.
+  */
+  class CMemoryBlock
+  {
+  public:
 
-                            CMemoryBlock              ();
+    CMemoryBlock              ();
     virtual                ~CMemoryBlock              ()  { FreeVars(); }
 
     /** Reads a byte from this memory block.
@@ -32,12 +32,12 @@ public:
     void                    WriteByte                 (cpcWord nAddress, cpcByte nValue);
 
 
-private:
+  private:
 
     enum
     {
-        MEMORY_BLOCK_SIZE = 0x4000, /*16384 bytes = 16K*/
-        LAST_BYTE         = MEMORY_BLOCK_SIZE - 1,
+      MEMORY_BLOCK_SIZE = 0x4000, /*16384 bytes = 16K*/
+      LAST_BYTE         = MEMORY_BLOCK_SIZE - 1,
     };
 
 
@@ -47,7 +47,7 @@ private:
 
     cpcByte                 m_anBytes[MEMORY_BLOCK_SIZE];
 
-};
+  };
 
 } //namespace CPC
 

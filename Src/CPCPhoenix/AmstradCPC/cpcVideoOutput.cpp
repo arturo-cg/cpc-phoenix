@@ -12,31 +12,31 @@ namespace CPC {
 
 
 
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-CVideoOutput::CVideoOutput(CMachine *pMachine)
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  CVideoOutput::CVideoOutput(CMachine *pMachine)
+  {
     m_pMachine = pMachine;
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** ResetVars
-*/
-void CVideoOutput::ResetVars()
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** ResetVars
+  */
+  void CVideoOutput::ResetVars()
+  {
     m_pMachine = NULL;
-}
+  }
 
-//----------------------------------------------------------------------------
-/**
-** FreeVars
-*/
-void CVideoOutput::FreeVars()
-{
+  //----------------------------------------------------------------------------
+  /**
+  ** FreeVars
+  */
+  void CVideoOutput::FreeVars()
+  {
 
-}
+  }
 
 } //namespace CPC

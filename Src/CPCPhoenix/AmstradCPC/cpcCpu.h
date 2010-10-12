@@ -12,20 +12,20 @@
 namespace CPC {
 
 
-/**
-** 
-*/
-class CCpu : public CSubSystem
-{
+  /**
+  ** 
+  */
+  class CCpu : public CSubSystem
+  {
     friend Z80EX_BYTE CB_ReadByteFromMemory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, int m1_state, void *user_data);
     friend void CB_WriteByteToMemory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, Z80EX_BYTE value, void *user_data);
     friend Z80EX_BYTE CB_ReadByteFromPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, void *user_data);
     friend void CB_WriteByteToPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, Z80EX_BYTE value, void *user_data);
     friend Z80EX_BYTE CB_ReadByteFromInterruptVector(Z80EX_CONTEXT *cpu, void *user_data);
 
-public:
+  public:
 
-                            CCpu                      (CMachine *pMachine);
+    CCpu                      (CMachine *pMachine);
     virtual                ~CCpu                      ()  { FreeVars(); }
 
     /** Resets the subsystem. */
@@ -35,7 +35,7 @@ public:
     void                    Run                       (unsigned nMinNumCycles);
 
 
-private:
+  private:
 
     typedef                 CSubSystem                inherited;
 
@@ -60,7 +60,7 @@ private:
     bool                    m_bCompleteInstructionLastStep;
     unsigned                m_nNumSpareCycles;
 
-};
+  };
 
 
 } //namespace CPC

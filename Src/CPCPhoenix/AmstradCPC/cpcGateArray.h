@@ -11,19 +11,19 @@
 namespace CPC {
 
 
-/**
-** The Gate-Array is a custom chip which controls several things: pen colors, screen mode,
-** ROM visibility, RAM configuration(*) and interrupt control.
-**
-** (*) In the real Amstrad CPC, RAM configuration is not implemented in the Gate-Array itself but in a separate
-**     chip or integrated into another one. However that chip is mapped to the same port and uses a function code
-**     that the Gate-Array doesn't use so they both work together as if they were one.
-*/
-class CGateArray : public CSubSystem
-{
-public:
+  /**
+  ** The Gate-Array is a custom chip which controls several things: pen colors, screen mode,
+  ** ROM visibility, RAM configuration(*) and interrupt control.
+  **
+  ** (*) In the real Amstrad CPC, RAM configuration is not implemented in the Gate-Array itself but in a separate
+  **     chip or integrated into another one. However that chip is mapped to the same port and uses a function code
+  **     that the Gate-Array doesn't use so they both work together as if they were one.
+  */
+  class CGateArray : public CSubSystem
+  {
+  public:
 
-                            CGateArray                (CMachine *pMachine);
+    CGateArray                (CMachine *pMachine);
     virtual                ~CGateArray                ()  { FreeVars(); }
 
     /** Resets the subsystem. */
@@ -37,24 +37,24 @@ public:
     void                    Run                       (unsigned nMinNumCycles);
 
 
-private:
+  private:
 
     typedef                 CSubSystem                inherited;
 
 
     enum
     {
-        MAX_NUM_PENS           = 16,
-        MAX_NUM_PALETTE_COLORS = 32,
+      MAX_NUM_PENS           = 16,
+      MAX_NUM_PALETTE_COLORS = 32,
     };
 
     enum TScreenMode
     {
-        // DO NOT change the integer value of each item, it is a direct mapping to the CPC hardware values
-        SCREEN_MODE_0 = 0,   // 160x200 resolution, 16 colors
-        SCREEN_MODE_1 = 1,   // 320x200 resolution, 4 colors
-        SCREEN_MODE_2 = 2,   // 640x200 resolution, 2 colors
-        SCREEN_MODE_3 = 3,   // 160x200 resolution, 4 colors (unofficial)
+      // DO NOT change the integer value of each item, it is a direct mapping to the CPC hardware values
+      SCREEN_MODE_0 = 0,   // 160x200 resolution, 16 colors
+      SCREEN_MODE_1 = 1,   // 320x200 resolution, 4 colors
+      SCREEN_MODE_2 = 2,   // 640x200 resolution, 2 colors
+      SCREEN_MODE_3 = 3,   // 160x200 resolution, 4 colors (unofficial)
     };
 
 
@@ -80,13 +80,13 @@ private:
     /** Screen mode. When this value is changed, it won't take effect until the next HSYNC. */
     TScreenMode             m_eScreenMode;
 
-// --- This is kept in CMemory ---
-//     /** If true, lower ROM (operating system ROM) is mapped into memory at &0000-&3FFF. */
-//     bool                    m_bLowerRomVisible;
-//     /** If true, upper ROM (BASIC or expansion ROM) is mapped into memory at &C000-&FFFF. */
-//     bool                    m_bUpperRomVisible;
+    // --- This is kept in CMemory ---
+    //     /** If true, lower ROM (operating system ROM) is mapped into memory at &0000-&3FFF. */
+    //     bool                    m_bLowerRomVisible;
+    //     /** If true, upper ROM (BASIC or expansion ROM) is mapped into memory at &C000-&FFFF. */
+    //     bool                    m_bUpperRomVisible;
 
-};
+  };
 
 
 } //namespace CPC

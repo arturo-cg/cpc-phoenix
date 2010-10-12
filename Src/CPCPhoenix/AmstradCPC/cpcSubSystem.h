@@ -8,16 +8,16 @@
 namespace CPC {
 
 
-class CMachine;
+  class CMachine;
 
 
-/**
-** Represents a sub-system of the machine, such as the CPU, the memory or the sound hardware.
-** Each concrete sub-system will be implemented in a class derived from this one.
-*/
-class CSubSystem
-{
-public:
+  /**
+  ** Represents a sub-system of the machine, such as the CPU, the memory or the sound hardware.
+  ** Each concrete sub-system will be implemented in a class derived from this one.
+  */
+  class CSubSystem
+  {
+  public:
 
     virtual                ~CSubSystem                ()  { FreeVars(); }
 
@@ -29,10 +29,10 @@ public:
     virtual void            RespondToWritePortRequest (cpcWord nPort, cpcByte nValue)  { }
 
 
-protected:
+  protected:
 
-  // Constructor is protected to avoid instantiating this class
-                            CSubSystem                (CMachine *pMachine);
+    // Constructor is protected to avoid instantiating this class
+    CSubSystem                (CMachine *pMachine);
 
     void                    ResetVars                 ();
     void                    FreeVars                  ();
@@ -45,9 +45,9 @@ protected:
     CMachine               *m_pMachine;
 
 
-private:
+  private:
 
-};
+  };
 
 
 } //namespace CPC
