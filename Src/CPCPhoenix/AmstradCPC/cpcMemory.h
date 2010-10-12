@@ -21,38 +21,35 @@ namespace CPC {
   {
   public:
 
-    enum TRamConfig
+    static const int        MAX_NUM_RAM_BLOCKS = 8;
+
+    enum ERomBlockIndex
     {
-      RAM_CONFIG_0_1_2_3     = 0,
-      RAM_CONFIG_0_1_2_3s    = 1,
-      RAM_CONFIG_0s_1s_2s_3s = 2,
-      RAM_CONFIG_0_3_2_3s    = 3,
-      RAM_CONFIG_0_0s_2_3    = 4,
-      RAM_CONFIG_0_1s_2_3    = 5,
-      RAM_CONFIG_0_2s_2_3    = 6,
-      RAM_CONFIG_0_3s_2_3    = 7,
+      ROMINDEX_OS     = 0,
+      ROMINDEX_BASIC  = 1,
+      ROMINDEX_AMSDOS = 2,
+
+      MAX_NUM_ROM_BLOCKS
     };
 
 
-    CMemory                   (CMachine *pMachine);
+                            CMemory                   (CMachine *pMachine);
     virtual                ~CMemory                   ()  { FreeVars(); }
 
     /** Resets the subsystem. */
     virtual void            Reset                     ();
 
-    /** We are notified that another subsytem is trying to write a byte to us.
-    *** Usually it's the CPU through an OUT instruction. */
-    virtual void            RespondToWritePortRequest (cpcWord nPort, cpcByte nValue);
+    /** Returns the requested ROM block. */
+    CMemoryBlock*           GetRomBlock               (ERomBlockIndex eIndex);
+    /** Returns the requested ROM block (const version). */
+    const CMemoryBlock*     GetRomBlock               (ERomBlockIndex eIndex) const;
 
-    /** Sets the RAM configuration. */
-    void                    SetRamConfiguration       (unsigned nSecondaryPage, TRamConfig eConfig);
-    /** Sets the ROM visibility. */
-    void                    SetRomVisibility          (bool bLowerRomVisible, bool bUpperRomVisible);
-
-    /** Reads a byte from the specified address. */
-    cpcByte                 ReadByte                  (cpcWord nAddress) const;
-    /** Writes a byte in the specified address. */
-    void                    WriteByte                 (cpcWord nAddress, cpcByte nValue);
+    /** Returns the requested RAM block. The index can go from 0 to MAX_NUM_RAM_BLOCKS.
+    *** The first four are the 64k primary RAM page, the last four the 64k secondary RAM page. */
+    CMemoryBlock*           GetRamBlock               (int i);
+    /** Returns the requested RAM block. The index can go from 0 to MAX_NUM_RAM_BLOCKS (const version).
+    *** The first four are the 64k primary RAM page, the last four the 64k secondary RAM page. */
+    const CMemoryBlock*     GetRamBlock               (int i) const;
 
 
   private:
@@ -60,38 +57,15 @@ namespace CPC {
     typedef                 CSubSystem                inherited;
 
 
-    enum
-    {
-      MAX_NUM_ROM_BLOCKS = 3,
-      MAX_NUM_RAM_BLOCKS = 8,
-    };
-
-
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
-    void                    UpdateVisibleBlocks       ();
 
-
-    /** The ROM blocks present in the machine. */
+    /** The ROM blocks present in the machine.
+    *** Index 0: Operating System, index 1: BASIC, index 2: AMSDOS */
     CMemoryBlock           *m_apRomBlocks[MAX_NUM_ROM_BLOCKS];
     /** The RAM blocks present in the machine. */
     CMemoryBlock           *m_apRamBlocks[MAX_NUM_RAM_BLOCKS];
-
-    /** The blocks that are visible for read operations (can be either ROM or RAM blocks). */
-    CMemoryBlock           *m_apVisibleReadBlocks[4];
-    /** The blocks that are visible for write operations (always RAM blocks). */
-    CMemoryBlock           *m_apVisibleWriteBlocks[4];
-
-    /** Which secondary 64K RAM page to use. */
-    unsigned                m_nSecondaryPage;
-    /** The RAM configuration. */
-    TRamConfig              m_eRamConfig;
-
-    /** Whether the lower ROM (Operating System ROM) is visible in the range &0000-&3FFF or not. */
-    bool                    m_bLowerRomVisible;
-    /** Whether the upper ROM (BASIC or expansion ROM) is visible in the range &C000-&FFFF or not. */
-    bool                    m_bUpperRomVisible;
 
   };
 

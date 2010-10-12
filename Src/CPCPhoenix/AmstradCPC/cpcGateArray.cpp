@@ -1,17 +1,50 @@
 //-------------------------------------------------------------------------------------------
-// File:        GateArray.cpp
-//
-// Description: 
 //-------------------------------------------------------------------------------------------
 
 #include "stdafx.h"
 #include "cpcGateArray.h"
 #include "cpcMachine.h"
-#include "cpcMemory.h"
+#include "cpcMemoryBlock.h"
+
+
+#define GET_MEMORY_BLOCK_FROM_ADDRESS(addr)   ((addr & 0xC000) >> 14)
+#define GET_OFFSET_FROM_ADDRESS(addr)         (addr & 0x3FFF)
 
 
 
 namespace CPC {
+
+
+  struct SRamConfigItem
+  {
+    unsigned nBlockIndex;
+    bool     bFromSecondaryPage;
+  };
+
+  struct SRamConfigEntry
+  {
+    SRamConfigItem Range[4];
+  };
+
+  static SRamConfigEntry s_aRamConfigTable[] =
+  {
+    // RAM_CONFIG_0_1_2_3
+    { 0, false, 1, false, 2, false, 3, false },
+    // RAM_CONFIG_0_1_2_3s
+    { 0, false, 1, false, 2, false, 3, true  },
+    // RAM_CONFIG_0s_1s_2s_3s
+    { 0, true , 1, true , 2, true , 3, true  },
+    // RAM_CONFIG_0_3_2_3s
+    { 0, false, 3, false, 2, false, 3, true  },
+    // RAM_CONFIG_0_0s_2_3
+    { 0, false, 0, true , 2, false, 3, false },
+    // RAM_CONFIG_0_1s_2_3
+    { 0, false, 1, true , 2, false, 3, false },
+    // RAM_CONFIG_0_2s_2_3
+    { 0, false, 2, true , 2, false, 3, false },
+    // RAM_CONFIG_0_3s_2_3
+    { 0, false, 3, true , 2, false, 3, false },
+  };
 
 
 
@@ -21,6 +54,8 @@ namespace CPC {
   */
   CGateArray::CGateArray(CMachine *pMachine) : inherited( pMachine )
   {
+    // Simulate a system reset
+    Reset();
   }
 
   //----------------------------------------------------------------------------
@@ -38,8 +73,12 @@ namespace CPC {
       m_anPenColors[i] = i;
     }
 
-    m_nBorderColor = 0;
-    m_eScreenMode  = SCREEN_MODE_1;
+    m_nBorderColor     = 0;
+    m_eScreenMode      = SCREEN_MODE_1;
+    m_nSecondaryPage   = 0;
+    m_eRamConfig       = RAM_CONFIG_0_1_2_3;
+    m_bLowerRomVisible = true;
+    m_bUpperRomVisible = false;
   }
 
   //----------------------------------------------------------------------------
@@ -48,7 +87,7 @@ namespace CPC {
   */
   void CGateArray::FreeVars()
   {
-
+    //...
   }
 
   //----------------------------------------------------------------------------
@@ -57,9 +96,11 @@ namespace CPC {
   */
   /*virtual*/ void CGateArray::Reset()
   {
+    // Reset members
+    ResetVars();
 
-
-
+    // Determine visible read/write blocks
+    UpdateVisibleMemoryBlocks();
   }
 
   //----------------------------------------------------------------------------
@@ -87,6 +128,11 @@ namespace CPC {
   {
     //
     // Gate-Array port --> Bit 15 == 0, Bit 14 == 1
+    // RAM configuration port --> Bit 15 == 0
+    // ROM Select port --> Bit 13 == 0
+    //
+    // Note: Several ports can be written to at the same time, and also the same device can respond to different addresses.
+    //       This is because the CPC doesn't fully decode the port address.
     //
 
     // Gate-Array port?
@@ -121,10 +167,10 @@ namespace CPC {
       case 2:   // Change screen mode, ROM visibility and interrupt control
         {
           // Screen mode (bits 1,0)
-          SetScreenMode( (TScreenMode) (nValue & 0x03) );
+          SetScreenMode( (EScreenMode) (nValue & 0x03) );
 
           // ROM selection (bit 2 - Lower ROM, bit 3 - Upper ROM)
-          GetMachine()->GetMemory()->SetRomVisibility( (nValue&0x02)==0, (nValue&0x04)==0 );
+          SetRomVisibility( (nValue&0x02)==0, (nValue&0x04)==0 );
 
           // Interrupt control
           //**************************************** TODO - TODO - TODO **********************************************
@@ -133,6 +179,35 @@ namespace CPC {
           //**************************************** TODO - TODO - TODO **********************************************
         }
         break;
+      }
+    }
+
+    // RAM configuration port?
+    if( !(nPort & 0x8000) )      // If bit 15 is cleared...
+    {
+      if( ((nValue & 0xC0) >> 6) == 4)
+      {
+        // Bits 2-0 define one of the eight possible RAM configurations
+        // Note: If we wanted to emulate expansion RAMs other than the CPC6128 built-in one, we would have
+        //       to look into bits 4,3 which contain the secondary 64k page to use.
+        SetRamConfiguration( 0/*nSecondaryPage*/, (ERamConfig) (nValue&0x03) );
+      }
+    }
+
+    // ROM Select port?
+    if( !(nPort & 0x2000) )    // If bit 13 is cleared...
+    {
+      // This selects the upper ROM in use (range &C000-&FFFF), but it still needs to be made visible through the Gate Array.
+      // Lower ROM (range &0000-&3fff) cannot be changed, Operating System ROM is the only choice.
+      //
+      // Every expansion ROM has a 8-bit identifier. BASIC has identifier 0 and AMSDOS has identifier 7.
+      // If an attempt to select a ROM that is not connected is made, BASIC is selected.
+      switch (nValue)
+      {
+        case 0:   SelectUpperRom( CMemory::ROMINDEX_BASIC ); break;
+        case 7:   SelectUpperRom( CMemory::ROMINDEX_AMSDOS ); break;
+        // ...Insert other expansion ROMs here...
+        default:  SelectUpperRom( CMemory::ROMINDEX_BASIC ); break;
       }
     }
   }
@@ -171,9 +246,96 @@ namespace CPC {
   /**
   ** 
   */
-  void CGateArray::SetScreenMode(TScreenMode eScreenMode)
+  void CGateArray::SetScreenMode(EScreenMode eScreenMode)
   {
     m_eScreenMode = eScreenMode;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::SetRamConfiguration(unsigned nSecondaryPage, ERamConfig eConfig)
+  {
+    m_nSecondaryPage = nSecondaryPage;
+    m_eRamConfig     = eConfig;
+
+    UpdateVisibleMemoryBlocks();
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::SetRomVisibility(bool bLowerRomVisible, bool bUpperRomVisible)
+  {
+    m_bLowerRomVisible = bLowerRomVisible;
+    m_bUpperRomVisible = bUpperRomVisible;
+
+    UpdateVisibleMemoryBlocks();
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::SelectUpperRom(CMemory::ERomBlockIndex eIndex)
+  {
+    m_eSelectedUpperRom = eIndex;
+    UpdateVisibleMemoryBlocks();
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::UpdateVisibleMemoryBlocks()
+  {
+    SRamConfigEntry &config = s_aRamConfigTable[ m_eRamConfig ];
+    unsigned         i;
+
+    // Write blocks
+    for (i = 0; i < 4; i++)
+    {
+      if ( !config.Range[i].bFromSecondaryPage )
+      {
+        // From primary page
+        m_apVisibleWriteBlocks[i] = GetMachine()->GetMemory()->GetRamBlock( config.Range[i].nBlockIndex );
+      }
+      else
+      {
+        // From secondary page
+        m_apVisibleWriteBlocks[i] = GetMachine()->GetMemory()->GetRamBlock( config.Range[i].nBlockIndex + (m_nSecondaryPage * 4) );
+      }
+    }
+
+    // Read blocks
+    m_apVisibleReadBlocks[0] = (m_bLowerRomVisible ? GetMachine()->GetMemory()->GetRomBlock(CMemory::ROMINDEX_OS) : m_apVisibleWriteBlocks[0]);
+    m_apVisibleReadBlocks[1] = m_apVisibleWriteBlocks[1];
+    m_apVisibleReadBlocks[2] = m_apVisibleWriteBlocks[2];
+    m_apVisibleReadBlocks[3] = (m_bUpperRomVisible ? GetMachine()->GetMemory()->GetRomBlock(m_eSelectedUpperRom) : m_apVisibleWriteBlocks[3]);
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  cpcByte CGateArray::ReadByteFromMemory(cpcWord nAddress) const
+  {
+    // Bits 15,14 of nAddress determine which one of the four visible blocks to use
+    // Bits 13-0 of nAddress determine the offset into the selected block
+    return m_apVisibleReadBlocks[GET_MEMORY_BLOCK_FROM_ADDRESS(nAddress)]->ReadByte( GET_OFFSET_FROM_ADDRESS(nAddress) );
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::WriteByteToMemory(cpcWord nAddress, cpcByte nValue)
+  {
+    // Bits 15,14 of nAddress determine which one of the four visible blocks to use
+    // Bits 13-0 of nAddress determine the offset into the selected block
+    m_apVisibleWriteBlocks[GET_MEMORY_BLOCK_FROM_ADDRESS(nAddress)]->WriteByte( GET_OFFSET_FROM_ADDRESS(nAddress), nValue );
   }
 
 } //namespace CPC

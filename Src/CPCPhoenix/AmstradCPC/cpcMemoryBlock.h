@@ -24,12 +24,12 @@ namespace CPC {
     virtual                ~CMemoryBlock              ()  { FreeVars(); }
 
     /** Reads a byte from this memory block.
-    *** Note that bits 15,14 of nAddress are ignored. */
-    cpcByte                 ReadByte                  (cpcWord nAddress) const;
+    *** Valid range is &0000-&4000. Note that bits 15,14 of nAddress are ignored. */
+    cpcByte                 ReadByte                  (cpcWord nAddress) const            { return m_anBytes[nAddress & LAST_BYTE]; }
 
     /** Writes a byte into this memory block.
-    *** Note that bits 15,14 of nAddress are ignored. */
-    void                    WriteByte                 (cpcWord nAddress, cpcByte nValue);
+    *** Valid range is &0000-&4000. Note that bits 15,14 of nAddress are ignored. */
+    void                    WriteByte                 (cpcWord nAddress, cpcByte nValue)  { m_anBytes[nAddress & LAST_BYTE] = nValue; }
 
 
   private:

@@ -28,7 +28,7 @@ namespace CPC {
   */
   void CMemoryBlock::ResetVars()
   {
-
+    //...
   }
 
   //----------------------------------------------------------------------------
@@ -37,25 +37,7 @@ namespace CPC {
   */
   void CMemoryBlock::FreeVars()
   {
-
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  cpcByte CMemoryBlock::ReadByte(cpcWord nAddress) const
-  {
-    return m_anBytes[nAddress & LAST_BYTE];
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  void CMemoryBlock::WriteByte(cpcWord nAddress, cpcByte nValue)
-  {
-    m_anBytes[nAddress & LAST_BYTE] = nValue;
+    //...
   }
 
 } //namespace CPC

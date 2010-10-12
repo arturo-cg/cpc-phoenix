@@ -7,7 +7,7 @@
 #include "stdafx.h"
 #include "cpcCpu.h"
 #include "cpcMachine.h"
-#include "cpcMemory.h"
+#include "cpcGateArray.h"
 
 
 namespace CPC {
@@ -138,8 +138,8 @@ namespace CPC {
   */
   cpcByte CCpu::ReadByteFromMemory(cpcWord nAddr) const
   {
-    // The CPC has no memory-mapped devices so we access the CMemory subsystem directly
-    return GetMachine()->GetMemory()->ReadByte( nAddr );
+    // The CPU accesses memory through the Gate Array, which provides RAM paging.
+    return GetMachine()->GetGateArray()->ReadByteFromMemory( nAddr );
   }
 
   //----------------------------------------------------------------------------
@@ -148,8 +148,8 @@ namespace CPC {
   */
   void CCpu::WriteByteToMemory(cpcWord nAddr, cpcByte nValue)
   {
-    // The CPC has no memory-mapped devices so we access the CMemory subsystem directly
-    GetMachine()->GetMemory()->WriteByte( nAddr, nValue );
+    // The CPU accesses memory through the Gate Array, which provides RAM paging.
+    GetMachine()->GetGateArray()->WriteByteToMemory( nAddr, nValue );
   }
 
   //----------------------------------------------------------------------------

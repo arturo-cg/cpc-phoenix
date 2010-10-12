@@ -6,9 +6,12 @@
 
 
 #include "cpcSubSystem.h"
+#include "cpcMemory.h"
 
 
 namespace CPC {
+
+  class CMemoryBlock;
 
 
   /**
@@ -29,6 +32,13 @@ namespace CPC {
     /** Resets the subsystem. */
     virtual void            Reset                     ();
 
+    /** Reads a byte from memory at the specified address.
+    *** The CPU doesn't access memory directly. Instead, it goes through the Gate Array which provides RAM paging. */
+    cpcByte                 ReadByteFromMemory        (cpcWord nAddress) const;
+    /** Writes a byte to memory at the specified address.
+    *** The CPU doesn't access memory directly. Instead, it goes through the Gate Array which provides RAM paging. */
+    void                    WriteByteToMemory         (cpcWord nAddress, cpcByte nValue);
+
     /** We are notified that another subsytem is trying to write a byte to us.
     *** Usually it's the CPU through an OUT instruction. */
     virtual void            RespondToWritePortRequest (cpcWord nPort, cpcByte nValue);
@@ -48,13 +58,25 @@ namespace CPC {
       MAX_NUM_PALETTE_COLORS = 32,
     };
 
-    enum TScreenMode
+    enum EScreenMode
     {
       // DO NOT change the integer value of each item, it is a direct mapping to the CPC hardware values
       SCREEN_MODE_0 = 0,   // 160x200 resolution, 16 colors
       SCREEN_MODE_1 = 1,   // 320x200 resolution, 4 colors
       SCREEN_MODE_2 = 2,   // 640x200 resolution, 2 colors
       SCREEN_MODE_3 = 3,   // 160x200 resolution, 4 colors (unofficial)
+    };
+
+    enum ERamConfig
+    {
+      RAM_CONFIG_0_1_2_3     = 0,
+      RAM_CONFIG_0_1_2_3s    = 1,
+      RAM_CONFIG_0s_1s_2s_3s = 2,
+      RAM_CONFIG_0_3_2_3s    = 3,
+      RAM_CONFIG_0_0s_2_3    = 4,
+      RAM_CONFIG_0_1s_2_3    = 5,
+      RAM_CONFIG_0_2s_2_3    = 6,
+      RAM_CONFIG_0_3s_2_3    = 7,
     };
 
 
@@ -64,8 +86,12 @@ namespace CPC {
     void                    SelectPen                 (cpcByte nPen);
     void                    SetSelectedPenColor       (cpcByte nColorIndex);
     void                    SetBorderColor            (cpcByte nColorIndex);
-    void                    SetScreenMode             (TScreenMode eScreenMode);
+    void                    SetScreenMode             (EScreenMode eScreenMode);
+    void                    SetRamConfiguration       (unsigned nSecondaryPage, ERamConfig eConfig);
     void                    SetRomVisibility          (bool bLowerRomVisible, bool bUpperRomVisible);
+    void                    SelectUpperRom            (CMemory::ERomBlockIndex eIndex);
+
+    void                    UpdateVisibleMemoryBlocks ();
 
 
     /** Currently selected pen. This is the pen that will be changed on the next "change pen color" operation.
@@ -78,13 +104,24 @@ namespace CPC {
     int                     m_nBorderColor;
 
     /** Screen mode. When this value is changed, it won't take effect until the next HSYNC. */
-    TScreenMode             m_eScreenMode;
+    EScreenMode             m_eScreenMode;
 
-    // --- This is kept in CMemory ---
-    //     /** If true, lower ROM (operating system ROM) is mapped into memory at &0000-&3FFF. */
-    //     bool                    m_bLowerRomVisible;
-    //     /** If true, upper ROM (BASIC or expansion ROM) is mapped into memory at &C000-&FFFF. */
-    //     bool                    m_bUpperRomVisible;
+    /** The blocks that are visible for read operations (can be either ROM or RAM blocks). */
+    CMemoryBlock           *m_apVisibleReadBlocks[4];
+    /** The blocks that are visible for write operations (always RAM blocks). */
+    CMemoryBlock           *m_apVisibleWriteBlocks[4];
+
+    /** Which secondary 64K RAM page to use. */
+    unsigned                m_nSecondaryPage;
+    /** The RAM configuration. */
+    ERamConfig              m_eRamConfig;
+
+    /** Whether the lower ROM (Operating System ROM) is visible in the range &0000-&3FFF or not. */
+    bool                    m_bLowerRomVisible;
+    /** Whether the upper ROM (BASIC, AMSDOS or expansion ROM) is visible in the range &C000-&FFFF or not. */
+    bool                    m_bUpperRomVisible;
+    /** The upper ROM (range &C000-&FFFF) currently selected. */
+    CMemory::ERomBlockIndex m_eSelectedUpperRom;
 
   };
 
