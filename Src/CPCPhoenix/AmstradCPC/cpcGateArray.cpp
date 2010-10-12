@@ -73,12 +73,12 @@ namespace CPC {
       m_anPenColors[i] = i;
     }
 
-    m_nBorderColor     = 0;
-    m_eScreenMode      = SCREEN_MODE_1;
-    m_nSecondaryPage   = 0;
-    m_eRamConfig       = RAM_CONFIG_0_1_2_3;
-    m_bLowerRomVisible = true;
-    m_bUpperRomVisible = false;
+    m_nBorderColor      = 0;
+    m_eScreenMode       = SCREEN_MODE_1;
+    m_nSecondaryRamPage = 1;
+    m_eRamConfig        = RAM_CONFIG_0_1_2_3;
+    m_bLowerRomVisible  = true;
+    m_bUpperRomVisible  = false;
   }
 
   //----------------------------------------------------------------------------
@@ -190,7 +190,7 @@ namespace CPC {
         // Bits 2-0 define one of the eight possible RAM configurations
         // Note: If we wanted to emulate expansion RAMs other than the CPC6128 built-in one, we would have
         //       to look into bits 4,3 which contain the secondary 64k page to use.
-        SetRamConfiguration( 0/*nSecondaryPage*/, (ERamConfig) (nValue&0x03) );
+        SetRamConfiguration( 1/*nSecondaryRamPage*/, (ERamConfig) (nValue&0x03) );
       }
     }
 
@@ -257,8 +257,8 @@ namespace CPC {
   */
   void CGateArray::SetRamConfiguration(unsigned nSecondaryPage, ERamConfig eConfig)
   {
-    m_nSecondaryPage = nSecondaryPage;
-    m_eRamConfig     = eConfig;
+    m_nSecondaryRamPage = nSecondaryPage;
+    m_eRamConfig        = eConfig;
 
     UpdateVisibleMemoryBlocks();
   }
@@ -297,16 +297,9 @@ namespace CPC {
     // Write blocks
     for (i = 0; i < 4; i++)
     {
-      if ( !config.Range[i].bFromSecondaryPage )
-      {
-        // From primary page
-        m_apVisibleWriteBlocks[i] = GetMachine()->GetMemory()->GetRamBlock( config.Range[i].nBlockIndex );
-      }
-      else
-      {
-        // From secondary page
-        m_apVisibleWriteBlocks[i] = GetMachine()->GetMemory()->GetRamBlock( config.Range[i].nBlockIndex + (m_nSecondaryPage * 4) );
-      }
+      int nRamPage;
+      nRamPage = ( config.Range[i].bFromSecondaryPage ? m_nSecondaryRamPage : 0 );
+      m_apVisibleWriteBlocks[i] = GetMachine()->GetMemory()->GetRamBlock( config.Range[i].nBlockIndex + (nRamPage * 4) );
     }
 
     // Read blocks

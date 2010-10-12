@@ -112,7 +112,7 @@ namespace CPC {
     CMemoryBlock           *m_apVisibleWriteBlocks[4];
 
     /** Which secondary 64K RAM page to use. */
-    unsigned                m_nSecondaryPage;
+    unsigned                m_nSecondaryRamPage;
     /** The RAM configuration. */
     ERamConfig              m_eRamConfig;
 
