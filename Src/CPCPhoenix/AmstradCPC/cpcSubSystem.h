@@ -32,7 +32,7 @@ namespace CPC {
   protected:
 
     // Constructor is protected to avoid instantiating this class
-    CSubSystem                (CMachine *pMachine);
+                            CSubSystem                (CMachine *pMachine);
 
     void                    ResetVars                 ();
     void                    FreeVars                  ();

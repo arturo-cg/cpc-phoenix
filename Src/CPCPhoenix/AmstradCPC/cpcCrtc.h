@@ -12,8 +12,9 @@ namespace CPC {
 
 
   /**
-  ** Emulates the Motorola 6845 CRTC. This chip along with the Gate-Array are responsible
-  ** for generating the correct video signal that is sent to the Amstrad monitor.
+  ** Emulates the 6845 CRTC chip. It was built by several manufacturers (UMC, Hitachi, Motorola and Amstrad) with slight
+  ** differences between them.
+  ** This chip along with the Gate-Array are responsible for generating the correct video signal that is sent to the Amstrad monitor.
   ** @par
   ** The CRTC was a commercial chip that was used in several machines including the Amstrad.
   ** Its goal is 'simply' to generate memory addresses and HSYNC/VSYNC signals. The Gate-Array
@@ -27,45 +28,50 @@ namespace CPC {
   {
   public:
 
-    CCrtc                     (CMachine *pMachine);
+                            CCrtc                     (CMachine *pMachine);
     virtual                ~CCrtc                     ()  { FreeVars(); }
 
     /** Resets the subsystem. */
     virtual void            Reset                     ();
+
+    /** Returns the current frame count. */
+    unsigned                GetFrameCount             () const  { return m_uFrameCount; }
 
     /** We are notified that another subsytem is trying to write a byte to us.
     *** Usually it's the CPU through an OUT instruction. */
     virtual void            RespondToWritePortRequest (cpcWord nPort, cpcByte nValue);
 
     /** Runs the CRTC for the given number of cycles. */
-    void                    Run                       (unsigned nMinNumCycles);
+    void                    Run                       (unsigned nNumCycles);
 
 
   private:
 
     typedef                 CSubSystem                inherited;
 
+    static const unsigned   CYCLES_PER_FRAME = 20000;
+
 
     enum TRegister
     {
-      HORIZONTAL_TOTAL = 0,
-      HORIZONTAL_DISPLAYED = 1,
-      HORIZONTAL_SYNC_POSITION = 2,
-      SYNC_WIDTHS = 3,
-      VERTICAL_TOTAL = 4,
-      VERTICAL_TOTAL_ADJUST = 5,
-      VERTICAL_DISPLAYED = 6,
-      VERTICAL_SYNC_POSITION = 7,
-      INTERLACE_MODE_AND_SKEW = 8,
-      MAXIMUM_RASTER_ADDRESS = 9,
-      CURSOR_START_RASTER = 10,
-      CURSOR_END_RASTER = 11,
-      START_ADDRESS_HIGH = 12,
-      START_ADDRESS_LOW = 13,
-      CURSOR_HIGH = 14,
-      CURSOR_LOW = 15,
-      LIGHT_PEN_HIGH = 16,
-      LIGHT_PEN_LOW = 17,
+      HORIZONTAL_TOTAL = 0,           // This 8-bit register contains the total of displayed and non-displayed characters, minus one, per horizontal line. The frequency of HSYNC is thus determined by this register.
+      HORIZONTAL_DISPLAYED = 1,       // This 8-bit register contains the number of displayed characters per horizontal line.
+      HORIZONTAL_SYNC_POSITION = 2,   // This 8-bit register contains the position of the HSYNC on the horizontal line. In terms of the character location number on the line. The position of the HSYNC determines the left-to-right location of the displayed text on the video screen. In this way, side margins are adjusted.
+      SYNC_WIDTHS = 3,                // This 4-bit register programs the width of HSYNC.
+      VERTICAL_TOTAL = 4,             // The Vertical Total Register is a 7-bit register containing the total number of character rows in a frame, minus one. This register, along with R5, determines the overall frame rate, which should be close to the line frequency to ensure flicker-free appearance. If the frame time is adjusted to longer than the period of the line frequency, then /RES may be used to provide absolute synchronisation.
+      VERTICAL_TOTAL_ADJUST = 5,      // The Vertical Total Adjust Register is a 5-bit write-only register containing the number of additional scan lines needed to complete an entire frame scan and is intended as a fine adjustment for the video frame time.
+      VERTICAL_DISPLAYED = 6,         // This 7-bit register contains the number of displayed character rows in each frame. In this way, the vertical size of the displayed text is determined.
+      VERTICAL_SYNC_POSITION = 7,     // This 7-bit register is used to select the character row time at which the VSYNC pulse is desired to occur and, thus, is used to position the displayed text vertically.
+      INTERLACE_MODE_AND_SKEW = 8,    // This register is used to select the operating modes of the UM6845R and is configured as follows: (see UM6845 datasheet).
+      MAXIMUM_RASTER_ADDRESS = 9,     // This 5-bit register controls the number of scan lines per character row, including spacing minus one.
+      CURSOR_START_RASTER = 10,       // These 5-bit registers select the starting and edning scan lines for the cursor. In addition, bits 5 and 6 of R10 are used to select the cursor mode, as follows: (see UM6845 datasheet).
+      CURSOR_END_RASTER = 11,         // "            "            "
+      START_ADDRESS_HIGH = 12,        // These registers together comprise a 14-bit register containing the memory address of the first character of the displayed scan line (character on the top left of the video display, as in Figure 4). ...
+      START_ADDRESS_LOW = 13,         // ... Subsequent memory addressess are generated by the UM6845R as a result of CCLK input pulses. Scrolling of the display is accomplished by changing R12 and R13 to the memory address associated with the first character of the desired line of text to be displayed first. Entire pages of text may be scrolled or changed as well via R12 and R13.
+      CURSOR_ADDRESS_HIGH = 14,       // These registers together comprise a 14-bit register containing the memory address of the current cursor position. When the video display scan counter (MA lines) matches the contents of this register, ...
+      CURSOR_ADDRESS_LOW = 15,        // ... and when the scan line counter (RA lines) falls within the bounds set by R10 and R11, then the CURSOR output becomes active. Bit 5 of the Mode Control Register (R8) may be used to delay the CURSOR output by a full CCLK time to accomodate slow access memories.
+      LIGHTPEN_ADDRESS_HIGH = 16,     // These registers together comprise a 14-bit register whose contents is the light pen strobe position, in terms of the video display address at which the strobe occured. When the LPEN input changes ...
+      LIGHTPEN_ADDRESS_LOW = 17,      // ... from low to high on the next negative-going edge of CCLK the contents of the internal scan counter are stored in registers R16 and R17.
 
       NUM_REGISTERS,
       INVALID_REGISTER = 0xFFFFFFFF
@@ -76,8 +82,13 @@ namespace CPC {
     void                    FreeVars                  ();
 
 
-    /** The internal control registers. */
+    /** The internal registers. */
     cpcByte                 m_anRegisters[NUM_REGISTERS];
+    /** The currently selected internal register. */
+    int                     m_nSelectedRegister;
+
+    unsigned                m_uCycleCount;
+    unsigned                m_uFrameCount;
 
   };
 

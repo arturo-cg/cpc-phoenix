@@ -10,6 +10,7 @@
 #include "cpcMemory.h"
 #include "cpcGateArray.h"
 #include "cpcCrtc.h"
+#include "cpcDisplay.h"
 #include "cpcVideoOutput.h"
 
 
@@ -35,6 +36,7 @@ namespace CPC {
     m_pMemory    = new CMemory( this );
     m_pGateArray = new CGateArray( this );
     m_pCrtc      = new CCrtc( this );
+    m_pDisplay   = new CDisplay( this );
   }
 
   //----------------------------------------------------------------------------
@@ -48,7 +50,8 @@ namespace CPC {
     m_pMemory            = NULL;
     m_pGateArray         = NULL;
     m_pCrtc              = NULL;
-    m_pVideoOutput     = NULL;
+    m_pDisplay           = NULL;
+    m_pVideoOutput       = NULL;
     m_nTimeFromLastFrame = 0;
   }
 
@@ -58,10 +61,20 @@ namespace CPC {
   */
   void CMachine::FreeVars()
   {
-    delete m_pCpu; m_pCpu = NULL;
-    delete m_pMemory; m_pMemory = NULL;
-    delete m_pGateArray; m_pGateArray = NULL;
+    delete m_pDisplay; m_pDisplay = NULL;
     delete m_pCrtc; m_pCrtc = NULL;
+    delete m_pGateArray; m_pGateArray = NULL;
+    delete m_pMemory; m_pMemory = NULL;
+    delete m_pCpu; m_pCpu = NULL;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  unsigned CMachine::GetFrameCount() const
+  {
+    return m_pCrtc->GetFrameCount();
   }
 
   //----------------------------------------------------------------------------
@@ -86,7 +99,7 @@ namespace CPC {
     // The Amstrad CPC doesn't decode the port address fully. This implies that: (1) a device can respond to
     // more than one port address and (2) several devices can respond to a single port address.
     GetGateArray()->RespondToWritePortRequest( nPort, nValue );
-    GetMemory()->RespondToWritePortRequest( nPort, nValue );
+    GetCrtc()->RespondToWritePortRequest( nPort, nValue );
   }
 
   //----------------------------------------------------------------------------
@@ -127,22 +140,6 @@ namespace CPC {
     // Gate-Array (1Mhz clock)
     nNumCycles = nMicroSecs;
     GetGateArray()->Run( nNumCycles );
-
-    // Should we draw a new frame? The CPC VDU displays a new frame every 19968 microseconds (50Hz frame rate)
-    m_nTimeFromLastFrame += nMicroSecs;
-
-    if( m_nTimeFromLastFrame >= FRAME_PERIOD )
-    {
-      // Notify the frame listener
-      if(m_pVideoOutput != NULL)
-      {
-        m_pVideoOutput->NotifyNewFrame();
-      }
-
-      // Accumulate the remaining time for the next frame notification
-      m_nTimeFromLastFrame -= FRAME_PERIOD;
-    }
-
   }
 
 } //namespace CPC

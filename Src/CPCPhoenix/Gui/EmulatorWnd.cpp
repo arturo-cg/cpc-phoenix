@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "CPCPhoenix.h"
 #include "EmulatorWnd.h"
-#include "WinVideoOutput.h"
+#include "cpcMachine.h"
+#include "cpcDisplay.h"
 
 
 #ifdef _DEBUG
@@ -10,8 +11,8 @@
 
 
 BEGIN_MESSAGE_MAP(CEmulatorWnd, CWnd)
-    ON_WM_CREATE()
-    ON_WM_PAINT()
+  ON_WM_CREATE()
+  ON_WM_PAINT()
 END_MESSAGE_MAP()
 
 
@@ -22,6 +23,8 @@ END_MESSAGE_MAP()
 */
 CEmulatorWnd::CEmulatorWnd()
 {
+  m_pEmulatedMachine = NULL;
+  m_pBackBuffer      = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -38,15 +41,15 @@ CEmulatorWnd::~CEmulatorWnd()
 */
 BOOL CEmulatorWnd::PreCreateWindow(CREATESTRUCT& cs) 
 {
-    if (!CWnd::PreCreateWindow(cs))
-        return FALSE;
+  if (!CWnd::PreCreateWindow(cs))
+    return FALSE;
 
-    cs.dwExStyle |= WS_EX_CLIENTEDGE;
-    cs.style &= ~WS_BORDER;
-    cs.lpszClass = AfxRegisterWndClass(CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS, 
-        ::LoadCursor(NULL, IDC_ARROW), NULL/*reinterpret_cast<HBRUSH>(COLOR_WINDOW+1)*/, NULL);
+  cs.dwExStyle |= WS_EX_CLIENTEDGE;
+  cs.style &= ~WS_BORDER;
+  cs.lpszClass = AfxRegisterWndClass(CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS, 
+    ::LoadCursor(NULL, IDC_ARROW), NULL/*reinterpret_cast<HBRUSH>(COLOR_WINDOW+1)*/, NULL);
 
-    return TRUE;
+  return TRUE;
 }
 
 //----------------------------------------------------------------------------
@@ -55,15 +58,44 @@ BOOL CEmulatorWnd::PreCreateWindow(CREATESTRUCT& cs)
 */
 int CEmulatorWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    // Create the memory DC that will be used as the back-buffer
-    m_BackBufferDC.CreateCompatibleDC( GetDC() );
-    m_BackBufferSize.SetSize( CPC::CVideoOutput::MAX_SCREEN_WIDTH, CPC::CVideoOutput::MAX_SCREEN_HEIGHT );
+  // Create the back-buffer
+  unsigned nBackBufferLength;
+  nBackBufferLength = CPC::CDisplay::IMAGEBUFFER_WIDTH * CPC::CDisplay::IMAGEBUFFER_HEIGHT * 4/*bytes-per-pixel*/;
 
-    // Create a bitmap with size equal to maximum CPC screen size and 32 color bits
-    m_BackBufferBmp.CreateBitmap( m_BackBufferSize.cx, m_BackBufferSize.cy, 1, 32, NULL );
+  m_pBackBuffer = new unsigned char [nBackBufferLength];
 
-    // Everything OK, go on with window creation
-    return 0;
+  // Create a CBitmap to hold the back-buffer and tell it to grab pixels from m_pBackBuffer
+  CSize bitmapSize;
+  bitmapSize.SetSize( CPC::CDisplay::IMAGEBUFFER_WIDTH, CPC::CDisplay::IMAGEBUFFER_HEIGHT );
+
+  ////////m_BackBufferBitmap.CreateBitmap( bitmapSize.cx, bitmapSize.cy, 1/*nPlanes*/, 32/*nBitCount = bpp*/, m_pBackBuffer/*lpBits*/ );
+  m_BackBufferBitmap.CreateCompatibleBitmap( GetDC(), bitmapSize.cx, bitmapSize.cy );
+
+//*************************************** TODO - TODO - TODO *********************************************
+//*************************************** TODO - TODO - TODO *********************************************
+  // Check device context format and tell CPC::CDisplay to decode the image in the same format.
+  BITMAP bitmapInfo;
+  m_BackBufferBitmap.GetBitmap( &bitmapInfo );
+//*************************************** TODO - TODO - TODO *********************************************
+//*************************************** TODO - TODO - TODO *********************************************
+
+  // Create the memory DC that will be used as the back-buffer
+  m_BackBufferDC.CreateCompatibleDC( GetDC() );
+  m_BackBufferDC.SelectObject( &m_BackBufferBitmap );
+
+  // Everything OK, go on with window creation
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void CEmulatorWnd::UpdateDisplayImage()
+{
+  // Tell the emulated machine to decode the current frame
+  m_pEmulatedMachine->GetDisplay()->DecodeImage_B8G8R8X8( m_pBackBuffer );
+  m_BackBufferBitmap.SetBitmapBits( CPC::CDisplay::IMAGEBUFFER_WIDTH * CPC::CDisplay::IMAGEBUFFER_HEIGHT * 4/*bytes-per-pixel*/, m_pBackBuffer );
 }
 
 //----------------------------------------------------------------------------
@@ -72,38 +104,14 @@ int CEmulatorWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 */
 void CEmulatorWnd::OnPaint() 
 {
-    CPaintDC dc(this);
+  CPaintDC dc(this);
 
-    // Select the back-buffer bitmap
-    CBitmap *pOldBmp;
-    pOldBmp = m_BackBufferDC.SelectObject( &m_BackBufferBmp );
+  // Copy the back-buffer to the window DC
+  CRect rClientArea;
+  GetClientRect( &rClientArea );
 
-//******************************************* TODO - TODO - TODO ************************************************
-//******************************************* TODO - TODO - TODO ************************************************
-// Here we should paint the emulated video output.
-
-    // Paint a colored rectangle that occupies the whole back-buffer
-    CBrush brush;
-    CBrush *pOldBrush;
-    //brush.CreateStockObject( DKGRAY_BRUSH );
-    brush.CreateSolidBrush( RGB(m_nColorBG,m_nColorBG,m_nColorBG) );
-
-    pOldBrush = m_BackBufferDC.SelectObject( &brush );
-    m_BackBufferDC.Rectangle( CRect(CPoint(0,0), m_BackBufferSize) );
-
-    m_BackBufferDC.SelectObject( pOldBrush );
-
-    // Copy the back-buffer to the window DC
-    CRect rClientArea;
-    GetClientRect( &rClientArea );
-
-    dc.StretchBlt( 0, 0, rClientArea.Width(), rClientArea.Height(),
-                   &m_BackBufferDC, 0, 0, m_BackBufferSize.cx, m_BackBufferSize.cy, SRCCOPY );
-//     dc.BitBlt( 0, 0, rClientArea.Width(), rClientArea.Height(),
-//                &m_BackBufferDC, 0, 0, SRCCOPY );
-//******************************************* TODO - TODO - TODO ************************************************
-//******************************************* TODO - TODO - TODO ************************************************
-
-    // Unselect the back-buffer bitmap
-    m_BackBufferDC.SelectObject( /*&pOldBmp*/(CBitmap*)NULL );
+  dc.StretchBlt( 0, 0, rClientArea.Width(), rClientArea.Height(),
+                 &m_BackBufferDC, 0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH, CPC::CDisplay::IMAGEBUFFER_HEIGHT, SRCCOPY );
+  //     dc.BitBlt( 0, 0, rClientArea.Width(), rClientArea.Height(),
+  //                &m_BackBufferDC, 0, 0, SRCCOPY );
 }

@@ -12,6 +12,7 @@ namespace CPC {
   class CMemory;
   class CGateArray;
   class CCrtc;
+  class CDisplay;
   class CVideoOutput;
 
 
@@ -34,27 +35,33 @@ namespace CPC {
     };
 
 
-    CMachine                  (TModel eType);
+                            CMachine                  (TModel eType);
     virtual                ~CMachine                  ()  { FreeVars(); }
 
     /** Returns the model of the emulated machine. */
     TModel                  GetModel                  () const  { return m_eModel; }
 
     /** Registers a new frame listener in this machine. */
-    void                    RegisterVideoOutput     (CVideoOutput *pVideoOutput);
+    void                    RegisterVideoOutput       (CVideoOutput* pVideoOutput);
+
+    /** Returns the current frame count. */
+    unsigned                GetFrameCount             () const;
 
     /** Returns the CPU subsystem. */
-    CCpu                   *GetCpu                    ()        { return m_pCpu; }
-    const CCpu             *GetCpu                    () const  { return m_pCpu; }
+    CCpu*                   GetCpu                    ()        { return m_pCpu; }
+    const CCpu*             GetCpu                    () const  { return m_pCpu; }
     /** Returns the memory subsystem. */
-    CMemory                *GetMemory                 ()        { return m_pMemory; }
-    const CMemory          *GetMemory                 () const  { return m_pMemory; }
+    CMemory*                GetMemory                 ()        { return m_pMemory; }
+    const CMemory*          GetMemory                 () const  { return m_pMemory; }
     /** Returns the Gate Array subsystem. */
-    CGateArray             *GetGateArray              ()        { return m_pGateArray; }
-    const CGateArray       *GetGateArray              () const  { return m_pGateArray; }
+    CGateArray*             GetGateArray              ()        { return m_pGateArray; }
+    const CGateArray*       GetGateArray              () const  { return m_pGateArray; }
     /** Returns the CRTC subsystem. */
-    CCrtc                  *GetCrtc                   ()        { return m_pCrtc; }
-    const CCrtc            *GetCrtc                   () const  { return m_pCrtc; }
+    CCrtc*                  GetCrtc                   ()        { return m_pCrtc; }
+    const CCrtc*            GetCrtc                   () const  { return m_pCrtc; }
+    /** Returns the display subsystem. */
+    CDisplay*               GetDisplay                ()        { return m_pDisplay; }
+    const CDisplay*         GetDisplay                () const  { return m_pDisplay; }
 
     /** Reads a byte from the specified port. */
     cpcByte                 ReadByteFromPort          (cpcWord nPort) const;
@@ -77,13 +84,14 @@ namespace CPC {
 
     TModel                  m_eModel;
 
-    CCpu                   *m_pCpu;
-    CMemory                *m_pMemory;
-    CGateArray             *m_pGateArray;
-    CCrtc                  *m_pCrtc;
+    CCpu*                   m_pCpu;
+    CMemory*                m_pMemory;
+    CGateArray*             m_pGateArray;
+    CCrtc*                  m_pCrtc;
+    CDisplay*               m_pDisplay;
 
     unsigned                m_nTimeFromLastFrame;
-    CVideoOutput         *m_pVideoOutput;
+    CVideoOutput*           m_pVideoOutput;
 
   };
 

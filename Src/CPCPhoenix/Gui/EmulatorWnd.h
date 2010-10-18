@@ -2,35 +2,38 @@
 #define _EMULATORWND_H_
 
 
+class CPC::CMachine;
+
+
 class CEmulatorWnd : public CWnd
 {
 public:
 
-                              CEmulatorWnd              ();
-    virtual                  ~CEmulatorWnd              ();
+  CEmulatorWnd              ();
+  virtual                  ~CEmulatorWnd              ();
 
-//************************************* PRUEBAS *********************************************************
-//************************************* PRUEBAS *********************************************************
-    int m_nColorBG;
-//************************************* PRUEBAS *********************************************************
-//************************************* PRUEBAS *********************************************************
+  void                      SetEmulatedMachine        (CPC::CMachine* pMachine)  { m_pEmulatedMachine = pMachine; }
+
+  void                      UpdateDisplayImage        ();
 
 
 protected:
 
-    virtual BOOL              PreCreateWindow           (CREATESTRUCT& cs);
+  virtual BOOL              PreCreateWindow           (CREATESTRUCT& cs);
 
-    // Generated message map functions
-    afx_msg int               OnCreate                  (LPCREATESTRUCT lpCreateStruct);
-    afx_msg void              OnPaint                   ();
-    DECLARE_MESSAGE_MAP()
+  // Generated message map functions
+  afx_msg int               OnCreate                  (LPCREATESTRUCT lpCreateStruct);
+  afx_msg void              OnPaint                   ();
+  DECLARE_MESSAGE_MAP()
 
 
 private:
 
-    CDC                       m_BackBufferDC;
-    CBitmap                   m_BackBufferBmp;
-    CSize                     m_BackBufferSize;
+  CPC::CMachine*            m_pEmulatedMachine;
+
+  CDC                       m_BackBufferDC;
+  CBitmap                   m_BackBufferBitmap;
+  unsigned char*            m_pBackBuffer;
 
 };
 

@@ -66,6 +66,11 @@ BOOL CCPCPhoenixApp::InitInstance()
     // such as the name of your company or organization
 ////////////////////////	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 
+    // Reset member variables
+    m_pAppWnd     = NULL;
+    m_pMachine    = NULL;
+    m_uFrameCount = 0;
+
     // We create the emulated machine instance
     m_pMachine = new CPC::CMachine( CPC::CMachine::CPC_464 );
     m_pMachine->Reset();
@@ -86,10 +91,7 @@ BOOL CCPCPhoenixApp::InitInstance()
                          WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, NULL,
                          NULL);
 
-
-
-
-
+    m_pAppWnd->GetEmulatorWnd()->SetEmulatedMachine( m_pMachine );
 
     // The one and only window has been initialized, so show and update it
     m_pAppWnd->ShowWindow(SW_SHOW);
@@ -109,8 +111,7 @@ BOOL CCPCPhoenixApp::InitInstance()
 */
 /*virtual*/ BOOL CCPCPhoenixApp::OnIdle(LONG lCount)
 {
-    static unsigned nTimeStep          = 100;
-    static unsigned nTimeFromLastFrame = 0;
+    unsigned nTimeStep = 100;
 
     // Let the base class do its stuff
     CWinApp::OnIdle( lCount );
@@ -120,18 +121,17 @@ BOOL CCPCPhoenixApp::InitInstance()
 //****************************************** TODO - TODO - TODO ************************************************
     m_pMachine->Run( nTimeStep );
 
-    // Repaint the emulator window
-    CEmulatorWnd *pEmulatorWnd;
-    pEmulatorWnd = GetAppWnd()->GetEmulatorWnd();
-
-    nTimeFromLastFrame += nTimeStep;
-
-    if( nTimeFromLastFrame >= 19968 )
+    // Has the emulated machine completed a new video frame?
+    if (m_uFrameCount < m_pMachine->GetFrameCount())
     {
-        pEmulatorWnd->m_nColorBG = (pEmulatorWnd->m_nColorBG + 1) % 256;
-        pEmulatorWnd->Invalidate( FALSE );
+      // Grab the new display image
+      CEmulatorWnd *pEmulatorWnd;
+      pEmulatorWnd = GetAppWnd()->GetEmulatorWnd();
 
-        nTimeFromLastFrame -= 19968;
+      pEmulatorWnd->UpdateDisplayImage();
+      pEmulatorWnd->Invalidate( FALSE );
+
+      m_uFrameCount = m_pMachine->GetFrameCount();
     }
 //****************************************** TODO - TODO - TODO ************************************************
 //****************************************** TODO - TODO - TODO ************************************************

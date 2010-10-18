@@ -97,7 +97,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description=""
 				CommandLine=""
 			/>
 		</Configuration>
@@ -182,7 +181,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description=""
 				CommandLine=""
 			/>
 		</Configuration>
@@ -297,6 +295,14 @@
 			</File>
 			<File
 				RelativePath=".\AmstradCPC\cpcCrtc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcDisplay.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcDisplay.h"
 				>
 			</File>
 			<File

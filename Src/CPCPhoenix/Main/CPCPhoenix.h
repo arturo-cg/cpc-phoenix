@@ -45,6 +45,7 @@ private:
 
     /** The emulated machine. */
     CPC::CMachine            *m_pMachine;
+    unsigned                  m_uFrameCount;
 
 
     DECLARE_MESSAGE_MAP()
