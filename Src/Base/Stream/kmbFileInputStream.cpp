@@ -159,8 +159,8 @@ void kmbFileInputStream::FreeVars()
 */
 /*virtual*/ bool kmbFileInputStream::Read(void* pBuffer, unsigned uNumBytes)
 {
-  ASSERTM( pBuffer != NULL, ("The destination buffer (pBuffer) is NULL.") );
-  ASSERTM( uNumBytes > 0, ("Trying to read 0 bytes.") );
+  KMASSERTM( pBuffer != NULL, ("The destination buffer (pBuffer) is NULL.") );
+  KMASSERTM( uNumBytes > 0, ("Trying to read 0 bytes.") );
 
   if ( m_pFile->ReadBytes( pBuffer, uNumBytes ) )
   {

@@ -40,7 +40,7 @@ namespace CPC {
   /*write <value> to <port> -- called when WR & IORQ goes active*/
   void CB_WriteByteToPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, Z80EX_BYTE value, void *user_data)
   {
-    ((CCpu*)user_data)->WriteByteToMemory( port, value );
+    ((CCpu*)user_data)->WriteByteToPort( port, value );
   }
 
   /*read byte of interrupt vector -- called when M1 and IORQ goes active*/
@@ -64,10 +64,10 @@ namespace CPC {
 
     // Create the Z80 context
     m_pZ80State = z80ex_create( CB_ReadByteFromMemory, this,
-      CB_WriteByteToMemory, this,
-      CB_ReadByteFromPort, this,
-      CB_WriteByteToPort, this,
-      CB_ReadByteFromInterruptVector, this );
+                                CB_WriteByteToMemory, this,
+                                CB_ReadByteFromPort, this,
+                                CB_WriteByteToPort, this,
+                                CB_ReadByteFromInterruptVector, this );
   }
 
   //----------------------------------------------------------------------------
@@ -87,7 +87,7 @@ namespace CPC {
   */
   void CCpu::FreeVars()
   {
-    if(m_pZ80State != NULL)
+    if (m_pZ80State != NULL)
     {
       z80ex_destroy( m_pZ80State );
       m_pZ80State = NULL;
@@ -100,7 +100,7 @@ namespace CPC {
   */
   void CCpu::Reset()
   {
-    ASSERT( m_pZ80State != NULL );
+    KMASSERT( m_pZ80State != NULL );
     z80ex_reset( m_pZ80State );
 
     m_bCompleteInstructionLastStep = true;
@@ -115,12 +115,12 @@ namespace CPC {
   {
     unsigned nCurrNumCycles;
 
-    ASSERT( m_pZ80State != NULL );
+    KMASSERT( m_pZ80State != NULL );
 
     // Was there any spare cycle from the last call to CCpu::Run?
     nCurrNumCycles = m_nNumSpareCycles;
 
-    while( nCurrNumCycles < nMinNumCycles )
+    while (nCurrNumCycles < nMinNumCycles)
     {
       nCurrNumCycles += z80ex_step( m_pZ80State );
     }

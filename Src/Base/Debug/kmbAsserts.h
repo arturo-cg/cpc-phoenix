@@ -10,9 +10,9 @@
 /** Simple assert macro.
 ***
 *** Example:
-***   ASSERT( m_bIsOk );
+***   KMASSERT( m_bIsOk );
 */
-#define ASSERT(condition) \
+#define KMASSERT(condition) \
   { \
     static bool bIgnoreAlways = false; \
     if ( !(condition) && !bIgnoreAlways ) \
@@ -30,11 +30,11 @@
 /** Assert macro with printf-like message.
 ***
 *** Examples:
-***   ASSERTM( m_pFile->CanWrite(), ("The file must be open with write permissions.") );
-***   ASSERTM( m_pFile->CanWrite(), ("The file %s must be open with write permissions.", m_pFile->GetFileName()) );
+***   KMASSERTM( m_pFile->CanWrite(), ("The file must be open with write permissions.") );
+***   KMASSERTM( m_pFile->CanWrite(), ("The file %s must be open with write permissions.", m_pFile->GetFileName()) );
 */
 
-#define ASSERTM(condition, fmt_message) \
+#define KMASSERTM(condition, fmt_message) \
   { \
     static bool bIgnoreAlways = false; \
     if ( !(condition) && !bIgnoreAlways ) \
@@ -55,8 +55,8 @@ const char* _kmExpandAssertFmtMessage( const char* pszFmtMessage, ... );
 
 #else
 
-#define ASSERT(condition)
-#define ASSERTM(condition, fmt_message)
+#define KMASSERT(condition)
+#define KMASSERTM(condition, fmt_message)
 
 #endif // ASSERTS_ENABLED
 

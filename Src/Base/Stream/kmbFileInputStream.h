@@ -22,7 +22,7 @@ public:
 
   /** Initializes the stream to read from the file with the specified name.
   *** The file is automatically opened and, in the end, closed. */
-  bool                      Init                      (const string& sFileName);
+  bool                      Init                      (const std::string& sFileName);
   /** Initializes the stream to read from the given file.
   *** The caller is responsible for opening the file with read access before calling this method and,
   *** after the kmbFileInputStream is destroyed, closing it. */

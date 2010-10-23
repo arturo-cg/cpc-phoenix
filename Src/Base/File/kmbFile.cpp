@@ -106,7 +106,7 @@ bool kmbFile::Open(EAccessFlags eAccessFlags, EFileMode eFileMode)
     else
     {
       bRet = false;
-      ASSERT( false );
+      KMASSERT( false );
     }
   }
 
@@ -122,7 +122,7 @@ bool kmbFile::Open(EAccessFlags eAccessFlags, EFileMode eFileMode)
     m_eAccessFlags = eAccessFlags;
     m_eFileMode    = eFileMode;
     bRet           = (m_pFile != NULL);
-    ASSERTM( bRet, ("Could not open the file '%s' with %s access in %s mode.",
+    KMASSERTM( bRet, ("Could not open the file '%s' with %s access in %s mode.",
                     m_sFileName.c_str(),
                     ( eAccessFlags==ACCESS_READ_WRITE ? "READ&WRITE" : ( eAccessFlags==ACCESS_READ ? "READ" : "WRITE" ) ),
                     ( eFileMode==FILEMODE_BINARY ? "BINARY" : "TEXT" ) ) );
@@ -186,11 +186,11 @@ bool kmbFile::IsAtEof() const
 */
 bool kmbFile::ReadBytes(void* pBuffer, unsigned uNumBytes)
 {
-  ASSERT( pBuffer != NULL );
-  ASSERT( uNumBytes > 0 );
-  ASSERTM( IsOpen(), ("File must be open before reading from it.") );
-  ASSERTM( CanRead(), ("File was not open with read access.") );
-  ASSERTM( GetFileMode() == FILEMODE_BINARY, ("Don't call this method when the file is open in text mode.") );
+  KMASSERT( pBuffer != NULL );
+  KMASSERT( uNumBytes > 0 );
+  KMASSERTM( IsOpen(), ("File must be open before reading from it.") );
+  KMASSERTM( CanRead(), ("File was not open with read access.") );
+  KMASSERTM( GetFileMode() == FILEMODE_BINARY, ("Don't call this method when the file is open in text mode.") );
 
   return ( fread(pBuffer, 1, uNumBytes, m_pFile) == uNumBytes );
 }
@@ -201,10 +201,10 @@ bool kmbFile::ReadBytes(void* pBuffer, unsigned uNumBytes)
 */
 bool kmbFile::ReadChar(char* pcChar)
 {
-  ASSERT( pcChar != NULL );
-  ASSERTM( IsOpen(), ("File must be open before reading from it.") );
-  ASSERTM( CanRead(), ("File was not open with read access.") );
-  ASSERTM( GetFileMode() == FILEMODE_TEXT, ("Don't call this method when the file is open in binary mode.") );
+  KMASSERT( pcChar != NULL );
+  KMASSERTM( IsOpen(), ("File must be open before reading from it.") );
+  KMASSERTM( CanRead(), ("File was not open with read access.") );
+  KMASSERTM( GetFileMode() == FILEMODE_TEXT, ("Don't call this method when the file is open in binary mode.") );
 
   int nValue;
   nValue  = fgetc( m_pFile );
@@ -219,11 +219,11 @@ bool kmbFile::ReadChar(char* pcChar)
 */
 bool kmbFile::WriteBytes(const void* pBuffer, unsigned uNumBytes)
 {
-  ASSERT( pBuffer != NULL );
-  ASSERT( uNumBytes > 0 );
-  ASSERTM( IsOpen(), ("File must be open before reading from it.") );
-  ASSERTM( CanWrite(), ("File was not open with write access.") );
-  ASSERTM( GetFileMode() == FILEMODE_BINARY, ("Don't call this method when the file is open in text mode.") );
+  KMASSERT( pBuffer != NULL );
+  KMASSERT( uNumBytes > 0 );
+  KMASSERTM( IsOpen(), ("File must be open before reading from it.") );
+  KMASSERTM( CanWrite(), ("File was not open with write access.") );
+  KMASSERTM( GetFileMode() == FILEMODE_BINARY, ("Don't call this method when the file is open in text mode.") );
 
   return ( fwrite(pBuffer, 1, uNumBytes, m_pFile) == uNumBytes );
 }
@@ -234,9 +234,9 @@ bool kmbFile::WriteBytes(const void* pBuffer, unsigned uNumBytes)
 */
 bool kmbFile::WriteChar(char cChar)
 {
-  ASSERTM( IsOpen(), ("File must be open before reading from it.") );
-  ASSERTM( CanWrite(), ("File was not open with write access.") );
-  ASSERTM( GetFileMode() == FILEMODE_TEXT, ("Don't call this method when the file is open in binary mode.") );
+  KMASSERTM( IsOpen(), ("File must be open before reading from it.") );
+  KMASSERTM( CanWrite(), ("File was not open with write access.") );
+  KMASSERTM( GetFileMode() == FILEMODE_TEXT, ("Don't call this method when the file is open in binary mode.") );
 
   return ( fputc((int)cChar, m_pFile) != EOF );
 }
@@ -247,9 +247,9 @@ bool kmbFile::WriteChar(char cChar)
 */
 bool kmbFile::WriteString(const char* pStr)
 {
-  ASSERTM( IsOpen(), ("File must be open before reading from it.") );
-  ASSERTM( CanWrite(), ("File was not open with write access.") );
-  ASSERTM( GetFileMode() == FILEMODE_TEXT, ("Don't call this method when the file is open in binary mode.") );
+  KMASSERTM( IsOpen(), ("File must be open before reading from it.") );
+  KMASSERTM( CanWrite(), ("File was not open with write access.") );
+  KMASSERTM( GetFileMode() == FILEMODE_TEXT, ("Don't call this method when the file is open in binary mode.") );
 
   return ( fputs(pStr, m_pFile) != EOF );
 }

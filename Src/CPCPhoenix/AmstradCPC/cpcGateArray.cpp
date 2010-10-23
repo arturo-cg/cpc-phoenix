@@ -218,7 +218,7 @@ namespace CPC {
   */
   void CGateArray::SelectPen(cpcByte nPen)
   {
-    ASSERT( nPen < MAX_NUM_PENS );
+    KMASSERT( nPen < MAX_NUM_PENS );
     m_nSelectedPen = nPen;
   }
 
@@ -228,7 +228,7 @@ namespace CPC {
   */
   void CGateArray::SetSelectedPenColor(cpcByte nColorIndex)
   {
-    ASSERT( nColorIndex < MAX_NUM_PALETTE_COLORS );
+    KMASSERT( nColorIndex < MAX_NUM_PALETTE_COLORS );
     m_anPenColors[m_nSelectedPen] = nColorIndex;
   }
 
@@ -238,7 +238,7 @@ namespace CPC {
   */
   void CGateArray::SetBorderColor(cpcByte nColorIndex)
   {
-    ASSERT( nColorIndex < MAX_NUM_PALETTE_COLORS );
+    KMASSERT( nColorIndex < MAX_NUM_PALETTE_COLORS );
     m_nBorderColor = nColorIndex;
   }
 

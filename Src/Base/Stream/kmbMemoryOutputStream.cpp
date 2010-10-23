@@ -92,8 +92,8 @@ void kmbMemoryOutputStream::FreeVars()
 {
   bool bRet = true;
 
-  ASSERTM( pBuffer != NULL, ("The source buffer (pBuffer) is NULL.") );
-  ASSERTM( uNumBytes > 0, ("Trying to write 0 bytes.") );
+  KMASSERTM( pBuffer != NULL, ("The source buffer (pBuffer) is NULL.") );
+  KMASSERTM( uNumBytes > 0, ("Trying to write 0 bytes.") );
 
   // Compute how many bytes to write. If there still are enough space in the buffer, all the uNumBytes bytes will be written.
   unsigned uNumBytesToWrite;

@@ -70,5 +70,32 @@
 #endif
 
 
+// STL includes
+#include <string>
+#include <vector>
+#include <list>
+#include <algorithm>
+#include <hash_map>
+
+using namespace std;    // No need to specify std:: for STL symbols
+using namespace stdext; // No need to specify stdext:: for STL symbols (hash_map, hash_set)
+
+// Standard C includes
+#include <stdio.h>
+#include <math.h>
+
+// Windows includes
+#include <CrtDbg.h>
+
+#define OEMRESOURCE    // This enables definition of OCR_ macros
+#include <Windows.h>
+#include <CommCtrl.h>
+
+// Own general purpose includes
+#include "kmbGlobalDefs.h"
+#include "Debug/kmbAsserts.h"
+#include "Misc/kmbSingleton.h"
+
+
 // CPC emulator includes
 #include "cpcTypes.h"

@@ -23,7 +23,7 @@ bool kmbPrecisionTimer::Init()
   {
     if( !QueryPerformanceFrequency((LARGE_INTEGER *)&m_i64TimerFrequency) )
     {
-      ASSERTM( false, ("The system does not support high-precision timers.") );
+      KMASSERTM( false, ("The system does not support high-precision timers.") );
       bRet = false;
     }
   }

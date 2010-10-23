@@ -141,8 +141,8 @@ void kmbFileOutputStream::FreeVars()
 */
 /*virtual*/ bool kmbFileOutputStream::Write(const void* pBuffer, unsigned uNumBytes)
 {
-  ASSERTM( pBuffer != NULL, ("The source buffer (pBuffer) is NULL.") );
-  ASSERTM( uNumBytes > 0, ("Trying to write 0 bytes.") );
+  KMASSERTM( pBuffer != NULL, ("The source buffer (pBuffer) is NULL.") );
+  KMASSERTM( uNumBytes > 0, ("Trying to write 0 bytes.") );
 
   if ( m_pFile->WriteBytes( pBuffer, uNumBytes ) )
   {

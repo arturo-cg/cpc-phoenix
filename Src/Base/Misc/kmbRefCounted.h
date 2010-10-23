@@ -14,7 +14,7 @@ class kmbRefCounted
 {
 public:
 
-  virtual                  ~kmbRefCounted             ()  { ASSERTM( m_uReferenceCount == 0, ("Reference-counted object being deleted but there still exist references to it!!") ); }
+  virtual                  ~kmbRefCounted             ()  { KMASSERTM( m_uReferenceCount == 0, ("Reference-counted object being deleted but there still exist references to it!!") ); }
 
   /**
   ** Adds a reference to this object. Don't call it directly, it is used by kmbRefCountedPtr-derived classes.
@@ -25,7 +25,7 @@ public:
   ** Removes a reference to this object. Don't call it directly, it is used by CRefCounted-Ptr-derived classes.
   ** @return The number of references to this object after the call.
   */
-  unsigned                  _RemoveReference          ()  { ASSERT(m_uReferenceCount > 0); return --m_uReferenceCount; }
+  unsigned                  _RemoveReference          ()  { KMASSERT(m_uReferenceCount > 0); return --m_uReferenceCount; }
 
 
 protected:

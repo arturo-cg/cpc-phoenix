@@ -1,7 +1,4 @@
 //-------------------------------------------------------------------------------------------
-// File:        Machine.cpp
-//
-// Description: 
 //-------------------------------------------------------------------------------------------
 
 #include "stdafx.h"
@@ -14,8 +11,6 @@
 #include "cpcVideoOutput.h"
 
 
-#define FRAME_PERIOD 19968
-
 
 namespace CPC {
 
@@ -25,7 +20,7 @@ namespace CPC {
   /**
   ** 
   */
-  CMachine::CMachine(TModel eType)
+  CMachine::CMachine(EModel eType)
   {
     ResetVars();
 
@@ -45,7 +40,7 @@ namespace CPC {
   */
   void CMachine::ResetVars()
   {
-    m_eModel             = CPC_INVALID;
+    m_eModel             = MODEL_INVALID;
     m_pCpu               = NULL;
     m_pMemory            = NULL;
     m_pGateArray         = NULL;
@@ -129,7 +124,7 @@ namespace CPC {
     //   it to generate the video signal). The Gate-Array has priority over the CPU to ensure video signal
     //   is correctly generated, so it periodically forces the CPU to enter in a wait state while it is
     //   reading the memory. Because of this, we simply think of the CPU clock input as running at 3.3Mhz.
-    ASSERT( nMicroSecs >= 10 );  // To ensure a minimum precision in the integer division in the next line
+    KMASSERT( nMicroSecs >= 10 );  // To ensure a minimum precision in the integer division in the next line
     nNumCycles = (nMicroSecs * 33) / 10;
     GetCpu()->Run( nNumCycles );
 

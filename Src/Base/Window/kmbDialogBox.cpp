@@ -26,7 +26,7 @@ BOOL CALLBACK kmbDialogProc(HWND hDlgWnd, UINT nMessage, WPARAM wParam, LPARAM l
         ::SetLastError( ERROR_SUCCESS );
         if ( ::SetWindowLongPtr( hDlgWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pDlg) ) == 0 )
         {
-          ASSERT( ::GetLastError() == ERROR_SUCCESS );
+          KMASSERT( ::GetLastError() == ERROR_SUCCESS );
         }
 
         // Pass the message notification to the kmbDialogProc object
@@ -124,7 +124,7 @@ bool kmbDialogBox::InitModeless(LPCTSTR lpTemplate, HWND hOwnerWnd)
   {
     if (::CreateDialogParam( ::GetModuleHandle(NULL), lpTemplate, hOwnerWnd, kmbDialogProc, (LPARAM) this ) == NULL)
     {
-      ASSERTM( false, ("Error creating a modeless dialog box: GetLastError() == %d", ::GetLastError()) );
+      KMASSERTM( false, ("Error creating a modeless dialog box: GetLastError() == %d", ::GetLastError()) );
       bRet = false;
     }
   }
@@ -226,7 +226,7 @@ kmbDialogBox::EModalReturnValue kmbDialogBox::ShowModal()
 
   // Create and show the modal dialog box. The call doesn't return until the user closes the dialog box.
   nResult = ::DialogBoxParam( GetModuleHandle(NULL), m_lpModalTemplate, m_hOwnerWnd, kmbDialogProc, (LPARAM) this );
-  ASSERTM( nResult != -1, ("Error creating a modal dialog box: GetLastError() == %d", ::GetLastError()) );
+  KMASSERTM( nResult != -1, ("Error creating a modal dialog box: GetLastError() == %d", ::GetLastError()) );
 
   eRet = (EModalReturnValue) nResult;
   return eRet;

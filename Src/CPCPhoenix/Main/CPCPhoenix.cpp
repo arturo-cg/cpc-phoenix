@@ -72,7 +72,7 @@ BOOL CCPCPhoenixApp::InitInstance()
     m_uFrameCount = 0;
 
     // We create the emulated machine instance
-    m_pMachine = new CPC::CMachine( CPC::CMachine::CPC_464 );
+    m_pMachine = new CPC::CMachine( CPC::CMachine::MODEL_464 );
     m_pMachine->Reset();
 
     // To create the main window, this code creates a new frame window

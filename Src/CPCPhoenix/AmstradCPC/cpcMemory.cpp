@@ -8,6 +8,7 @@
 #include "cpcMemory.h"
 #include "cpcMemoryBlock.h"
 #include "cpcMachine.h"
+#include "Stream/kmbFileInputStream.h"
 
 
 #define GET_ADDRESS_BLOCK(addr)   ((addr & 0xC000) >> 14)
@@ -17,51 +18,56 @@
 namespace CPC {
 
 
+  struct SMemoryProfile
+  {
+    unsigned nRamBlockCount;                              // How many 16Kb RAM blocks are present. It must be 4 (64Kb) or 8 (128Kb).
+
+    bool     bHasAmsdosRom;                               // Whether the AMSDOS ROM is present or not.
+    string   sRomFileNames[CMemory::MAX_NUM_ROM_BLOCKS];  // Files that contain each ROM content.
+  };
+
+  static SMemoryProfile s_aMemoryProfiles[CMachine::MODEL_LAST] =
+  {
+    { 4/*64Kb RAM*/,  false, { "OS_464.ROM",  "BASIC_464.ROM",  ""                } },    // MODEL_464
+    { 4/*64Kb RAM*/,  true,  { "OS_664.ROM",  "BASIC_664.ROM",  "AMSDOS_664.ROM"  } },    // MODEL_664
+    { 8/*128Kb RAM*/, true,  { "OS_6128.ROM", "BASIC_6128.ROM", "AMSDOS_6128.ROM" } },    // MODEL_6128
+  };
+
+
   //----------------------------------------------------------------------------
   /**
   ** 
   */
   CMemory::CMemory(CMachine *pMachine) : inherited( pMachine )
   {
-    unsigned nNumRomBlocks;
-    unsigned nNumRamBlocks;
-    unsigned i;
-
     // Reset members
     ResetVars();
 
-    // Determine number of RAM and ROM blocks
-    switch( pMachine->GetModel() )
-    {
-    case CMachine::CPC_464:
-      nNumRomBlocks = 2;
-      nNumRamBlocks = 4;
-      break;
-
-    case CMachine::CPC_664:
-      nNumRomBlocks = 3;
-      nNumRamBlocks = 4;
-      break;
-
-    case CMachine::CPC_6128:
-      nNumRomBlocks = 3;
-      nNumRamBlocks = 8;
-      break;
-
-    default:
-      ASSERT( false );
-      nNumRomBlocks = 0;
-      nNumRamBlocks = 0;
-    }
+    // Get the memory profile for the current machine model
+    const SMemoryProfile& memoryProfile = s_aMemoryProfiles[pMachine->GetModel()];
 
     // Create the ROM blocks
-    for(i=0; i < nNumRomBlocks; i++)
+    kmbFileInputStream romStream;
+    unsigned i;
+    for (i = 0; i < MAX_NUM_ROM_BLOCKS; i++)
     {
-      m_apRomBlocks[i] = new CMemoryBlock();
+      ERomBlockIndex eRomIndex;
+      eRomIndex = (ERomBlockIndex) i;
+      if ( (eRomIndex != ROMINDEX_AMSDOS) || memoryProfile.bHasAmsdosRom )
+      {
+        if ( romStream.Init("Roms/" + memoryProfile.sRomFileNames[eRomIndex]) )
+        {
+          m_apRomBlocks[eRomIndex] = new CMemoryBlock( &romStream );
+        }
+        else
+        {
+          m_apRomBlocks[eRomIndex] = NULL;
+        }
+      }
     }
 
     // Create the RAM blocks
-    for(i=0; i < nNumRamBlocks; i++)
+    for (i = 0; i < memoryProfile.nRamBlockCount; i++)
     {
       m_apRamBlocks[i] = new CMemoryBlock();
     }
@@ -120,7 +126,7 @@ namespace CPC {
   */
   CMemoryBlock* CMemory::GetRomBlock(ERomBlockIndex eIndex)
   {
-    ASSERT( (eIndex >= 0) && (eIndex < MAX_NUM_ROM_BLOCKS) );
+    KMASSERT( (eIndex >= 0) && (eIndex < MAX_NUM_ROM_BLOCKS) );
     return m_apRomBlocks[eIndex];
   }
 
@@ -130,7 +136,7 @@ namespace CPC {
   */
   const CMemoryBlock* CMemory::GetRomBlock(ERomBlockIndex eIndex) const
   {
-    ASSERT( (eIndex >= 0) && (eIndex < MAX_NUM_ROM_BLOCKS) );
+    KMASSERT( (eIndex >= 0) && (eIndex < MAX_NUM_ROM_BLOCKS) );
     return m_apRomBlocks[eIndex];
   }
 
@@ -140,7 +146,7 @@ namespace CPC {
   */
   CMemoryBlock* CMemory::GetRamBlock(int i)
   {
-    ASSERT( (i >= 0) && (i < MAX_NUM_RAM_BLOCKS) );
+    KMASSERT( (i >= 0) && (i < MAX_NUM_RAM_BLOCKS) );
     return m_apRamBlocks[i];
   }
 
@@ -150,7 +156,7 @@ namespace CPC {
   */
   const CMemoryBlock* CMemory::GetRamBlock(int i) const
   {
-    ASSERT( (i >= 0) && (i < MAX_NUM_RAM_BLOCKS) );
+    KMASSERT( (i >= 0) && (i < MAX_NUM_RAM_BLOCKS) );
     return m_apRamBlocks[i];
   }
 

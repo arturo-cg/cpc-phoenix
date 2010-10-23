@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;.\Main;.\Gui;.\AmstradCPC;.\res;&quot;$(ProjectDir)..\z80ex\include&quot;"
+				AdditionalIncludeDirectories=".;.\Main;.\Gui;.\AmstradCPC;.\res;&quot;$(ProjectDir)..\z80ex\include&quot;;../Base"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;KM_DEBUG_BUILD"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -129,7 +129,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;.\Main;.\Gui;.\AmstradCPC;.\res;&quot;$(ProjectDir)..\z80ex\include&quot;"
+				AdditionalIncludeDirectories=".;.\Main;.\Gui;.\AmstradCPC;.\res;&quot;$(ProjectDir)..\z80ex\include&quot;;../Base"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;KM_RELEASE_BUILD"
 				MinimalRebuild="false"
 				RuntimeLibrary="0"

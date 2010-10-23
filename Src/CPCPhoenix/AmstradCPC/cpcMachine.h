@@ -24,22 +24,22 @@ namespace CPC {
   {
   public:
 
-    enum TModel
+    enum EModel
     {
-      CPC_464 = 0,   // 64Kb RAM, 32Kb ROM, tape drive
-      CPC_664,       // 64Kb RAM, 48Kb ROM, disc drive
-      CPC_6128,      // 128Kb RAM, 48Kb ROM, disc drive
+      MODEL_464 = 0,   // 64Kb RAM, 32Kb ROM (OS, BASIC), tape drive
+      MODEL_664,       // 64Kb RAM, 48Kb ROM (OS, BASIC, AMSDOS), disc drive
+      MODEL_6128,      // 128Kb RAM, 48Kb ROM (OS, BASIC, AMSDOS), disc drive
 
-      CPC_LAST,
-      CPC_INVALID = 0xFFFFFFFF
+      MODEL_LAST,
+      MODEL_INVALID = 0xFFFFFFFF
     };
 
 
-                            CMachine                  (TModel eType);
+                            CMachine                  (EModel eType);
     virtual                ~CMachine                  ()  { FreeVars(); }
 
     /** Returns the model of the emulated machine. */
-    TModel                  GetModel                  () const  { return m_eModel; }
+    EModel                  GetModel                  () const  { return m_eModel; }
 
     /** Registers a new frame listener in this machine. */
     void                    RegisterVideoOutput       (CVideoOutput* pVideoOutput);
@@ -82,7 +82,7 @@ namespace CPC {
     void                    FreeVars                  ();
 
 
-    TModel                  m_eModel;
+    EModel                  m_eModel;
 
     CCpu*                   m_pCpu;
     CMemory*                m_pMemory;

@@ -218,7 +218,7 @@ LRESULT CALLBACK kmbWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 */
 /*static*/ void kmbWindow::RegisterWindowClass()
 {
-  ASSERTM( !ms_bWindowClassRegistered, ("The static function kmbWindow::RegisterWindowClass must be called just once.") );
+  KMASSERTM( !ms_bWindowClassRegistered, ("The static function kmbWindow::RegisterWindowClass must be called just once.") );
   if (!ms_bWindowClassRegistered)
   {
     WNDCLASSEX WndClass;
@@ -365,7 +365,7 @@ void kmbWindow::FreeVars()
 */
 bool kmbWindow::CreateWnd(const string& sWindowText, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hParentOrOwner)
 {
-  ASSERTM( ms_bWindowClassRegistered, ("The static function kmbWindow::RegisterWindowClass must be called once before creating any kmbWindow.") );
+  KMASSERTM( ms_bWindowClassRegistered, ("The static function kmbWindow::RegisterWindowClass must be called once before creating any kmbWindow.") );
 
   m_hWnd = ::CreateWindow( "KMBWINDOW_WINDOW_CLASS", sWindowText.c_str(), dwStyle,
                            x, y, nWidth, nHeight,
@@ -492,14 +492,14 @@ void kmbWindow::InvalidateAll(bool bEraseBackground)
 */
 LRESULT kmbWindow::_OnCreate(CREATESTRUCT* pCreateStruct)
 {
-  ASSERT( pCreateStruct->lpCreateParams == (LPVOID) this );
+  KMASSERT( pCreateStruct->lpCreateParams == (LPVOID) this );
 
   // Store the 'this' pointer in the window's user data field
   ::SetLastError( ERROR_SUCCESS );
 
   if ( ::SetWindowLongPtr( m_hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>( this ) ) == 0 )
   {
-    ASSERT( ::GetLastError() == ERROR_SUCCESS );
+    KMASSERT( ::GetLastError() == ERROR_SUCCESS );
   }
 
   return 0;

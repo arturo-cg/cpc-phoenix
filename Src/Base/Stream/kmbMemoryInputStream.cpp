@@ -101,8 +101,8 @@ void kmbMemoryInputStream::FreeVars()
 {
   bool bRet = true;
 
-  ASSERTM( pBuffer != NULL, ("The destination buffer (pBuffer) is NULL.") );
-  ASSERTM( uNumBytes > 0, ("Trying to read 0 bytes.") );
+  KMASSERTM( pBuffer != NULL, ("The destination buffer (pBuffer) is NULL.") );
+  KMASSERTM( uNumBytes > 0, ("Trying to read 0 bytes.") );
 
   // Compute how many bytes to read. If there still are enough space in the buffer, all the uNumBytes bytes will be read.
   unsigned uNumBytesToRead;
