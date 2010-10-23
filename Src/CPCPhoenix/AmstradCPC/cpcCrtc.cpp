@@ -57,6 +57,32 @@ namespace CPC {
   /**
   ** 
   */
+  void CCrtc::SelectRegister(unsigned nRegisterIndex)
+  {
+    if (nRegisterIndex < NUM_REGISTERS)
+    {
+      m_nSelectedRegister = nRegisterIndex;
+    }
+    else
+    {
+      // TODO - What to do when the index is not valid?
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CCrtc::WriteSelectedRegister(cpcByte nValue)
+  {
+    KMASSERT( m_nSelectedRegister < NUM_REGISTERS );
+    m_anRegisters[m_nSelectedRegister] = nValue;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
   void CCrtc::Run(unsigned nNumCycles)
   {
     m_uCycleCount += nNumCycles;
@@ -87,12 +113,16 @@ namespace CPC {
       //   1,0 --> *Read-only* (depends on the model of the 6845 chip)
       //   1,1 --> *Read-only* (depends on the model of the 6845 chip)
 
-      switch (nPort & 0x0300)
+      switch ((nPort & 0x0300) >> 8)
       {
-        case 0x0:     // Register select
-          break;
-        case 0x1:     // Register write
-          break;
+        // Register select
+        case 0:     SelectRegister( nValue ); break;
+        // Register write
+        case 1:     WriteSelectedRegister( nValue ); break;
+        // *Read-only* (depends on the model of the 6845 chip)
+        case 2:     /* ... */; break;
+        // *Read-only* (depends on the model of the 6845 chip)
+        case 3:     /* ... */; break;
       }
     }
   }
