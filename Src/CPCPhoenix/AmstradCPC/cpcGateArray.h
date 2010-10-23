@@ -26,7 +26,7 @@ namespace CPC {
   {
   public:
 
-    CGateArray                (CMachine *pMachine);
+                            CGateArray                (CMachine *pMachine);
     virtual                ~CGateArray                ()  { FreeVars(); }
 
     /** Resets the subsystem. */

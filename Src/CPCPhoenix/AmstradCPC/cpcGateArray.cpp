@@ -79,6 +79,7 @@ namespace CPC {
     m_eRamConfig        = RAM_CONFIG_0_1_2_3;
     m_bLowerRomVisible  = true;
     m_bUpperRomVisible  = false;
+    m_eSelectedUpperRom = CMemory::ROMINDEX_BASIC;
   }
 
   //----------------------------------------------------------------------------
@@ -218,7 +219,7 @@ namespace CPC {
   */
   void CGateArray::SelectPen(cpcByte nPen)
   {
-    KMASSERT( nPen < MAX_NUM_PENS );
+    // If nPen is >= 16, the border is selected instead of a pen.
     m_nSelectedPen = nPen;
   }
 
@@ -228,6 +229,7 @@ namespace CPC {
   */
   void CGateArray::SetSelectedPenColor(cpcByte nColorIndex)
   {
+    KMASSERT( m_nSelectedPen < MAX_NUM_PENS );
     KMASSERT( nColorIndex < MAX_NUM_PALETTE_COLORS );
     m_anPenColors[m_nSelectedPen] = nColorIndex;
   }
@@ -281,7 +283,16 @@ namespace CPC {
   */
   void CGateArray::SelectUpperRom(CMemory::ERomBlockIndex eIndex)
   {
-    m_eSelectedUpperRom = eIndex;
+    switch (eIndex)
+    {
+      case CMemory::ROMINDEX_BASIC:
+      case CMemory::ROMINDEX_AMSDOS:
+        m_eSelectedUpperRom = eIndex;
+
+      default:
+        m_eSelectedUpperRom = CMemory::ROMINDEX_BASIC;     // If the requested ROM doesn't exist, BASIC ROM is selected.
+    }
+
     UpdateVisibleMemoryBlocks();
   }
 
