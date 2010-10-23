@@ -13,7 +13,6 @@ namespace CPC {
   class CGateArray;
   class CCrtc;
   class CDisplay;
-  class CVideoOutput;
 
 
   /**
@@ -40,9 +39,6 @@ namespace CPC {
 
     /** Returns the model of the emulated machine. */
     EModel                  GetModel                  () const  { return m_eModel; }
-
-    /** Registers a new frame listener in this machine. */
-    void                    RegisterVideoOutput       (CVideoOutput* pVideoOutput);
 
     /** Returns the current frame count. */
     unsigned                GetFrameCount             () const;
@@ -89,9 +85,6 @@ namespace CPC {
     CGateArray*             m_pGateArray;
     CCrtc*                  m_pCrtc;
     CDisplay*               m_pDisplay;
-
-    unsigned                m_nTimeFromLastFrame;
-    CVideoOutput*           m_pVideoOutput;
 
   };
 

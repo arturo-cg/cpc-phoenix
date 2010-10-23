@@ -269,14 +269,6 @@
 				RelativePath=".\Gui\EmulatorWnd.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Gui\WinVideoOutput.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Gui\WinVideoOutput.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="AmstradCPC"
@@ -347,14 +339,6 @@
 			</File>
 			<File
 				RelativePath=".\AmstradCPC\cpcTypes.h"
-				>
-			</File>
-			<File
-				RelativePath=".\AmstradCPC\cpcVideoOutput.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\AmstradCPC\cpcVideoOutput.h"
 				>
 			</File>
 		</Filter>

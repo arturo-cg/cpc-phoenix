@@ -8,7 +8,6 @@
 #include "cpcGateArray.h"
 #include "cpcCrtc.h"
 #include "cpcDisplay.h"
-#include "cpcVideoOutput.h"
 
 
 
@@ -40,14 +39,12 @@ namespace CPC {
   */
   void CMachine::ResetVars()
   {
-    m_eModel             = MODEL_INVALID;
-    m_pCpu               = NULL;
-    m_pMemory            = NULL;
-    m_pGateArray         = NULL;
-    m_pCrtc              = NULL;
-    m_pDisplay           = NULL;
-    m_pVideoOutput       = NULL;
-    m_nTimeFromLastFrame = 0;
+    m_eModel     = MODEL_INVALID;
+    m_pCpu       = NULL;
+    m_pMemory    = NULL;
+    m_pGateArray = NULL;
+    m_pCrtc      = NULL;
+    m_pDisplay   = NULL;
   }
 
   //----------------------------------------------------------------------------
