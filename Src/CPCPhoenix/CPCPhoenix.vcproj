@@ -21,8 +21,8 @@
 			OutputDirectory="$(SolutionDir)..\Bin\$(ProjectName)"
 			IntermediateDirectory="$(SolutionDir)..\Obj\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
-			UseOfMFC="1"
-			CharacterSet="1"
+			UseOfMFC="0"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -105,8 +105,8 @@
 			OutputDirectory="$(SolutionDir)..\Bin\$(ProjectName)"
 			IntermediateDirectory="$(SolutionDir)..\Obj\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
-			UseOfMFC="1"
-			CharacterSet="1"
+			UseOfMFC="0"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -218,14 +218,6 @@
 			Name="Main"
 			>
 			<File
-				RelativePath=".\Main\CPCPhoenix.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Main\CPCPhoenix.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Main\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -247,26 +239,6 @@
 			</File>
 			<File
 				RelativePath=".\Main\stdafx.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Gui"
-			>
-			<File
-				RelativePath=".\Gui\AppWnd.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Gui\AppWnd.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Gui\EmulatorWnd.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Gui\EmulatorWnd.h"
 				>
 			</File>
 		</Filter>
@@ -339,6 +311,30 @@
 			</File>
 			<File
 				RelativePath=".\AmstradCPC\cpcTypes.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="FrontEnd"
+			>
+			<File
+				RelativePath=".\FrontEnd\Application.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FrontEnd\Application.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FrontEnd\AppWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FrontEnd\AppWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FrontEnd\Main.cpp"
 				>
 			</File>
 		</Filter>

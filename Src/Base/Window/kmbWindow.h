@@ -34,6 +34,9 @@ public:
   /** Returns the encapsulated Windows HWND handle of this window. */
   HWND                      GetHWnd                   () const  { return m_hWnd; }
 
+  /** Returns the device context of this window. */
+  HDC                       GetDc                     () const  { return ::GetDC(m_hWnd); }
+
   /** Sends a WM_CLOSE message to this window. The window is free to handle (and therefore destroy) or ignore the message. */
   void                      RequestClose              ();
 
@@ -47,6 +50,8 @@ public:
   /** Changes the position and size of the window.
   *** Note that the size is specified in terms of the bottom-right corner position. */
   void                      SetRect                   (const RECT& newRect);
+
+  void                      GetClientRect             (RECT* pClientRect)  { ::GetClientRect(m_hWnd, pClientRect); }
 
   /** Sets the input focus to this window. A _OnKillFocus event will be sent to the window that currently has the focus
   *** and a _OnSetFocus event will be sent to this window. */
