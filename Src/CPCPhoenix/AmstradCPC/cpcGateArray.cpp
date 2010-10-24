@@ -15,6 +15,40 @@
 namespace CPC {
 
 
+  /**
+  ** Hardware palette for a color monitor.
+  */
+  static const unsigned s_aColorMonitorPalette[CGateArray::MAX_NUM_PALETTE_COLORS] =
+  {
+  // Red          Green      Blue
+  // --           --         --
+    (  0 << 16) | (  0 << 8) | 102,
+    (255 << 16) | (255 << 8) |   0,
+    (  0 << 16) | (255 << 8) | 255,
+    (255 << 16) | (  0 << 8) |   0,
+    (255 << 16) | (255 << 8) | 255,
+    (  0 << 16) | (  0 << 8) |   0,
+    (  0 << 16) | (  0 << 8) | 255,
+    (255 << 16) | (  0 << 8) | 255,
+    (  0 << 16) | (102 << 8) | 102,
+    (102 << 16) | (102 << 8) |   0,
+    (102 << 16) | (102 << 8) | 255,
+    (255 << 16) | (102 << 8) | 102,
+    (  0 << 16) | (255 << 8) |   0,
+    (102 << 16) | (255 << 8) | 102,
+    (  0 << 16) | (  0 << 8) | 102,
+    (  0 << 16) | (102 << 8) | 255,
+    (  0 << 16) | (  0 << 8) | 102,
+  };
+
+  /**
+  ** Hardware palette for a green monitor.
+  */
+  static const unsigned s_aGreenMonitorPalette[CGateArray::MAX_NUM_PALETTE_COLORS] =
+  {
+  };
+
+
   struct SRamConfigItem
   {
     unsigned nBlockIndex;
@@ -74,6 +108,7 @@ namespace CPC {
     }
 
     m_nBorderColor      = 0;
+    m_paCurrentPalette  = s_aColorMonitorPalette;      // TODO - Allow the user to change this.
     m_eScreenMode       = SCREEN_MODE_1;
     m_nSecondaryRamPage = 1;
     m_eRamConfig        = RAM_CONFIG_0_1_2_3;
@@ -137,13 +172,13 @@ namespace CPC {
     //
 
     // Gate-Array port?
-    if( !(nPort & 0x8000) && (nPort & 0x4000) )
+    if ( !(nPort & 0x8000) && (nPort & 0x4000) )
     {
       //
       // The two most significant bits (7 and 6) of nValue determine the function to be performed
       //
 
-      switch( (nValue&0xC0) >> 6 )
+      switch ((nValue&0xC0) >> 6)
       {
       case 0:   // Select pen
         {
@@ -154,7 +189,7 @@ namespace CPC {
       case 1:   // Change selected pen color
         {
           // Bits 4-0 contain the new color index for the selected pen or border
-          if(m_nSelectedPen < 16)
+          if (m_nSelectedPen < MAX_NUM_PENS)
           {
             SetSelectedPenColor( nValue & 0x1F );
           }

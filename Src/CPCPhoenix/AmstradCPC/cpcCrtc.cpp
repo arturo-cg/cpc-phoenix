@@ -29,9 +29,10 @@ namespace CPC {
   */
   void CCrtc::ResetVars()
   {
-    m_nSelectedRegister = 0;
+    m_eSelectedRegister = HORIZONTAL_TOTAL;
     m_uCycleCount       = 0;
     //m_uFrameCount       = 0;
+    m_bGeneratedAddressTableUpToDate = false;
   }
 
   //----------------------------------------------------------------------------
@@ -57,15 +58,16 @@ namespace CPC {
   /**
   ** 
   */
-  void CCrtc::SelectRegister(unsigned nRegisterIndex)
+  void CCrtc::SelectRegister(ERegister eRegister)
   {
-    if (nRegisterIndex < NUM_REGISTERS)
+    if (eRegister != INVALID_REGISTER)
     {
-      m_nSelectedRegister = nRegisterIndex;
+      m_eSelectedRegister = eRegister;
+      m_bGeneratedAddressTableUpToDate = false;      // TODO - Invalid cached table only when writing to a register that it depends on.
     }
     else
     {
-      // TODO - What to do when the index is not valid?
+      // TODO - What to do when the index is invalid?
     }
   }
 
@@ -75,8 +77,52 @@ namespace CPC {
   */
   void CCrtc::WriteSelectedRegister(cpcByte nValue)
   {
-    KMASSERT( m_nSelectedRegister < NUM_REGISTERS );
-    m_anRegisters[m_nSelectedRegister] = nValue;
+    KMASSERT( m_eSelectedRegister < NUM_REGISTERS );
+    m_anRegisters[m_eSelectedRegister] = nValue;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CCrtc::ComputeGeneratedAddressTable()
+  {
+    unsigned nScanLine = 0;
+
+    cpcWord currentMA;
+    currentMA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
+
+    unsigned nCharacterLine;
+    for (nCharacterLine = 0; nCharacterLine < m_anRegisters[VERTICAL_DISPLAYED]; nCharacterLine++)
+    {
+      cpcByte RA;
+      for (RA = 0; RA < (m_anRegisters[MAXIMUM_RASTER_ADDRESS] + 1); RA++)
+      {
+        m_aGeneratedAddressTable[nScanLine].MA = currentMA;
+        m_aGeneratedAddressTable[nScanLine].RA = RA;
+        nScanLine++;
+      }
+
+      currentMA += m_anRegisters[HORIZONTAL_DISPLAYED];
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  const CCrtc::SGeneratedAddress* CCrtc::GetGeneratedAddressTable() const
+  {
+    if (!m_bGeneratedAddressTableUpToDate)
+    {
+      CCrtc* pNonConstThis;
+      pNonConstThis = const_cast<CCrtc*>( this );   // To be able to call/change non-const members (i.e. CCrtc::ComputeGeneratedAddressTable).
+
+      pNonConstThis->ComputeGeneratedAddressTable();
+      pNonConstThis->m_bGeneratedAddressTableUpToDate = true;
+    }
+
+    return m_aGeneratedAddressTable;
   }
 
   //----------------------------------------------------------------------------
@@ -116,7 +162,7 @@ namespace CPC {
       switch ((nPort & 0x0300) >> 8)
       {
         // Register select
-        case 0:     SelectRegister( nValue ); break;
+        case 0:     SelectRegister( nValue<NUM_REGISTERS ? (ERegister)nValue : INVALID_REGISTER ); break;
         // Register write
         case 1:     WriteSelectedRegister( nValue ); break;
         // *Read-only* (depends on the model of the 6845 chip)

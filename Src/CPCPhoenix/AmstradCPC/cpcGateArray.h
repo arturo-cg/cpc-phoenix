@@ -26,11 +26,30 @@ namespace CPC {
   {
   public:
 
+    enum EScreenMode
+    {
+      // DO NOT change the integer value of each item, it is a direct mapping to the CPC hardware values
+      SCREEN_MODE_0 = 0,   // 160x200 resolution, 16 colors
+      SCREEN_MODE_1 = 1,   // 320x200 resolution, 4 colors
+      SCREEN_MODE_2 = 2,   // 640x200 resolution, 2 colors
+      SCREEN_MODE_3 = 3,   // 160x200 resolution, 4 colors (unofficial)
+    };
+
+    static const unsigned   MAX_NUM_PENS           = 16;
+    static const unsigned   MAX_NUM_PALETTE_COLORS = 32;
+
+
                             CGateArray                (CMachine *pMachine);
     virtual                ~CGateArray                ()  { FreeVars(); }
 
     /** Resets the subsystem. */
     virtual void            Reset                     ();
+
+    /** Returns the current screen mode. */
+    EScreenMode             GetScreenMode             () const  { return m_eScreenMode; }
+
+    /** Returns the current RGB of the specified pen. */
+    unsigned                GetPenRgb                 (cpcByte nPen) const  { return m_paCurrentPalette[ m_anPenColors[nPen] ]; }
 
     /** Reads a byte from memory at the specified address.
     *** The CPU doesn't access memory directly. Instead, it goes through the Gate Array which provides RAM paging. */
@@ -51,21 +70,6 @@ namespace CPC {
 
     typedef                 CSubSystem                inherited;
 
-
-    enum
-    {
-      MAX_NUM_PENS           = 16,
-      MAX_NUM_PALETTE_COLORS = 32,
-    };
-
-    enum EScreenMode
-    {
-      // DO NOT change the integer value of each item, it is a direct mapping to the CPC hardware values
-      SCREEN_MODE_0 = 0,   // 160x200 resolution, 16 colors
-      SCREEN_MODE_1 = 1,   // 320x200 resolution, 4 colors
-      SCREEN_MODE_2 = 2,   // 640x200 resolution, 2 colors
-      SCREEN_MODE_3 = 3,   // 160x200 resolution, 4 colors (unofficial)
-    };
 
     enum ERamConfig
     {
@@ -102,6 +106,10 @@ namespace CPC {
     int                     m_anPenColors[MAX_NUM_PENS];
     /** Border color. It is an index into the hardware color palette. */
     int                     m_nBorderColor;
+    /** The hardware color palette in use (there are two in total, one to emulate a color monitor and one to emulate green monitor).
+    *** The palette maps a color index to a RGB value. */
+    const unsigned*         m_paCurrentPalette;
+    /** Color palette for a green monitor. The palette maps a color index to a RGB value. */
 
     /** Screen mode. When this value is changed, it won't take effect until the next HSYNC. */
     EScreenMode             m_eScreenMode;
