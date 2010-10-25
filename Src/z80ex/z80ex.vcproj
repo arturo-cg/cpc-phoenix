@@ -39,6 +39,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="include"
 				RuntimeLibrary="1"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
