@@ -32,6 +32,11 @@ namespace CPC {
     *** Pixels are written in RGBA format, with 8 bits per channel (giving 32 bits per pixel). pImageBuffer must point to a buffer large enough (>1000Kb). */
     void                    DecodeImage_B8G8R8X8      (unsigned char* pImageBuffer);
 
+    /** Activates or deactivates the scan line effect. */
+    void                    SetScanLineEffectActivated (bool bActivated)  { m_bScanLineEffectActivated = bActivated; }
+    /** Returns true if the scan line effect is activated, or false otherwise. */
+    bool                    IsScanLineEffectActivated  () const           { return m_bScanLineEffectActivated; }
+
 
   private:
 
@@ -41,6 +46,8 @@ namespace CPC {
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
+
+    bool                    m_bScanLineEffectActivated;
 
   };
 

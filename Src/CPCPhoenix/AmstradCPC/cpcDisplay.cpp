@@ -45,7 +45,7 @@ namespace CPC {
   */
   CDisplay::CDisplay(CMachine *pMachine) : inherited( pMachine )
   {
-    //...
+    m_bScanLineEffectActivated = false;
   }
 
   //----------------------------------------------------------------------------
@@ -184,79 +184,34 @@ namespace CPC {
             break;
           }
         }
+
+        if (m_bScanLineEffectActivated)
+        {
+          // Scan line effect
+          unsigned x;
+          static const unsigned SCAN_LINE_EFFECT_COLOR = 0xFF000000;
+          for (x = 0; x < IMAGEBUFFER_WIDTH; x++)
+          {
+            *pDestPixel = SCAN_LINE_EFFECT_COLOR;
+            pDestPixel++;
+          }
+        }
+        else
+        {
+          // Duplicate previous scan line
+          unsigned* pSrcPixel;
+          unsigned  x;
+          pSrcPixel = pDestPixel - IMAGEBUFFER_WIDTH;
+
+          for (x = 0; x < IMAGEBUFFER_WIDTH; x++)
+          {
+            *pDestPixel = *pSrcPixel;
+            pSrcPixel++;
+            pDestPixel++;
+          }
+        }
       }
     }
-
-
-    //if (pImageBuffer != NULL)
-    //{
-    //  CMemory* pMemory;
-    //  pMemory = GetMachine()->GetMemory();
-
-    //  //CGateArray* pGateArray;
-    //  //pGateArray = GetMachine()->GetGateArray();
-
-    //  CCrtc* pCrtc;
-    //  pCrtc = GetMachine()->GetCrtc();
-
-    //  const CCrtc::SGeneratedAddress* pCrtcAddressTable;
-    //  pCrtcAddressTable = pCrtc->GetGeneratedAddressTable();
-
-    //  unsigned* pDestPixel;
-    //  pDestPixel = (unsigned*) pImageBuffer;
-
-    //  unsigned nScanLine = 0;
-    //  cpcWord nSrcAddress;
-    //  cpcByte nVideoByte;
-    //  CMemoryBlock* pRamBlock;
-    //  while (nScanLine < IMAGEBUFFER_HEIGHT)
-    //  {
-    //    unsigned x;
-
-    //    // Decode scanline and draw it twice
-    //    x = 0;
-    //    while (x < IMAGEBUFFER_WIDTH)
-    //    {
-    //      // Get final video memory address
-    //      nSrcAddress = ComputeVideoMemoryAddress( pCrtcAddressTable[nScanLine] +  );
-
-    //      // Decode pixel RGB
-    //      pRamBlock = pMemory->GetRamBlock( (nSrcAddress & 0x4000) >> 14 );    // Bits 15,14 of the address determine which RAM block to read from.
-    //      nVideoByte = pRamBlock->ReadByte( nSrcAddress );                     // Only bits 13-0 will be taken into account.
-
-    //      // Write pixel
-    //      unsigned uOutPixel;
-    //      uOutPixel = (nVideoByte << 16) |        // Red
-    //                  (nVideoByte <<  8) |        // Green
-    //                  (nVideoByte      );         // Blue
-
-    //      *pDestPixel = uOutPixel;
-    //      pDestPixel++;     // Advance to next pixel (note: pDestPixel is unsigned*, so this actually advances 4 bytes).
-    //      nSrcAddress++;
-    //      x++;
-    //    }
-
-    //    x = 0;
-    //    while (x < IMAGEBUFFER_WIDTH)
-    //    {
-    //      // Decode pixel RGB
-    //      //...
-
-    //      // Write pixel
-    //      unsigned uOutPixel;
-    //      uOutPixel = (0 << 16) |        // Red
-    //                  (0 <<  8) |        // Green
-    //                  (0      );         // Blue
-
-    //      *pDestPixel = uOutPixel;
-    //      pDestPixel++;     // Advance to next pixel (note: pDestPixel is unsigned*, so this actually advances 4 bytes).
-    //      x++;
-    //    }
-
-    //    // Advance a scan line
-    //    nScanLine++;
-    //  }
-    //}
   }
 
 } //namespace CPC

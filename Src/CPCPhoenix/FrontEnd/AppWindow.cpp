@@ -164,9 +164,17 @@ void AppWindow::UpdateDisplayImage()
 */
 /*virtual*/ LRESULT AppWindow::_OnKeyDown(unsigned nVirtualKey)
 {
+  CPC::CMachine* pEmulatedMachine;
+  pEmulatedMachine = Application::Singleton()->GetEmulatedMachine();
+
+  if (nVirtualKey == VK_F1)     // F1 key --> Toggle scan line effect
+  {
+    pEmulatedMachine->GetDisplay()->SetScanLineEffectActivated( !pEmulatedMachine->GetDisplay()->IsScanLineEffectActivated() );
+  }
+  else
   if (nVirtualKey == VK_F2)     // F2 key --> Reset machine
   {
-    Application::Singleton()->GetEmulatedMachine()->Reset();
+    pEmulatedMachine->Reset();
   }
 
   return 0;

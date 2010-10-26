@@ -35,7 +35,7 @@ bool Application::Init(HINSTANCE hInstance)
   // Emulator
   if (bRet)
   {
-    m_pMachine = new CPC::CMachine( CPC::CMachine::MODEL_464/*MODEL_6128*/ );
+    m_pMachine = new CPC::CMachine( CPC::CMachine::/*MODEL_464*/MODEL_6128 );
     m_pMachine->Reset();
   }
 
