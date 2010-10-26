@@ -57,7 +57,7 @@ namespace CPC {
       {
         if ( romStream.Init("Roms/" + memoryProfile.sRomFileNames[eRomIndex]) )
         {
-          m_apRomBlocks[eRomIndex] = new CMemoryBlock( &romStream );
+          m_apRomBlocks[eRomIndex] = new CMemoryBlock( memoryProfile.sRomFileNames[eRomIndex], &romStream );
         }
         else
         {
@@ -69,7 +69,9 @@ namespace CPC {
     // Create the RAM blocks
     for (i = 0; i < memoryProfile.nRamBlockCount; i++)
     {
-      m_apRamBlocks[i] = new CMemoryBlock();
+      char szLabel[10];
+      _snprintf_s( szLabel, sizeof(szLabel), "RAM%d", i );
+      m_apRamBlocks[i] = new CMemoryBlock( szLabel );
     }
   }
 

@@ -35,7 +35,7 @@ bool Application::Init(HINSTANCE hInstance)
   // Emulator
   if (bRet)
   {
-    m_pMachine = new CPC::CMachine( CPC::CMachine::MODEL_464 );
+    m_pMachine = new CPC::CMachine( CPC::CMachine::MODEL_464/*MODEL_6128*/ );
     m_pMachine->Reset();
   }
 
@@ -175,14 +175,14 @@ void Application::Run()
     dDeltaTime = executionTimer.ComputeElapsedSecs( previousTimerValue, currentTimerValue );
 
     // Run the emulated machine
-    static const unsigned TIME_STEP = 100;
+    static const unsigned TIME_STEP = 64;    // 64ms is the time taken by the monitor to raster one scan line.
 
 //****************************************** TODO - TODO - TODO ************************************************
 //****************************************** TODO - TODO - TODO ************************************************
     m_pMachine->Run( TIME_STEP );
 
     // Has the emulated machine completed a new video frame?
-    if (m_uFrameCount < m_pMachine->GetFrameCount())
+    if ( (m_uFrameCount < m_pMachine->GetFrameCount()) || (::GetAsyncKeyState(VK_SPACE) & 0x8000)/***PRUEBAS***/ )
     {
       // Grab the new display image
       m_pAppWindow->UpdateDisplayImage();
@@ -192,7 +192,5 @@ void Application::Run()
     }
 //****************************************** TODO - TODO - TODO ************************************************
 //****************************************** TODO - TODO - TODO ************************************************
-
-
   }
 }

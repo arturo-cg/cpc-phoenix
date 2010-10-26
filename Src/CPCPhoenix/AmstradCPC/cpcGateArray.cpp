@@ -221,7 +221,7 @@ namespace CPC {
           SetScreenMode( (EScreenMode) (nValue & 0x03) );
 
           // ROM selection (bit 2 - Lower ROM, bit 3 - Upper ROM)
-          SetRomVisibility( (nValue&0x02)==0, (nValue&0x04)==0 );
+          SetRomVisibility( (nValue&0x04)==0, (nValue&0x08)==0 );
 
           // Interrupt control
           //**************************************** TODO - TODO - TODO **********************************************
@@ -256,7 +256,7 @@ namespace CPC {
       switch (nValue)
       {
         case 0:   SelectUpperRom( CMemory::ROMINDEX_BASIC ); break;
-        case 7:   SelectUpperRom( CMemory::ROMINDEX_AMSDOS ); break;
+/////////////////////////////        case 7:   SelectUpperRom( CMemory::ROMINDEX_AMSDOS ); break;
         // ...Insert other expansion ROMs here...
         default:  SelectUpperRom( CMemory::ROMINDEX_BASIC ); break;
       }
@@ -338,6 +338,7 @@ namespace CPC {
       case CMemory::ROMINDEX_BASIC:
       case CMemory::ROMINDEX_AMSDOS:
         m_eSelectedUpperRom = eIndex;
+        break;
 
       default:
         m_eSelectedUpperRom = CMemory::ROMINDEX_BASIC;     // If the requested ROM doesn't exist, BASIC ROM is selected.
@@ -368,6 +369,26 @@ namespace CPC {
     m_apVisibleReadBlocks[1] = m_apVisibleWriteBlocks[1];
     m_apVisibleReadBlocks[2] = m_apVisibleWriteBlocks[2];
     m_apVisibleReadBlocks[3] = (m_bUpperRomVisible ? GetMachine()->GetMemory()->GetRomBlock(m_eSelectedUpperRom) : m_apVisibleWriteBlocks[3]);
+
+    //// Print currently visible read and write blocks
+    //{
+    //  string sDebugStr;
+
+    //  sDebugStr += "WRITE blocks: ";
+    //  for (i = 0; i < 4; i++)
+    //  {
+    //    sDebugStr += m_apVisibleWriteBlocks[i]->GetLabel() + " | ";
+    //  }
+
+    //  sDebugStr += "      READ blocks: ";
+    //  for (i = 0; i < 4; i++)
+    //  {
+    //    sDebugStr += m_apVisibleReadBlocks[i]->GetLabel() + " | ";
+    //  }
+
+    //  sDebugStr += '\n';
+    //  OutputDebugString( sDebugStr.c_str() );
+    //}
   }
 
   //----------------------------------------------------------------------------

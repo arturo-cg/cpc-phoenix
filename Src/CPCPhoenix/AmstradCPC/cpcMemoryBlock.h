@@ -22,8 +22,11 @@ namespace CPC {
   {
   public:
 
-                            CMemoryBlock              (kmbInputStream* pContentStream = NULL);
+                            CMemoryBlock              (const string& sLabel, kmbInputStream* pContentStream = NULL);
     virtual                ~CMemoryBlock              ()  { FreeVars(); }
+
+    /** Returns the memory block label. The label is only used as a debug helper, it is not used in any way by the simulation. */
+    const string&           GetLabel                  () const  { return m_sLabel; }
 
     /** Reads a byte from this memory block.
     *** Valid range is &0000-&4000. Note that bits 15,14 of nAddress are ignored. */
@@ -48,6 +51,7 @@ namespace CPC {
     void                    FreeVars                  ();
 
 
+    string                  m_sLabel;
     cpcByte                 m_anBytes[MEMORY_BLOCK_LENGTH];
 
   };

@@ -17,10 +17,12 @@ namespace CPC {
   /**
   ** 
   */
-  CMemoryBlock::CMemoryBlock(kmbInputStream* pContentStream/* = NULL*/)
+  CMemoryBlock::CMemoryBlock(const string& sLabel, kmbInputStream* pContentStream/* = NULL*/)
   {
     // Reset members
     ResetVars();
+
+    m_sLabel = sLabel;
 
     // Fill memory content, if any
     if (pContentStream != NULL)

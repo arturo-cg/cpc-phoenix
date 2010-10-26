@@ -157,3 +157,17 @@ void AppWindow::UpdateDisplayImage()
 
   return 0;
 }
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+/*virtual*/ LRESULT AppWindow::_OnKeyDown(unsigned nVirtualKey)
+{
+  if (nVirtualKey == VK_F2)     // F2 key --> Reset machine
+  {
+    Application::Singleton()->GetEmulatedMachine()->Reset();
+  }
+
+  return 0;
+}
