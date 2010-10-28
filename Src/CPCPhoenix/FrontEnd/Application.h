@@ -6,6 +6,7 @@
 
 
 #include "Misc/kmbSingleton.h"
+#include "Settings.h"
 
 class AppWindow;
 namespace CPC
@@ -31,6 +32,14 @@ public:
   /** Requests to exit the application. The exit is carried at the end of the current frame. */
   void                      RequestExitApp            ()  { m_bExitApp = true; }
 
+  /** Returns the application settings. Do not change settings directly, use specific methods like Application::ChangeCpcModelSetting instead. */
+  Settings*                 GetSettings               ()        { return &m_settings; }
+  /** Returns the application settings (const version). */
+  const Settings*           GetSettings               () const  { return &m_settings; }
+
+  void                      ChangeCpcModelSetting     (CPC::CMachine::EModel eNewModel);
+  void                      ChangeDrawScanLinesSetting(bool bDrawScanLines);
+
   /** Returns the machine being emulated. */
   CPC::CMachine*            GetEmulatedMachine        ()        { return m_pMachine; }
   /** Returns the machine being emulated (const version). */
@@ -54,10 +63,13 @@ private:
 
   void                      ProcessWindowsMessages    ();
 
+  void                      UpdateMenu                ();
+
 
   bool                      m_bOk;
 
   bool                      m_bExitApp;               // True when a request to exit the application has been made.
+  Settings                  m_settings;
   AppWindow*                m_pAppWindow;
 
   CPC::CMachine*            m_pMachine;

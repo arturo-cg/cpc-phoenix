@@ -337,7 +337,19 @@
 				RelativePath=".\FrontEnd\Main.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\FrontEnd\Settings.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FrontEnd\Settings.h"
+				>
+			</File>
 		</Filter>
+		<File
+			RelativePath=".\res\resource.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

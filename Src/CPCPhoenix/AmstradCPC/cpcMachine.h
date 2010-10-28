@@ -17,7 +17,7 @@ namespace CPC {
 
   /**
   ** This is the main class in the emulator. It represents the emulated machine (Amstrad CPC)
-  ** and contains all the sub-systems (CPU, memory, keyboard, etc.) that make up the machine.
+  ** and contains all the sub-systems (CPU, memory, Gate Array, etc.) that make up the machine.
   */
   class CMachine
   {

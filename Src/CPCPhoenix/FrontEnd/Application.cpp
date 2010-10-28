@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "Application.h"
 #include "cpcMachine.h"
+#include "cpcDisplay.h"
 #include "AppWindow.h"
 #include "Window/kmbWindow.h"
 #include "Timer/kmbPrecisionTimer.h"
@@ -32,10 +33,16 @@ bool Application::Init(HINSTANCE hInstance)
     //...
   }
 
+  // Load the application settings
+  if (bRet)
+  {
+    m_settings.Init();
+  }
+
   // Emulator
   if (bRet)
   {
-    m_pMachine = new CPC::CMachine( CPC::CMachine::/*MODEL_464*/MODEL_6128 );
+    m_pMachine = new CPC::CMachine( GetSettings()->GetCpcModel() );
     m_pMachine->Reset();
   }
 
@@ -92,6 +99,7 @@ void Application::FreeVars()
 {
   delete m_pAppWindow;
   delete m_pMachine;
+  m_settings.End();
 }
 
 //----------------------------------------------------------------------------
@@ -104,6 +112,40 @@ void Application::_OnAppWindowCloseRequest(AppWindow* pAppWindow)
   {
     RequestExitApp();
   }
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void Application::ChangeCpcModelSetting(CPC::CMachine::EModel eNewModel)
+{
+  // Change application settings
+  GetSettings()->SetCpcModel( eNewModel );
+
+  // Delete the current machine and create the new one
+  delete m_pMachine;
+  m_pMachine = new CPC::CMachine( eNewModel );
+  m_pMachine->Reset();
+
+  // Notify the application window
+  m_pAppWindow->OnApplicationSettingsChanged();
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void Application::ChangeDrawScanLinesSetting(bool bDrawScanLines)
+{
+  // Change application settings
+  GetSettings()->SetDrawScanLines( bDrawScanLines );
+
+  // Apply/remove the effect
+  m_pMachine->GetDisplay()->SetScanLineEffectActivated( bDrawScanLines );
+
+  // Notify the application window
+  m_pAppWindow->OnApplicationSettingsChanged();
 }
 
 //----------------------------------------------------------------------------
@@ -193,4 +235,8 @@ void Application::Run()
 //****************************************** TODO - TODO - TODO ************************************************
 //****************************************** TODO - TODO - TODO ************************************************
   }
+
+  // TODO - Save application settings
+  // TODO - Save application settings
+  // TODO - Save application settings
 }

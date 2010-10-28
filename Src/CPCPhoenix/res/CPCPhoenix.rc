@@ -13,6 +13,55 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Spanish (Castilian) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESP)
+#ifdef _WIN32
+LANGUAGE LANG_SPANISH, SUBLANG_SPANISH
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINMENU MENU 
+BEGIN
+    POPUP "File"
+    BEGIN
+        POPUP "Drive A", INACTIVE
+        BEGIN
+            MENUITEM "Insert Disk...",              ID_DRIVEA_INSERTDISK
+            MENUITEM "Remove Disk",                 ID_DRIVEA_REMOVEDISK
+        END
+        POPUP "Drive B", INACTIVE
+        BEGIN
+            MENUITEM "Insert Disk...",              ID_DRIVEB_INSERTDISK
+            MENUITEM "Remove Disk",                 ID_DRIVEB_REMOVEDISK
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Exit\tAlt+F4",                ID_FILE_EXIT
+    END
+    POPUP "Settings"
+    BEGIN
+        POPUP "Change CPC Model"
+        BEGIN
+            MENUITEM "CPC 464",                     ID_SETTINGS_CHANGECPCMODEL_CPC464
+            MENUITEM "CPC 664",                     ID_SETTINGS_CHANGECPCMODEL_CPC664
+            MENUITEM "CPC 6128",                    ID_SETTINGS_CHANGECPCMODEL_CPC6128
+        END
+        MENUITEM "Draw Scan Lines\tF1",         ID_SETTINGS_DRAWSCANLINES
+        MENUITEM SEPARATOR
+        MENUITEM "Reset\tF2",                   ID_SETTINGS_RESET
+    END
+END
+
+#endif    // Spanish (Castilian) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // Spanish resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESN)
@@ -64,67 +113,14 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "CPCPhoenix.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDR_MAINFRAME           BITMAP                  "Toolbar.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Toolbar
-//
-
-IDR_MAINFRAME TOOLBAR  16, 15
-BEGIN
-    BUTTON      ID_EDIT_CUT
-    BUTTON      ID_EDIT_COPY
-    BUTTON      ID_EDIT_PASTE
-    SEPARATOR
-    BUTTON      ID_APP_ABOUT
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
-
-IDR_MAINFRAME MENU 
-BEGIN
-    POPUP "&File"
-    BEGIN
-        MENUITEM "E&xit",                       ID_APP_EXIT
-    END
-    POPUP "&Edit"
-    BEGIN
-        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
-        MENUITEM SEPARATOR
-        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
-        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
-        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
-    END
-    POPUP "&View"
-    BEGIN
-        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
-        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
-    END
-    POPUP "&Help"
-    BEGIN
-        MENUITEM "&About CPCPhoenix...",        ID_APP_ABOUT
-    END
-END
-
+IDR_APPWINDOW           ICON                    "CPCPhoenix.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Accelerator
 //
 
-IDR_MAINFRAME ACCELERATORS 
+IDR_APPWINDOW ACCELERATORS 
 BEGIN
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
@@ -136,23 +132,6 @@ BEGIN
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
     "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
     "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About CPCPhoenix"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
-BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
-    LTEXT           "CPCPhoenix Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2006",IDC_STATIC,40,25,119,8
-    DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
 END
 
 
@@ -193,25 +172,6 @@ BEGIN
         VALUE "Translation", 0x409, 1252
     END
 END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_ABOUTBOX, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 228
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 48
-    END
-END
-#endif    // APSTUDIO_INVOKED
 
 
 /////////////////////////////////////////////////////////////////////////////

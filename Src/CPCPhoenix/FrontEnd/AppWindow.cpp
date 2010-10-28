@@ -8,6 +8,7 @@
 #include "cpcDisplay.h"
 
 #include <Windows.h>
+#include "resource.h"
 
 
 
@@ -31,7 +32,7 @@ bool AppWindow::Init()
 
     RECT rWndRect;
     ::SetRect( &rWndRect, 0, 0, 1280, 800 );
-    ::AdjustWindowRect( &rWndRect, dwStyles, FALSE );
+    ::AdjustWindowRect( &rWndRect, dwStyles, TRUE/*bMenu*/ );
     ::OffsetRect( &rWndRect, -rWndRect.left, -rWndRect.top );
 
     bRet = Super::Init( "CPCPhoenix", dwStyles, rWndRect.left, rWndRect.top, rWndRect.right, rWndRect.bottom, NULL/*hParentOrOwner*/ );
@@ -42,6 +43,24 @@ bool AppWindow::Init()
   {
     //...
   }
+
+  // Main menu
+  if (bRet)
+  {
+    m_hMainMenu = ::LoadMenu( ::GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MAINMENU) );
+    KMASSERTM( m_hMainMenu != NULL, ("Could not create the main menu. GetLastError() == %d", ::GetLastError()) );
+    if (m_hMainMenu != NULL)
+    {
+      ::SetMenu( this->GetHWnd(), m_hMainMenu );
+      OnApplicationSettingsChanged();
+    }
+  }
+
+  // Key accelerators
+  //if (bRet)
+  //{
+  //  m_hAccelerators = ::LoadAccelerators( ::GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_APPWINDOWACCELERATORS) );
+  //}
 
   // Back-buffer
   if (bRet)
@@ -106,7 +125,7 @@ bool AppWindow::Init()
 */
 void AppWindow::ResetVars()
 {
-  //...
+  m_hMainMenu = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -116,6 +135,28 @@ void AppWindow::ResetVars()
 void AppWindow::FreeVars()
 {
   //...
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void AppWindow::OnApplicationSettingsChanged()
+{
+  const Settings* pSettings;
+  pSettings = Application::Singleton()->GetSettings();
+
+  // Update the menu
+  UINT nItem;
+  switch ( pSettings->GetCpcModel() )
+  {
+    case CPC::CMachine::MODEL_464:   nItem = ID_SETTINGS_CHANGECPCMODEL_CPC464; break;
+    case CPC::CMachine::MODEL_664:   nItem = ID_SETTINGS_CHANGECPCMODEL_CPC664; break;
+    case CPC::CMachine::MODEL_6128:  nItem = ID_SETTINGS_CHANGECPCMODEL_CPC6128; break;
+    default:                         KMASSERT(false); nItem = ID_SETTINGS_CHANGECPCMODEL_CPC464; break;
+  }
+  ::CheckMenuRadioItem( m_hMainMenu, ID_SETTINGS_CHANGECPCMODEL_CPC464, ID_SETTINGS_CHANGECPCMODEL_CPC6128, nItem, MF_BYCOMMAND );
+  ::CheckMenuItem( m_hMainMenu, ID_SETTINGS_DRAWSCANLINES, /*MF_BYCOMMAND | */ pSettings->GetDrawScanLines() ? MF_CHECKED : MF_UNCHECKED );
 }
 
 //----------------------------------------------------------------------------
@@ -154,6 +195,43 @@ void AppWindow::UpdateDisplayImage()
                 SRCCOPY );
   //     dc.BitBlt( 0, 0, rClientArea.Width(), rClientArea.Height(),
   //                &m_BackBufferDC, 0, 0, SRCCOPY );
+
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
+{
+  Application* pApplication;
+  pApplication = Application::Singleton();
+
+  CPC::CMachine* pEmulatedMachine;
+  pEmulatedMachine = pApplication->GetEmulatedMachine();
+
+  switch (nItemId)
+  {
+    //
+    // File Menu
+    //
+
+    case ID_FILE_EXIT:  RequestClose(); break;
+
+
+    //
+    // Settings Menu
+    //
+
+    case ID_SETTINGS_CHANGECPCMODEL_CPC464:   pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_464 ); break;
+    case ID_SETTINGS_CHANGECPCMODEL_CPC664:   pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_664 ); break;
+    case ID_SETTINGS_CHANGECPCMODEL_CPC6128:  pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_6128 ); break;
+
+    case ID_SETTINGS_DRAWSCANLINES:  pApplication->ChangeDrawScanLinesSetting( !pApplication->GetSettings()->GetDrawScanLines() ); break;
+
+    case ID_SETTINGS_RESET:  pEmulatedMachine->Reset(); break;
+  }
 
   return 0;
 }

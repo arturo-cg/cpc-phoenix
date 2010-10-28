@@ -22,6 +22,10 @@ public:
   virtual void              End                       (bool bIncludedSuper = true);
 
 
+  /** The application notifies that the settings have changed. */
+  void                      OnApplicationSettingsChanged ();
+
+  /** Updates the window with the current content of the emulated display. */
   void                      UpdateDisplayImage        ();
 
   //
@@ -31,6 +35,7 @@ public:
   // Returns 0 to continue the window creation, or -1 to cancel it.
   virtual LRESULT           _OnClose                  ();
   virtual LRESULT           _OnPaint                  (HDC hDc);
+  virtual LRESULT           _OnMenuCommand            (WORD nItemId, bool bFromAccelerator);
   virtual LRESULT           _OnKeyDown                (unsigned nVirtualKey);
 
 
@@ -42,6 +47,8 @@ private:
   void                      ResetVars                 ();
   void                      FreeVars                  ();
 
+
+  HMENU                     m_hMainMenu;
 
   HDC                       m_BackBufferDC;
   HBITMAP                   m_BackBufferBitmap;
