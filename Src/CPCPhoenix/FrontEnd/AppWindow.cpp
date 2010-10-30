@@ -57,10 +57,10 @@ bool AppWindow::Init()
   }
 
   // Key accelerators
-  //if (bRet)
-  //{
-  //  m_hAccelerators = ::LoadAccelerators( ::GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_APPWINDOWACCELERATORS) );
-  //}
+  if (bRet)
+  {
+    m_hAccelerators = ::LoadAccelerators( ::GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_APPWINDOWACCELERATORS) );
+  }
 
   // Back-buffer
   if (bRet)
@@ -126,6 +126,7 @@ bool AppWindow::Init()
 void AppWindow::ResetVars()
 {
   m_hMainMenu        = NULL;
+  m_hAccelerators    = NULL;
   m_BackBufferDC     = NULL;
   m_BackBufferBitmap = NULL;
   m_pBackBuffer      = NULL;
@@ -245,18 +246,7 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
 */
 /*virtual*/ LRESULT AppWindow::_OnKeyDown(unsigned nVirtualKey)
 {
-  CPC::CMachine* pEmulatedMachine;
-  pEmulatedMachine = Application::Singleton()->GetEmulatedMachine();
-
-  if (nVirtualKey == VK_F1)     // F1 key --> Toggle scan line effect
-  {
-    pEmulatedMachine->GetDisplay()->SetScanLineEffectActivated( !pEmulatedMachine->GetDisplay()->IsScanLineEffectActivated() );
-  }
-  else
-  if (nVirtualKey == VK_F2)     // F2 key --> Reset machine
-  {
-    pEmulatedMachine->Reset();
-  }
+  //...
 
   return 0;
 }

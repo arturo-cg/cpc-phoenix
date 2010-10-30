@@ -4,6 +4,7 @@
 //
 #define IDR_MAINFRAME                   128
 #define IDR_APPWINDOW                   128
+#define IDR_APPWINDOWACCELERATORS       128
 #define IDR_CPCPhoenixTYPE              129
 #define IDR_MAINMENU                    130
 #define ID_FILE_DRIVEA                  32771
@@ -23,13 +24,14 @@
 #define ID_SETTINGS_CHANGECPCMODEL_CPC664 32785
 #define ID_SETTINGS_CHANGECPCMODEL_CPC6128 32786
 #define ID_SETTINGS_DRAWSCANLINES       32787
+#define IDACCEL_SETTINGS_RESET          32789
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
-#define _APS_NEXT_COMMAND_VALUE         32788
+#define _APS_NEXT_COMMAND_VALUE         32791
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

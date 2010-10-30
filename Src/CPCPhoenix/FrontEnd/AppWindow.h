@@ -28,6 +28,10 @@ public:
   /** Updates the window with the current content of the emulated display. */
   void                      UpdateDisplayImage        ();
 
+  /** Returns the accelerators used by this window. */
+  HACCEL                    GetAccelerators           () const  { return m_hAccelerators; }
+
+
   //
   // Message handlers (INTERNAL USE ONLY)
   //
@@ -49,6 +53,7 @@ private:
 
 
   HMENU                     m_hMainMenu;
+  HACCEL                    m_hAccelerators;
 
   HDC                       m_BackBufferDC;
   HBITMAP                   m_BackBufferBitmap;
