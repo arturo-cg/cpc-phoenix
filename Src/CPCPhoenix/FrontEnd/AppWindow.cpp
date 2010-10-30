@@ -125,7 +125,10 @@ bool AppWindow::Init()
 */
 void AppWindow::ResetVars()
 {
-  m_hMainMenu = NULL;
+  m_hMainMenu        = NULL;
+  m_BackBufferDC     = NULL;
+  m_BackBufferBitmap = NULL;
+  m_pBackBuffer      = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -134,7 +137,7 @@ void AppWindow::ResetVars()
 */
 void AppWindow::FreeVars()
 {
-  //...
+  delete m_pBackBuffer;
 }
 
 //----------------------------------------------------------------------------

@@ -42,8 +42,5 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   // Destroy the application
   delete Application::Singleton();
 
-  // Dump memory leaks
-  _CrtDumpMemoryLeaks();
-
   return (bOk ? 0 : 1);
 }
