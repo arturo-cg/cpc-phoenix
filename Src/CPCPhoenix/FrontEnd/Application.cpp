@@ -127,6 +127,7 @@ void Application::ChangeCpcModelSetting(CPC::CMachine::EModel eNewModel)
   delete m_pMachine;
   m_pMachine = new CPC::CMachine( eNewModel );
   m_pMachine->Reset();
+  m_uFrameCount = 0;
 
   // Notify the application window
   m_pAppWindow->OnApplicationSettingsChanged();
