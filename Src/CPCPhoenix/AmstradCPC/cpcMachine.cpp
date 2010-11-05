@@ -106,6 +106,7 @@ namespace CPC {
     // more than one port address and (2) several devices can respond to a single port address.
     GetGateArray()->RespondToWritePortRequest( nPort, nValue );
     GetCrtc()->RespondToWritePortRequest( nPort, nValue );
+    GetPpi()->RespondToWritePortRequest( nPort, nValue );
   }
 
   //----------------------------------------------------------------------------
