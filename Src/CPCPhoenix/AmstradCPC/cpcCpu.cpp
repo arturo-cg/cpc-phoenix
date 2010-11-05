@@ -156,7 +156,7 @@ namespace CPC {
   /**
   ** 
   */
-  cpcByte CCpu::ReadByteFromPort(cpcWord nPort) const
+  cpcByte CCpu::ReadByteFromPort(cpcWord nPort)
   {
     // Tell the machine to read from the specified port (it is the machine's responsability
     // to determine which device is mapped to this port)

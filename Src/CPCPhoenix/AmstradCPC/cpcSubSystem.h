@@ -24,9 +24,12 @@ namespace CPC {
     /** Resets the subsystem. */
     virtual void            Reset                     () = 0;
 
-    /** We are notified that the machine is trying to write a byte to us.
+    /** We are notified that the machine is trying to read a byte from this subsystem.
+    *** Usually it's the CPU through an IN instruction. */
+    virtual bool            RespondToReadPortRequest  (cpcWord nPort, cpcByte* pnValue)  { return false; }
+    /** We are notified that the machine is trying to write a byte to this subsystem.
     *** Usually it's the CPU through an OUT instruction. */
-    virtual void            RespondToWritePortRequest (cpcWord nPort, cpcByte nValue)  { }
+    virtual void            RespondToWritePortRequest (cpcWord nPort, cpcByte nValue)    { }
 
 
   protected:

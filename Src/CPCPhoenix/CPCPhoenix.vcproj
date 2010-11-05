@@ -302,6 +302,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\AmstradCPC\cpcPpi.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcPpi.h"
+				>
+			</File>
+			<File
 				RelativePath=".\AmstradCPC\cpcSubSystem.cpp"
 				>
 			</File>

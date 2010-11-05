@@ -49,7 +49,7 @@ namespace CPC {
 
     cpcByte                 ReadByteFromMemory        (cpcWord nAddr) const;
     void                    WriteByteToMemory         (cpcWord nAddr, cpcByte nValue);
-    cpcByte                 ReadByteFromPort          (cpcWord nPort) const;
+    cpcByte                 ReadByteFromPort          (cpcWord nPort);
     void                    WriteByteToPort           (cpcWord nPort, cpcByte nValue);
     cpcByte                 ReadByteFromInterruptVector () const;
 

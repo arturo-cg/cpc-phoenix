@@ -7,6 +7,7 @@
 #include "cpcMemory.h"
 #include "cpcGateArray.h"
 #include "cpcCrtc.h"
+#include "cpcPpi.h"
 #include "cpcDisplay.h"
 
 
@@ -30,6 +31,7 @@ namespace CPC {
     m_pMemory    = new CMemory( this );
     m_pGateArray = new CGateArray( this );
     m_pCrtc      = new CCrtc( this );
+    m_pPpi       = new CPpi( this );
     m_pDisplay   = new CDisplay( this );
   }
 
@@ -44,6 +46,7 @@ namespace CPC {
     m_pMemory    = NULL;
     m_pGateArray = NULL;
     m_pCrtc      = NULL;
+    m_pPpi       = NULL;
     m_pDisplay   = NULL;
   }
 
@@ -54,6 +57,7 @@ namespace CPC {
   void CMachine::FreeVars()
   {
     delete m_pDisplay; m_pDisplay = NULL;
+    delete m_pPpi; m_pPpi = NULL;
     delete m_pCrtc; m_pCrtc = NULL;
     delete m_pGateArray; m_pGateArray = NULL;
     delete m_pMemory; m_pMemory = NULL;
@@ -73,13 +77,23 @@ namespace CPC {
   /**
   ** 
   */
-  cpcByte CMachine::ReadByteFromPort(cpcWord nPort) const
+  cpcByte CMachine::ReadByteFromPort(cpcWord nPort)
   {
-    //***************************** TODO - TODO - TODO ************************************
-    //***************************** TODO - TODO - TODO ************************************
-    return 0;
-    //***************************** TODO - TODO - TODO ************************************
-    //***************************** TODO - TODO - TODO ************************************
+    cpcByte nRet;
+    if ( !GetPpi()->RespondToReadPortRequest(nPort, &nRet) )
+    {
+      //if ( !GetDEVICE2()->RespondToReadPortRequest(nPort, &nRet) )
+      {
+        //if ( !GetDEVICE3()->RespondToReadPortRequest(nPort, &nRet) )
+        {
+          // No device has served the request - Return default value
+          // TODO - What value does the real CPC return in this case?
+          nRet = 0xFF;
+        }
+      }
+    }
+
+    return nRet;
   }
 
   //----------------------------------------------------------------------------

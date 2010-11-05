@@ -12,6 +12,7 @@ namespace CPC {
   class CMemory;
   class CGateArray;
   class CCrtc;
+  class CPpi;
   class CDisplay;
 
 
@@ -25,9 +26,9 @@ namespace CPC {
 
     enum EModel
     {
-      MODEL_464 = 0,   // 64Kb RAM, 32Kb ROM (OS, BASIC), tape drive
-      MODEL_664,       // 64Kb RAM, 48Kb ROM (OS, BASIC, AMSDOS), disc drive
-      MODEL_6128,      // 128Kb RAM, 48Kb ROM (OS, BASIC, AMSDOS), disc drive
+      MODEL_464 = 0,   // 64Kb RAM, 32Kb ROM (OS v1, BASIC 1.0), tape drive
+      MODEL_664,       // 64Kb RAM, 48Kb ROM (OS v2, BASIC 1.1, AMSDOS), disc drive
+      MODEL_6128,      // 128Kb RAM, 48Kb ROM (OS v3, BASIC 1.1, AMSDOS), disc drive
 
       MODEL_LAST,
       MODEL_INVALID = 0xFFFFFFFF
@@ -55,12 +56,15 @@ namespace CPC {
     /** Returns the CRTC subsystem. */
     CCrtc*                  GetCrtc                   ()        { return m_pCrtc; }
     const CCrtc*            GetCrtc                   () const  { return m_pCrtc; }
+    /** Returns the 8255 PPI subsystem. */
+    CPpi*                   GetPpi                    ()        { return m_pPpi; }
+    const CPpi*             GetPpi                    () const  { return m_pPpi; }
     /** Returns the display subsystem. */
     CDisplay*               GetDisplay                ()        { return m_pDisplay; }
     const CDisplay*         GetDisplay                () const  { return m_pDisplay; }
 
     /** Reads a byte from the specified port. */
-    cpcByte                 ReadByteFromPort          (cpcWord nPort) const;
+    cpcByte                 ReadByteFromPort          (cpcWord nPort);
     /** Writes a byte in the specified port. */
     void                    WriteByteToPort           (cpcWord nPort, cpcByte nValue);
 
@@ -84,6 +88,7 @@ namespace CPC {
     CMemory*                m_pMemory;
     CGateArray*             m_pGateArray;
     CCrtc*                  m_pCrtc;
+    CPpi*                   m_pPpi;
     CDisplay*               m_pDisplay;
 
   };

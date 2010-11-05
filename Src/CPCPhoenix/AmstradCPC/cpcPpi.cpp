@@ -1,0 +1,266 @@
+//-------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------
+
+#include "stdafx.h"
+#include "cpcPpi.h"
+#include "cpcMachine.h"
+
+
+
+namespace CPC {
+
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  CPpi::CPpi(CMachine *pMachine) : inherited( pMachine )
+  {
+    // Reset members
+    ResetVars();
+
+    //...
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** ResetVars
+  */
+  void CPpi::ResetVars()
+  {
+    m_aePortDirections[PORT_A]       = DIRECTION_OUTPUT;
+    m_aePortDirections[PORT_B]       = DIRECTION_INPUT;
+    m_aePortDirections[PORT_C_UPPER] = DIRECTION_OUTPUT;
+    m_aePortDirections[PORT_C_LOWER] = DIRECTION_OUTPUT;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** FreeVars
+  */
+  void CPpi::FreeVars()
+  {
+    //...
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  /*virtual*/ void CPpi::Reset()
+  {
+    ResetVars();
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  /*virtual*/ bool CPpi::RespondToReadPortRequest(cpcWord nPort, cpcByte* pnValue)
+  {
+    bool bRet = false;
+
+    //
+    // 8255 PPI port --> Bit 11 == 0
+    //
+
+    // 8255 PPI port?
+    if ( !(nPort & 0x0800) )
+    {
+      //
+      // Bits 9,8 of nPort define the PPI port to access (A, B, C or Control).
+      // Note: 8255 PPI ports should not be confused with CPU ports that are accessed with IN & OUT instructions.
+      //
+
+      int nFunction;
+      nFunction = (nPort & 0x0300) >> 8;
+      switch (nFunction)
+      {
+        case 0:  *pnValue = ReadPortA(); break;     // Write PPI port A
+        case 1:  *pnValue = ReadPortB(); break;     // Write PPI port B
+        case 2:  *pnValue = ReadPortC(); break;     // Write PPI port C
+        case 3:  /*EMPTY*/               break;     // PPI control word is write-only
+      }
+
+      bRet = true;       // Indicates the device has responded to the port read request.
+    }
+
+    return bRet;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  /*virtual*/ void CPpi::RespondToWritePortRequest(cpcWord nPort, cpcByte nValue)
+  {
+    //
+    // 8255 PPI port --> Bit 11 == 0
+    //
+
+    // 8255 PPI port?
+    if ( !(nPort & 0x0800) )
+    {
+      //
+      // Bits 9,8 of nPort define the PPI port to access (A, B, C or Control).
+      // Note: 8255 PPI ports should not be confused with CPU ports that are accessed with IN & OUT instructions.
+      //
+
+      int nFunction;
+      nFunction = (nPort & 0x0300) >> 8;
+      switch (nFunction)
+      {
+        case 0:  WritePortA( nValue ); break;        // Write PPI port A
+        case 1:  WritePortB( nValue ); break;        // Write PPI port B
+        case 2:  WritePortC( nValue ); break;        // Write PPI port C
+        case 3:  WriteControlWord( nValue ); break;  // Write PPI control word
+      }
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  cpcByte CPpi::ReadPortA()
+  {
+    cpcByte nRet = 0;
+
+    KMASSERTM( m_aePortDirections[PORT_A] == DIRECTION_INPUT, ("Trying to read from PPI port A when it is currently configured as OUTPUT.") );
+
+    // All connections from port A to other devices are meant to be outputs from the CPU.
+    // So we do nothing if an attempt to read to this port is made.
+
+    return nRet;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CPpi::WritePortA(cpcByte nValue)
+  {
+    KMASSERTM( m_aePortDirections[PORT_A] == DIRECTION_OUTPUT, ("Trying to write to PPI port A when it is currently configured as INPUT.") );
+    if (m_aePortDirections[PORT_A] == DIRECTION_OUTPUT)
+    {
+      // All 8 bits are connected to the PSG data bus
+
+      // TODO
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  cpcByte CPpi::ReadPortB()
+  {
+    cpcByte nRet = 0;
+
+    KMASSERTM( m_aePortDirections[PORT_B] == DIRECTION_INPUT, ("Trying to read from PPI port B when it is currently configured as OUTPUT.") );
+    if (m_aePortDirections[PORT_B] == DIRECTION_INPUT)
+    {
+      nRet = (0 << 7) |    // Bit 7 --> Cassette read data. No cassette emulation for now.
+             (1 << 6) |    // Bit 6 --> Parallel/Printer port ready signal ("1" = not ready, "0" = Ready). No parallel port emulation.
+             (0 << 5) |    // Bit 5 --> Expansion device connected signal. No expansion device emulation.
+             (1 << 4) |    // Bit 4 --> Screen refresh frequency ("1" = 50Hz, "0" = 60Hz).
+             (7 << 1) |    // Bits 3-1 --> Manufacturer name ("7" = Amstrad).
+             (0);          // Bit 0 --> 6845 VSYNC State of VSYNC from 6845 ("1" = VSYNC active, "0" = VSYNC inactive). No VSYNC emulation for now.
+    }
+
+    return nRet;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CPpi::WritePortB(cpcByte nValue)
+  {
+    KMASSERTM( m_aePortDirections[PORT_B] == DIRECTION_OUTPUT, ("Trying to write to PPI port B when it is currently configured as INPUT.") );
+
+    // All connections from port B to other devices are meant to be inputs to the CPU.
+    // So we do nothing if an attempt to write to this port is made.
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  cpcByte CPpi::ReadPortC()
+  {
+    cpcByte nRet = 0;
+
+    KMASSERTM( (m_aePortDirections[PORT_C_UPPER] == DIRECTION_OUTPUT) && (m_aePortDirections[PORT_C_LOWER] == DIRECTION_OUTPUT),
+               ("Trying to read from PPI port C when it is currently configured as OUTPUT.") );
+
+    // All connections from port C to other devices are meant to be outputs from the CPU.
+    // So we do nothing if an attempt to read to this port is made.
+
+    return nRet;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CPpi::WritePortC(cpcByte nValue)
+  {
+    KMASSERTM( (m_aePortDirections[PORT_C_UPPER] == DIRECTION_OUTPUT) && (m_aePortDirections[PORT_C_LOWER] == DIRECTION_OUTPUT),
+               ("Trying to write to PPI port C when it is currently configured as INPUT.") );
+    if (m_aePortDirections[PORT_C_UPPER] == DIRECTION_OUTPUT)
+    {
+      // Bit 7 --> PSG BDIR
+      // Bit 6 --> PSG BC1
+      // Bit 5 --> Cassette Write data
+      // Bit 4 --> Cassette Motor control
+
+      // TODO
+    }
+
+    if (m_aePortDirections[PORT_C_LOWER] == DIRECTION_OUTPUT)
+    {
+      // Bits 3-0 --> Keyboard line to be scanned
+
+      // TODO
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CPpi::WriteControlWord(cpcByte nValue)
+  {
+    int        nMode;
+    EDirection eDirection;
+
+    // Bit 7 --> 1 to define mode and directions (input or output), 0 set/clear bits (not emulated)
+    KMASSERTM( nValue & 0x80, ("PPI set/clear bits functionality not emulated.") );
+
+    // Bits 6,5 --> Group A mode (0=mode 0, 1=mode 1, 2 and 3=mode 2. Only mode 0 is emulated)
+    nMode = (nValue & 0x60) >> 5;
+    KMASSERTM( nMode == 0, ("The mode selected for PPI group A is not emulated.") );
+
+    // Bit 4 --> Direction of port A (0=output, 1=input)
+    eDirection = ( (nValue & 0x10) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
+    m_aePortDirections[PORT_A] = eDirection;
+
+    // Bit 3 --> Direction of upper 4 bits of port C (0=output, 1=input)
+    eDirection = ( (nValue & 0x08) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
+    m_aePortDirections[PORT_C_UPPER] = eDirection;
+
+    // Bit 2 --> Group B mode (0=mode 0, 1=mode 1. Only mode 0 is emulated)
+    nMode = (nValue & 0x04) >> 2;
+    KMASSERTM( nMode == 0, ("The mode selected for PPI group B is not emulated.") );
+
+    // Bit 1 --> Direction of port B (0=output, 1=input)
+    eDirection = ( (nValue & 0x02) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
+    m_aePortDirections[PORT_B] = eDirection;
+
+    // Bit 0 --> Direction of lower 4 bits of port C (0=output, 1=input)
+    eDirection = ( (nValue & 0x01) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
+    m_aePortDirections[PORT_C_LOWER] = eDirection;
+  }
+
+} //namespace CPC
