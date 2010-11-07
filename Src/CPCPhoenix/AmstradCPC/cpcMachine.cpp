@@ -8,6 +8,7 @@
 #include "cpcGateArray.h"
 #include "cpcCrtc.h"
 #include "cpcPpi.h"
+#include "cpcPsg.h"
 #include "cpcDisplay.h"
 
 
@@ -32,6 +33,7 @@ namespace CPC {
     m_pGateArray = new CGateArray( this );
     m_pCrtc      = new CCrtc( this );
     m_pPpi       = new CPpi( this );
+    m_pPsg       = new CPsg( this );
     m_pDisplay   = new CDisplay( this );
   }
 
@@ -47,6 +49,7 @@ namespace CPC {
     m_pGateArray = NULL;
     m_pCrtc      = NULL;
     m_pPpi       = NULL;
+    m_pPsg       = NULL;
     m_pDisplay   = NULL;
   }
 
@@ -57,6 +60,7 @@ namespace CPC {
   void CMachine::FreeVars()
   {
     delete m_pDisplay; m_pDisplay = NULL;
+    delete m_pPsg; m_pPsg = NULL;
     delete m_pPpi; m_pPpi = NULL;
     delete m_pCrtc; m_pCrtc = NULL;
     delete m_pGateArray; m_pGateArray = NULL;

@@ -13,6 +13,7 @@ namespace CPC {
   class CGateArray;
   class CCrtc;
   class CPpi;
+  class CPsg;
   class CDisplay;
 
 
@@ -59,6 +60,9 @@ namespace CPC {
     /** Returns the 8255 PPI subsystem. */
     CPpi*                   GetPpi                    ()        { return m_pPpi; }
     const CPpi*             GetPpi                    () const  { return m_pPpi; }
+    /** Returns the AY-3-8912 Programmable Sound Generator (PSG) subsystem. */
+    CPsg*                   GetPsg                    ()        { return m_pPsg; }
+    const CPsg*             GetPsg                    () const  { return m_pPsg; }
     /** Returns the display subsystem. */
     CDisplay*               GetDisplay                ()        { return m_pDisplay; }
     const CDisplay*         GetDisplay                () const  { return m_pDisplay; }
@@ -89,6 +93,7 @@ namespace CPC {
     CGateArray*             m_pGateArray;
     CCrtc*                  m_pCrtc;
     CPpi*                   m_pPpi;
+    CPsg*                   m_pPsg;
     CDisplay*               m_pDisplay;
 
   };

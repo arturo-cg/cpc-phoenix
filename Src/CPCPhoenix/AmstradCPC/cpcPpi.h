@@ -25,20 +25,6 @@ namespace CPC {
   {
   public:
 
-                            CPpi                   (CMachine *pMachine);
-    virtual                ~CPpi                   ()  { FreeVars(); }
-
-    /** Resets the subsystem. */
-    virtual void            Reset                     ();
-
-    /** We are notified that the machine is trying to read a byte from this subsystem. */
-    virtual bool            RespondToReadPortRequest  (cpcWord nPort, cpcByte* pnValue);
-    /** We are notified that the machine is trying to write a byte to this subsystem. */
-    virtual void            RespondToWritePortRequest (cpcWord nPort, cpcByte nValue);
-
-
-  private:
-
     // 8255 PPI ports. Note: Not to be confused with CPU ports that are accessed with IN & OUT instructions.
     enum EPort
     {
@@ -52,6 +38,24 @@ namespace CPC {
       PORT_LAST,
       PORT_INVALID = 0x7FFFFFFF
     };
+
+
+                            CPpi                   (CMachine *pMachine);
+    virtual                ~CPpi                   ()  { FreeVars(); }
+
+    /** Resets the subsystem. */
+    virtual void            Reset                     ();
+
+    /** We are notified that the machine is trying to read a byte from this subsystem. */
+    virtual bool            RespondToReadPortRequest  (cpcWord nPort, cpcByte* pnValue);
+    /** We are notified that the machine is trying to write a byte to this subsystem. */
+    virtual void            RespondToWritePortRequest (cpcWord nPort, cpcByte nValue);
+
+    /** Returns the value of the port internal register (used in output direction only). */
+    cpcByte                 GetPortOutputValue        (EPort ePort) const  { return m_anPortOutputValue[ePort]; }
+
+
+  private:
 
     enum EDirection
     {
@@ -75,6 +79,7 @@ namespace CPC {
 
 
     EDirection              m_aePortDirections[PORT_LAST];
+    cpcByte                 m_anPortOutputValue[PORT_LAST];
 
   };
 

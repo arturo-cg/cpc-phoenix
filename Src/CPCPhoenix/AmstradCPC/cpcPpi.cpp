@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "cpcPpi.h"
 #include "cpcMachine.h"
+#include "cpcPsg.h"
 
 
 
@@ -32,6 +33,11 @@ namespace CPC {
     m_aePortDirections[PORT_B]       = DIRECTION_INPUT;
     m_aePortDirections[PORT_C_UPPER] = DIRECTION_OUTPUT;
     m_aePortDirections[PORT_C_LOWER] = DIRECTION_OUTPUT;
+
+    m_anPortOutputValue[PORT_A]       = 0;
+    m_anPortOutputValue[PORT_B]       = 0;
+    m_anPortOutputValue[PORT_C_UPPER] = 0;
+    m_anPortOutputValue[PORT_C_LOWER] = 0;
   }
 
   //----------------------------------------------------------------------------
@@ -127,9 +133,11 @@ namespace CPC {
     cpcByte nRet = 0;
 
     KMASSERTM( m_aePortDirections[PORT_A] == DIRECTION_INPUT, ("Trying to read from PPI port A when it is currently configured as OUTPUT.") );
-
-    // All connections from port A to other devices are meant to be outputs from the CPU.
-    // So we do nothing if an attempt to read to this port is made.
+    if (m_aePortDirections[PORT_A] == DIRECTION_INPUT)
+    {
+      // All 8 bits are connected to the PSG data bus
+      nRet = GetMachine()->GetPsg()->GetSelectedRegisterValue();
+    }
 
     return nRet;
   }
@@ -143,6 +151,9 @@ namespace CPC {
     KMASSERTM( m_aePortDirections[PORT_A] == DIRECTION_OUTPUT, ("Trying to write to PPI port A when it is currently configured as INPUT.") );
     if (m_aePortDirections[PORT_A] == DIRECTION_OUTPUT)
     {
+      // Save the value into the internal register
+      m_anPortOutputValue[PORT_A] = nValue;
+
       // All 8 bits are connected to the PSG data bus
 
       // TODO
@@ -178,9 +189,11 @@ namespace CPC {
   void CPpi::WritePortB(cpcByte nValue)
   {
     KMASSERTM( m_aePortDirections[PORT_B] == DIRECTION_OUTPUT, ("Trying to write to PPI port B when it is currently configured as INPUT.") );
-
-    // All connections from port B to other devices are meant to be inputs to the CPU.
-    // So we do nothing if an attempt to write to this port is made.
+    if (m_aePortDirections[PORT_B] == DIRECTION_OUTPUT)
+    {
+      // Save the value into the internal register
+      m_anPortOutputValue[PORT_B] = nValue;
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -210,16 +223,25 @@ namespace CPC {
                ("Trying to write to PPI port C when it is currently configured as INPUT.") );
     if (m_aePortDirections[PORT_C_UPPER] == DIRECTION_OUTPUT)
     {
+      // Save the value into the internal register, preserving lower bits
+      m_anPortOutputValue[PORT_C] = (nValue & 0xF0) | (m_anPortOutputValue[PORT_C] & 0x0F);
+
       // Bit 7 --> PSG BDIR
       // Bit 6 --> PSG BC1
+      CPsg::EFunction ePsgFunction;
+      ePsgFunction = (CPsg::EFunction) ((nValue & 0xC0) >> 6);
+      GetMachine()->GetPsg()->SelectFunction( ePsgFunction );
+
       // Bit 5 --> Cassette Write data
       // Bit 4 --> Cassette Motor control
-
       // TODO
     }
 
     if (m_aePortDirections[PORT_C_LOWER] == DIRECTION_OUTPUT)
     {
+      // Save the value into the internal register, preserving upper bits
+      m_anPortOutputValue[PORT_C] = (m_anPortOutputValue[PORT_C] & 0xF0) | (nValue & 0x0F);
+
       // Bits 3-0 --> Keyboard line to be scanned
 
       // TODO

@@ -310,6 +310,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\AmstradCPC\cpcPsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcPsg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\AmstradCPC\cpcSubSystem.cpp"
 				>
 			</File>
