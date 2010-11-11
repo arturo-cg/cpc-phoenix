@@ -278,6 +278,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\AmstradCPC\cpcKeyboard.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcKeyboard.h"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcKeyboardTypes.h"
+				>
+			</File>
+			<File
 				RelativePath=".\AmstradCPC\cpcMachine.cpp"
 				>
 			</File>

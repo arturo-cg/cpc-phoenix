@@ -41,6 +41,7 @@ public:
   virtual LRESULT           _OnPaint                  (HDC hDc);
   virtual LRESULT           _OnMenuCommand            (WORD nItemId, bool bFromAccelerator);
   virtual LRESULT           _OnKeyDown                (unsigned nVirtualKey);
+  virtual LRESULT           _OnKeyUp                  (unsigned nVirtualKey);
 
 
 private:

@@ -12,9 +12,9 @@ namespace CPC {
 
 
   /**
-  ** The 8255 PPI is a general purpose programmable I/O device. In the Amstrad CPC, the following devices
-  ** are connected and accessed through the 8255 PPI: AY-3-8912 PSG, keyboard, cassette, VSYNC signal from
-  ** the CRTC and the BUSY signal from the parallel port.
+  ** The 8255 PPI (Programmable Peripheral Interface) is a general purpose programmable I/O device. In the Amstrad CPC,
+  ** the following devices are connected and accessed through the 8255 PPI: AY-3-8912 PSG, keyboard, cassette, VSYNC signal
+  ** from the CRTC and the BUSY signal from the parallel port.
   **
   ** The CPC makes a very simple use of the 8255 PPI. We take advantage of this fact to greatly simplify its
   ** emulation. These are the simplifications made (as the CPC firmware itself does):

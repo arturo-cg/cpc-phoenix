@@ -5,6 +5,7 @@
 #include "cpcPpi.h"
 #include "cpcMachine.h"
 #include "cpcPsg.h"
+#include "cpcKeyboard.h"
 
 
 
@@ -82,9 +83,9 @@ namespace CPC {
       nFunction = (nPort & 0x0300) >> 8;
       switch (nFunction)
       {
-        case 0:  *pnValue = ReadPortA(); break;     // Write PPI port A
-        case 1:  *pnValue = ReadPortB(); break;     // Write PPI port B
-        case 2:  *pnValue = ReadPortC(); break;     // Write PPI port C
+        case 0:  *pnValue = ReadPortA(); break;     // Read PPI port A
+        case 1:  *pnValue = ReadPortB(); break;     // Read PPI port B
+        case 2:  *pnValue = ReadPortC(); break;     // Read PPI port C
         case 3:  /*EMPTY*/               break;     // PPI control word is write-only
       }
 
@@ -204,11 +205,14 @@ namespace CPC {
   {
     cpcByte nRet = 0;
 
-    KMASSERTM( (m_aePortDirections[PORT_C_UPPER] == DIRECTION_OUTPUT) && (m_aePortDirections[PORT_C_LOWER] == DIRECTION_OUTPUT),
+    KMASSERTM( (m_aePortDirections[PORT_C_UPPER] == DIRECTION_INPUT) && (m_aePortDirections[PORT_C_LOWER] == DIRECTION_INPUT),
                ("Trying to read from PPI port C when it is currently configured as OUTPUT.") );
 
-    // All connections from port C to other devices are meant to be outputs from the CPU.
-    // So we do nothing if an attempt to read to this port is made.
+    if ( (m_aePortDirections[PORT_C_UPPER] == DIRECTION_OUTPUT) && (m_aePortDirections[PORT_C_LOWER] == DIRECTION_OUTPUT) )
+    {
+      // The port is configured as output, so when a read operation gives the value of the port internal output register
+      nRet = m_anPortOutputValue[PORT_C];
+    }
 
     return nRet;
   }
@@ -243,8 +247,7 @@ namespace CPC {
       m_anPortOutputValue[PORT_C] = (m_anPortOutputValue[PORT_C] & 0xF0) | (nValue & 0x0F);
 
       // Bits 3-0 --> Keyboard line to be scanned
-
-      // TODO
+      GetMachine()->GetKeyboard()->SetSelectedLine( nValue & 0x0F );
     }
   }
 
@@ -283,6 +286,11 @@ namespace CPC {
     // Bit 0 --> Direction of lower 4 bits of port C (0=output, 1=input)
     eDirection = ( (nValue & 0x01) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
     m_aePortDirections[PORT_C_LOWER] = eDirection;
+
+    // Every time the control word is written, port internal registers are cleared
+    m_anPortOutputValue[PORT_A] = 0x00;
+    m_anPortOutputValue[PORT_B] = 0x00;
+    m_anPortOutputValue[PORT_C] = 0x00;
   }
 
 } //namespace CPC

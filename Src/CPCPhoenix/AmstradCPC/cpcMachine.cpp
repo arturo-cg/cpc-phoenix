@@ -10,6 +10,7 @@
 #include "cpcPpi.h"
 #include "cpcPsg.h"
 #include "cpcDisplay.h"
+#include "cpcKeyboard.h"
 
 
 
@@ -35,6 +36,7 @@ namespace CPC {
     m_pPpi       = new CPpi( this );
     m_pPsg       = new CPsg( this );
     m_pDisplay   = new CDisplay( this );
+    m_pKeyboard  = new CKeyboard( this );
   }
 
   //----------------------------------------------------------------------------
@@ -51,6 +53,7 @@ namespace CPC {
     m_pPpi       = NULL;
     m_pPsg       = NULL;
     m_pDisplay   = NULL;
+    m_pKeyboard  = NULL;
   }
 
   //----------------------------------------------------------------------------
@@ -59,6 +62,7 @@ namespace CPC {
   */
   void CMachine::FreeVars()
   {
+    delete m_pKeyboard; m_pKeyboard = NULL;
     delete m_pDisplay; m_pDisplay = NULL;
     delete m_pPsg; m_pPsg = NULL;
     delete m_pPpi; m_pPpi = NULL;

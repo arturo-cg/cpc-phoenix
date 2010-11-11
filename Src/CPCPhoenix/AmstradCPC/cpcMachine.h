@@ -15,6 +15,7 @@ namespace CPC {
   class CPpi;
   class CPsg;
   class CDisplay;
+  class CKeyboard;
 
 
   /**
@@ -66,6 +67,9 @@ namespace CPC {
     /** Returns the display subsystem. */
     CDisplay*               GetDisplay                ()        { return m_pDisplay; }
     const CDisplay*         GetDisplay                () const  { return m_pDisplay; }
+    /** Returns the display subsystem. */
+    CKeyboard*              GetKeyboard               ()        { return m_pKeyboard; }
+    const CKeyboard*        GetKeyboard               () const  { return m_pKeyboard; }
 
     /** Reads a byte from the specified port. */
     cpcByte                 ReadByteFromPort          (cpcWord nPort);
@@ -95,6 +99,7 @@ namespace CPC {
     CPpi*                   m_pPpi;
     CPsg*                   m_pPsg;
     CDisplay*               m_pDisplay;
+    CKeyboard*              m_pKeyboard;
 
   };
 

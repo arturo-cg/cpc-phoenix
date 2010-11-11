@@ -6,6 +6,7 @@
 #include "Application.h"
 #include "cpcMachine.h"
 #include "cpcDisplay.h"
+#include "cpcKeyboard.h"
 
 #include <Windows.h>
 #include "resource.h"
@@ -246,7 +247,85 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
 */
 /*virtual*/ LRESULT AppWindow::_OnKeyDown(unsigned nVirtualKey)
 {
-  //...
+  // TODO - Map PC keys to CPC keys
+  if (nVirtualKey == 'A')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_A, CPC::CPCKEYSTATE_PRESSED );
+  }
+  else
+  if (nVirtualKey == 'S')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_S, CPC::CPCKEYSTATE_PRESSED );
+  }
+  else
+  if (nVirtualKey == 'D')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_D, CPC::CPCKEYSTATE_PRESSED );
+  }
+  else
+  if (nVirtualKey == 'F')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_F, CPC::CPCKEYSTATE_PRESSED );
+  }
+  else
+  if (nVirtualKey == 'G')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_G, CPC::CPCKEYSTATE_PRESSED );
+  }
+  else
+  if (nVirtualKey == 'H')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_H, CPC::CPCKEYSTATE_PRESSED );
+  }
+  else
+  if (nVirtualKey == VK_RETURN)
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_NUM_ENTER, CPC::CPCKEYSTATE_PRESSED );
+  }
+
+  return 0;
+}
+
+/**
+** 
+*/
+/*virtual*/ LRESULT AppWindow::_OnKeyUp(unsigned nVirtualKey)
+{
+  // TODO - Map PC keys to CPC keys
+  if (nVirtualKey == 'A')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_A, CPC::CPCKEYSTATE_RELEASED );
+  }
+  else
+  if (nVirtualKey == 'S')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_S, CPC::CPCKEYSTATE_RELEASED );
+  }
+  else
+  if (nVirtualKey == 'D')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_D, CPC::CPCKEYSTATE_RELEASED );
+  }
+  else
+  if (nVirtualKey == 'F')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_F, CPC::CPCKEYSTATE_RELEASED );
+  }
+  else
+  if (nVirtualKey == 'G')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_G, CPC::CPCKEYSTATE_RELEASED );
+  }
+  else
+  if (nVirtualKey == 'H')
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_H, CPC::CPCKEYSTATE_RELEASED );
+  }
+  else
+  if (nVirtualKey == VK_RETURN)
+  {
+    Application::Singleton()->GetEmulatedMachine()->GetKeyboard()->SetKeyState( CPC::CPCKEY_NUM_ENTER, CPC::CPCKEYSTATE_RELEASED );
+  }
 
   return 0;
 }

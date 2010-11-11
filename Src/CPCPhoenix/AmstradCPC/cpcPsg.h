@@ -49,11 +49,11 @@ namespace CPC {
     /** Selects the PSG function to perform. */
     void                    SelectFunction            (EFunction eFunction);
 
-    /** Writes a new value into the currently selected register. */
-    void                    SetSelectedRegisterValue  (cpcByte nValue)                 { m_anRegisters[m_nSelectedRegister] = nValue; }
     /** Writes a new value into the specified register.
     *** This is used by CKeyboard each time a new keyboard matrix line is selected or a key is pressed or released. */
-    void                    SetSelectedRegisterValue  (int nRegister, cpcByte nValue)  { m_anRegisters[nRegister] = nValue; }
+    void                    SetRegisterValue          (int nRegister, cpcByte nValue)  { m_anRegisters[nRegister] = nValue; }
+    /** Writes a new value into the currently selected register. */
+    void                    SetSelectedRegisterValue  (cpcByte nValue)                 { m_anRegisters[m_nSelectedRegister] = nValue; }
     /** Returns the value of the currently selected value. */
     cpcByte                 GetSelectedRegisterValue  () const                         { return m_anRegisters[m_nSelectedRegister]; }
 
