@@ -7,6 +7,11 @@
 
 #include "Window/kmbWindow.h"
 
+namespace CPC
+{
+  enum ECpcKey;
+}
+
 
 /**
 ** 
@@ -51,6 +56,8 @@ private:
 
   void                      ResetVars                 ();
   void                      FreeVars                  ();
+
+  CPC::ECpcKey              MapKeyHostToCpc           (unsigned nVirtualKey);
 
 
   HMENU                     m_hMainMenu;

@@ -216,7 +216,7 @@ void Application::Run()
     dDeltaTime = executionTimer.ComputeElapsedSecs( previousTimerValue, currentTimerValue );
 
     // Run the emulated machine
-    static const unsigned TIME_STEP = 64;    // 64ms is the time taken by the monitor to raster one scan line.
+    static const unsigned TIME_STEP = 10;
 
 //****************************************** TODO - TODO - TODO ************************************************
 //****************************************** TODO - TODO - TODO ************************************************
