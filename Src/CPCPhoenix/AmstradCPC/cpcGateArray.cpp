@@ -5,6 +5,7 @@
 #include "cpcGateArray.h"
 #include "cpcMachine.h"
 #include "cpcMemoryBlock.h"
+#include "cpcCpu.h"
 
 
 #define GET_MEMORY_BLOCK_FROM_ADDRESS(addr)   ((addr & 0xC000) >> 14)
@@ -130,6 +131,8 @@ namespace CPC {
     m_bLowerRomVisible  = true;
     m_bUpperRomVisible  = false;
     m_eSelectedUpperRom = CMemory::ROMINDEX_BASIC;
+    m_nHSyncCounter     = 0;
+    m_bRequestingInterrupt = false;
   }
 
   //----------------------------------------------------------------------------
@@ -152,6 +155,46 @@ namespace CPC {
 
     // Determine visible read/write blocks
     UpdateVisibleMemoryBlocks();
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::OnHSyncCycle()
+  {
+    // Increment the 6-bit counter
+    m_nHSyncCounter = (m_nHSyncCounter + 1) & 0x3F;
+
+    // Is it time to generate an interrupt?
+    if (m_nHSyncCounter >= 52)
+    {
+      m_nHSyncCounter = 0;
+      m_bRequestingInterrupt = true;
+      RequestInterruptIfApplicable();
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::RequestInterruptIfApplicable()
+  {
+    if (m_bRequestingInterrupt)     // If the Gate Array is currently requesting an interrupt...
+    {
+      if ( GetMachine()->GetCpu()->RequestInterrupt() )     // If the interrupt has been accepted...
+      {
+        // Clear the interrupt request
+        // Clear top bit (bit 5) of the internal HSYNC counter
+        m_bRequestingInterrupt = false;
+        m_nHSyncCounter = (m_nHSyncCounter & 0x1F);
+      }
+      else
+      {
+        // The Gate Array keeps requesting the interrupt until the CPU accepts it.
+      }
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -223,11 +266,13 @@ namespace CPC {
           // ROM selection (bit 2 - Lower ROM, bit 3 - Upper ROM)
           SetRomVisibility( (nValue&0x04)==0, (nValue&0x08)==0 );
 
-          // Interrupt control
-          //**************************************** TODO - TODO - TODO **********************************************
-          //**************************************** TODO - TODO - TODO **********************************************
-          //**************************************** TODO - TODO - TODO **********************************************
-          //**************************************** TODO - TODO - TODO **********************************************
+          // Interrupt control (bit 4).
+          // If set to 1, the m_nHSyncCounter counter is reset to 0 and the interrupt request is cleared.
+          if (nValue & 0x10)
+          {
+            m_nHSyncCounter        = 0;
+            m_bRequestingInterrupt = false;
+          }
         }
         break;
       }

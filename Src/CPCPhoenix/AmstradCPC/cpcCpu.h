@@ -25,11 +25,14 @@ namespace CPC {
 
   public:
 
-    CCpu                      (CMachine *pMachine);
+                            CCpu                      (CMachine *pMachine);
     virtual                ~CCpu                      ()  { FreeVars(); }
 
     /** Resets the subsystem. */
     virtual void            Reset                     ();
+
+    /** Requests a maskable interrupt. It returns true if it was accepted, or false otherwise (i.e. interrupts are disabled). */
+    bool                    RequestInterrupt          ();
 
     /** Runs the CPU for the given number of cycles. */
     void                    Run                       (unsigned nMinNumCycles);

@@ -111,6 +111,15 @@ namespace CPC {
   /**
   ** 
   */
+  bool CCpu::RequestInterrupt()
+  {
+    return (z80ex_int(m_pZ80State) > 0);
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
   void CCpu::Run(unsigned nMinNumCycles)
   {
     unsigned nCurrNumCycles;

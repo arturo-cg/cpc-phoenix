@@ -5,6 +5,7 @@
 #include "cpcPpi.h"
 #include "cpcMachine.h"
 #include "cpcPsg.h"
+#include "cpcCrtc.h"
 #include "cpcKeyboard.h"
 
 
@@ -172,12 +173,15 @@ namespace CPC {
     KMASSERTM( m_aePortDirections[PORT_B] == DIRECTION_INPUT, ("Trying to read from PPI port B when it is currently configured as OUTPUT.") );
     if (m_aePortDirections[PORT_B] == DIRECTION_INPUT)
     {
-      nRet = (0 << 7) |    // Bit 7 --> Cassette read data. No cassette emulation for now.
-             (1 << 6) |    // Bit 6 --> Parallel/Printer port ready signal ("1" = not ready, "0" = Ready). No parallel port emulation.
-             (0 << 5) |    // Bit 5 --> Expansion device connected signal. No expansion device emulation.
-             (1 << 4) |    // Bit 4 --> Screen refresh frequency ("1" = 50Hz, "0" = 60Hz).
-             (7 << 1) |    // Bits 3-1 --> Manufacturer name ("7" = Amstrad).
-             (0);          // Bit 0 --> 6845 VSYNC State of VSYNC from 6845 ("1" = VSYNC active, "0" = VSYNC inactive). No VSYNC emulation for now.
+      cpcByte nVSyncState;
+      nVSyncState = ( GetMachine()->GetCrtc()->GetVSyncState() ? 1 : 0 );
+
+      nRet = (0 << 7) |     // Bit 7 --> Cassette read data. No cassette emulation for now.
+             (1 << 6) |     // Bit 6 --> Parallel/Printer port ready signal ("1" = not ready, "0" = Ready). No parallel port emulation.
+             (0 << 5) |     // Bit 5 --> Expansion device connected signal. No expansion device emulation.
+             (1 << 4) |     // Bit 4 --> Screen refresh frequency ("1" = 50Hz, "0" = 60Hz).
+             (7 << 1) |     // Bits 3-1 --> Manufacturer name ("7" = Amstrad).
+             (nVSyncState); // Bit 0 --> VSYNC state of VSYNC signal from 6845 ("1" = VSYNC active, "0" = VSYNC inactive).
     }
 
     return nRet;

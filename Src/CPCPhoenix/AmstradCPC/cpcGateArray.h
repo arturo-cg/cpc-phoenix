@@ -58,6 +58,9 @@ namespace CPC {
     *** The CPU doesn't access memory directly. Instead, it goes through the Gate Array which provides RAM paging. */
     void                    WriteByteToMemory         (cpcWord nAddress, cpcByte nValue);
 
+    /** Notification from the CRTC that the HSYNC signal has changed from high to low. */
+    void                    OnHSyncCycle              ();
+
     /** We are notified that another subsytem is trying to write a byte to us.
     *** Usually it's the CPU through an OUT instruction. */
     virtual void            RespondToWritePortRequest (cpcWord nPort, cpcByte nValue);
@@ -96,7 +99,7 @@ namespace CPC {
     void                    SelectUpperRom            (CMemory::ERomBlockIndex eIndex);
 
     void                    UpdateVisibleMemoryBlocks ();
-
+    void                    RequestInterruptIfApplicable ();
 
     /** Currently selected pen. This is the pen that will be changed on the next "change pen color" operation.
     *** If this value is >= 16, the border is selected instead of a pen. */
@@ -130,6 +133,10 @@ namespace CPC {
     bool                    m_bUpperRomVisible;
     /** The upper ROM (range &C000-&FFFF) currently selected. */
     CMemory::ERomBlockIndex m_eSelectedUpperRom;
+
+    /** 6-bit counter related to the HSYNC signal from the CRTC, used to generate interrupts. */
+    unsigned                m_nHSyncCounter;
+    bool                    m_bRequestingInterrupt;
 
   };
 

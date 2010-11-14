@@ -6,6 +6,8 @@
 
 #include "stdafx.h"
 #include "cpcCrtc.h"
+#include "cpcMachine.h"
+#include "cpcGateArray.h"
 
 
 namespace CPC {
@@ -29,8 +31,12 @@ namespace CPC {
   */
   void CCrtc::ResetVars()
   {
-    m_eSelectedRegister = HORIZONTAL_TOTAL;
-    m_uCycleCount       = 0;
+    m_eSelectedRegister  = HORIZONTAL_TOTAL;
+    m_nCurrentHCharacter = 0;
+    m_nCurrentScanLine   = 0;
+    m_bHSyncState        = false;
+    m_bVSyncState        = false;
+    m_uCycleCount        = 0;
     //m_uFrameCount       = 0;
     m_bGeneratedAddressTableUpToDate = false;
   }
@@ -131,12 +137,39 @@ namespace CPC {
   */
   void CCrtc::Run(unsigned nNumCycles)
   {
-    m_uCycleCount += nNumCycles;
-    if (m_uCycleCount >= CYCLES_PER_FRAME)
+    const unsigned nHorizontalTotal      = (unsigned) m_anRegisters[HORIZONTAL_TOTAL] + 1;
+    const unsigned nVerticalTotal        = (unsigned) m_anRegisters[VERTICAL_TOTAL] + 1;
+    const unsigned nMaximumRasterAddress = (unsigned) m_anRegisters[MAXIMUM_RASTER_ADDRESS] + 1;
+
+    // Update horizontal position (in terms of characters) and vertical position (in terms of scan lines)
+    m_nCurrentHCharacter += nNumCycles;
+    while (m_nCurrentHCharacter >= nHorizontalTotal)
     {
-      // New frame
-      m_uFrameCount++;
-      m_uCycleCount -= CYCLES_PER_FRAME;
+      // New scan line
+      m_nCurrentHCharacter -= nHorizontalTotal;
+      m_nCurrentScanLine++;
+      if (m_nCurrentScanLine >= (nVerticalTotal * nMaximumRasterAddress))
+      {
+        // New frame
+        m_nCurrentScanLine = 0;
+        m_uFrameCount++;
+      }
+    }
+
+    // Update HSYNC and VSYNC signals
+    const unsigned nHorizontalDisplayed = (unsigned) m_anRegisters[HORIZONTAL_DISPLAYED] + 1;
+    const unsigned nVerticalDisplayed   = (unsigned) m_anRegisters[VERTICAL_DISPLAYED] + 1;
+
+    bool bOldHSyncState;
+    bOldHSyncState = m_bHSyncState;
+
+    m_bHSyncState = (m_nCurrentHCharacter >= nHorizontalDisplayed);                        // TODO - Use HORIZONTAL_SYNC_POSITION and SYNC_WIDTHS registers.
+    m_bVSyncState = (m_nCurrentScanLine >= (nVerticalDisplayed * nMaximumRasterAddress));  // TODO - Use VERTICAL_SYNC_POSITION and SYNC_WIDTHS registers.
+
+    if (bOldHSyncState && !m_bHSyncState)   // If HSYNC has changed from high to low...
+    {                                       // TODO - Detect high->low or low->high?
+      // Notify the Gate Array that HSYNC went from high to low. The Gate Array uses this to generate interrupts.
+      GetMachine()->GetGateArray()->OnHSyncCycle();
     }
   }
 
