@@ -11,6 +11,8 @@
 
 namespace CPC {
 
+  class CKeyStateProvider;
+
 
   /**
   ** This class represents the Amstrad CPC keyboard. It keeps track of the state of all keys and joysticks.
@@ -20,7 +22,7 @@ namespace CPC {
   public:
 
 
-                            CKeyboard                 (CMachine *pMachine);
+                            CKeyboard                 (CMachine *pMachine, CKeyStateProvider* pKeyStateProvider);
     virtual                ~CKeyboard                 ()  { FreeVars(); }
 
     /** Resets the subsystem. */
@@ -28,10 +30,6 @@ namespace CPC {
 
     /** Selects the specified keyboard line. This is called by the emulator whenever PPI port C changes. */
     void                    SetSelectedLine           (int nLine);
-
-    /** Sets the released/pressed state of a specific key.
-    *** This must be called by the emulator front end when a key in the host keyboard is released or pressed. */
-    void                    SetKeyState               (ECpcKey eKey, ECpcKeyState eState);
 
 
   private:
@@ -52,8 +50,9 @@ namespace CPC {
     cpcByte                 GetSelectedLineStatus     () const;
     void                    WriteSelectedLineStatusToPsg ();
 
-    ECpcKeyState            m_aeKeyStates[CPCKEY_LAST];
+
     unsigned                m_nSelectedLine;
+    CKeyStateProvider*      m_pKeyStateProvider;
 
   };
 

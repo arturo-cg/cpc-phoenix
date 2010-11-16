@@ -9,6 +9,7 @@
 #include "Settings.h"
 
 class AppWindow;
+class WindowsKeyStateProvider;
 namespace CPC
 {
   class CMachine;
@@ -74,7 +75,7 @@ private:
 
   CPC::CMachine*            m_pMachine;
   unsigned                  m_uFrameCount;
-
+  WindowsKeyStateProvider*  m_pKeyStateProvider;
 };
 
 #endif // _APPLICATION_H_

@@ -6,6 +6,7 @@
 #include "cpcMachine.h"
 #include "cpcDisplay.h"
 #include "AppWindow.h"
+#include "WindowsKeyStateProvider.h"
 #include "Window/kmbWindow.h"
 #include "Timer/kmbPrecisionTimer.h"
 
@@ -39,10 +40,16 @@ bool Application::Init(HINSTANCE hInstance)
     m_settings.Init();
   }
 
+  // Key state provider
+  if (bRet)
+  {
+    m_pKeyStateProvider = new WindowsKeyStateProvider();
+  }
+
   // Emulator
   if (bRet)
   {
-    m_pMachine = new CPC::CMachine( GetSettings()->GetCpcModel() );
+    m_pMachine = new CPC::CMachine( GetSettings()->GetCpcModel(), m_pKeyStateProvider );
     m_pMachine->Reset();
   }
 
@@ -89,6 +96,7 @@ void Application::ResetVars()
   m_pAppWindow  = NULL;
   m_pMachine    = NULL;
   m_uFrameCount = 0;
+  m_pKeyStateProvider = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -97,6 +105,7 @@ void Application::ResetVars()
 */
 void Application::FreeVars()
 {
+  delete m_pKeyStateProvider;
   delete m_pAppWindow;
   delete m_pMachine;
   m_settings.End();
@@ -125,7 +134,7 @@ void Application::ChangeCpcModelSetting(CPC::CMachine::EModel eNewModel)
 
   // Delete the current machine and create the new one
   delete m_pMachine;
-  m_pMachine = new CPC::CMachine( eNewModel );
+  m_pMachine = new CPC::CMachine( eNewModel, m_pKeyStateProvider );
   m_pMachine->Reset();
   m_uFrameCount = 0;
 
@@ -223,7 +232,7 @@ void Application::Run()
     m_pMachine->Run( TIME_STEP );
 
     // Has the emulated machine completed a new video frame?
-    if ( (m_uFrameCount < m_pMachine->GetFrameCount()) || (::GetAsyncKeyState(VK_SPACE) & 0x8000)/***PRUEBAS***/ )
+    if (m_uFrameCount < m_pMachine->GetFrameCount())
     {
       // Grab the new display image
       m_pAppWindow->UpdateDisplayImage();

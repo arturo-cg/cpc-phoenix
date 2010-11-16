@@ -16,6 +16,7 @@ namespace CPC {
   class CPsg;
   class CDisplay;
   class CKeyboard;
+  class CKeyStateProvider;
 
 
   /**
@@ -37,7 +38,7 @@ namespace CPC {
     };
 
 
-                            CMachine                  (EModel eType);
+                            CMachine                  (EModel eType, CKeyStateProvider* pKeyStateProvider);
     virtual                ~CMachine                  ()  { FreeVars(); }
 
     /** Returns the model of the emulated machine. */

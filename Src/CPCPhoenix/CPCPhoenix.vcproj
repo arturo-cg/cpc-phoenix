@@ -290,6 +290,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\AmstradCPC\cpcKeyStateProvider.h"
+				>
+			</File>
+			<File
 				RelativePath=".\AmstradCPC\cpcMachine.cpp"
 				>
 			</File>
@@ -371,6 +375,14 @@
 			</File>
 			<File
 				RelativePath=".\FrontEnd\Settings.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FrontEnd\WindowsKeyStateProvider.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FrontEnd\WindowsKeyStateProvider.h"
 				>
 			</File>
 		</Filter>

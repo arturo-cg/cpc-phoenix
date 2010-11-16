@@ -5,6 +5,7 @@
 #include "cpcKeyboard.h"
 #include "cpcMachine.h"
 #include "cpcPsg.h"
+#include "cpcKeyStateProvider.h"
 
 
 
@@ -36,10 +37,11 @@ namespace CPC {
   /**
   ** 
   */
-  CKeyboard::CKeyboard(CMachine *pMachine) : inherited( pMachine )
+  CKeyboard::CKeyboard(CMachine *pMachine, CKeyStateProvider* pKeyStateProvider) : inherited( pMachine )
   {
     // Reset members
     ResetVars();
+    m_pKeyStateProvider = pKeyStateProvider;
 
     // Initialize the key-to-line look-up table
     InitKeyToLineLookUpTable();
@@ -52,12 +54,6 @@ namespace CPC {
   void CKeyboard::ResetVars()
   {
     m_nSelectedLine = 0;
-
-    unsigned nKey;
-    for (nKey = 0; nKey < CPCKEY_LAST; nKey++)
-    {
-      m_aeKeyStates[nKey] = CPCKEYSTATE_RELEASED;
-    }
   }
 
   //----------------------------------------------------------------------------
@@ -117,26 +113,6 @@ namespace CPC {
   /**
   ** 
   */
-  void CKeyboard::SetKeyState(ECpcKey eKey, ECpcKeyState eState)
-  {
-    if (eKey != CPCKEY_INVALID)
-    {
-      // Store the new key state
-      m_aeKeyStates[eKey] = eState;
-
-      // If the key is in the currently selected line, we need to update the line status stored
-      // in the PSG (the keyboard matrix is connected to its I/O Port A).
-      if (s_anKeyToLineLookUp[eKey] == m_nSelectedLine)
-      {
-        WriteSelectedLineStatusToPsg();
-      }
-    }
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
   cpcByte CKeyboard::GetSelectedLineStatus() const
   {
     cpcByte nRet = 0;
@@ -148,7 +124,7 @@ namespace CPC {
         ECpcKey eCurrentKey;
         eCurrentKey = s_aeKeyboardMatrix[nBit][m_nSelectedLine];
 
-        nRet |= (m_aeKeyStates[eCurrentKey] << nBit);
+        nRet |= (m_pKeyStateProvider->GetKeyState(eCurrentKey) << nBit);
       }
     }
     else

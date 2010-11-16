@@ -22,7 +22,7 @@ namespace CPC {
   /**
   ** 
   */
-  CMachine::CMachine(EModel eType)
+  CMachine::CMachine(EModel eType, CKeyStateProvider* pKeyStateProvider)
   {
     ResetVars();
 
@@ -36,7 +36,7 @@ namespace CPC {
     m_pPpi       = new CPpi( this );
     m_pPsg       = new CPsg( this );
     m_pDisplay   = new CDisplay( this );
-    m_pKeyboard  = new CKeyboard( this );
+    m_pKeyboard  = new CKeyboard( this, pKeyStateProvider );
   }
 
   //----------------------------------------------------------------------------
