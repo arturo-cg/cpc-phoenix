@@ -264,37 +264,55 @@ namespace CPC {
     int        nMode;
     EDirection eDirection;
 
-    // Bit 7 --> 1 to define mode and directions (input or output), 0 set/clear bits (not emulated)
-    KMASSERTM( nValue & 0x80, ("PPI set/clear bits functionality not emulated.") );
+    // When bit 7 == "1" --> Defines mode and directions (input or output) of each port.
+    // When bit 7 == "0" --> Sets or clears a single bit of port C.
+    if (nValue & 0x80)      // If bit 7 is "1"...
+    {
+      // Bits 6,5 --> Group A mode (0=mode 0, 1=mode 1, 2 and 3=mode 2. Only mode 0 is emulated)
+      nMode = (nValue & 0x60) >> 5;
+      KMASSERTM( nMode == 0, ("The mode selected for PPI group A is not emulated.") );
 
-    // Bits 6,5 --> Group A mode (0=mode 0, 1=mode 1, 2 and 3=mode 2. Only mode 0 is emulated)
-    nMode = (nValue & 0x60) >> 5;
-    KMASSERTM( nMode == 0, ("The mode selected for PPI group A is not emulated.") );
+      // Bit 4 --> Direction of port A (0=output, 1=input)
+      eDirection = ( (nValue & 0x10) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
+      m_aePortDirections[PORT_A] = eDirection;
 
-    // Bit 4 --> Direction of port A (0=output, 1=input)
-    eDirection = ( (nValue & 0x10) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
-    m_aePortDirections[PORT_A] = eDirection;
+      // Bit 3 --> Direction of upper 4 bits of port C (0=output, 1=input)
+      eDirection = ( (nValue & 0x08) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
+      m_aePortDirections[PORT_C_UPPER] = eDirection;
 
-    // Bit 3 --> Direction of upper 4 bits of port C (0=output, 1=input)
-    eDirection = ( (nValue & 0x08) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
-    m_aePortDirections[PORT_C_UPPER] = eDirection;
+      // Bit 2 --> Group B mode (0=mode 0, 1=mode 1. Only mode 0 is emulated)
+      nMode = (nValue & 0x04) >> 2;
+      KMASSERTM( nMode == 0, ("The mode selected for PPI group B is not emulated.") );
 
-    // Bit 2 --> Group B mode (0=mode 0, 1=mode 1. Only mode 0 is emulated)
-    nMode = (nValue & 0x04) >> 2;
-    KMASSERTM( nMode == 0, ("The mode selected for PPI group B is not emulated.") );
+      // Bit 1 --> Direction of port B (0=output, 1=input)
+      eDirection = ( (nValue & 0x02) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
+      m_aePortDirections[PORT_B] = eDirection;
 
-    // Bit 1 --> Direction of port B (0=output, 1=input)
-    eDirection = ( (nValue & 0x02) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
-    m_aePortDirections[PORT_B] = eDirection;
+      // Bit 0 --> Direction of lower 4 bits of port C (0=output, 1=input)
+      eDirection = ( (nValue & 0x01) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
+      m_aePortDirections[PORT_C_LOWER] = eDirection;
 
-    // Bit 0 --> Direction of lower 4 bits of port C (0=output, 1=input)
-    eDirection = ( (nValue & 0x01) ? DIRECTION_INPUT : DIRECTION_OUTPUT );
-    m_aePortDirections[PORT_C_LOWER] = eDirection;
+      // Every time the control word is written, port internal registers are cleared
+      m_anPortOutputValue[PORT_A] = 0x00;
+      m_anPortOutputValue[PORT_B] = 0x00;
+      m_anPortOutputValue[PORT_C] = 0x00;
+    }
+    else
+    {
+      // Bits 3-1 indicate the bit to select of port C
+      int nBit;
+      nBit = (nValue & 0x1E) >> 1;
 
-    // Every time the control word is written, port internal registers are cleared
-    m_anPortOutputValue[PORT_A] = 0x00;
-    m_anPortOutputValue[PORT_B] = 0x00;
-    m_anPortOutputValue[PORT_C] = 0x00;
+      // Bit 0 indicates the new value for the selected bit
+      if (nValue & 0x01)
+      {
+        m_anPortOutputValue[PORT_C] = m_anPortOutputValue[PORT_C] | (1 << nBit);    // Set the bit
+      }
+      else
+      {
+        m_anPortOutputValue[PORT_C] = m_anPortOutputValue[PORT_C] & !(1 << nBit);   // Clear the bit
+      }
+    }
   }
 
 } //namespace CPC
