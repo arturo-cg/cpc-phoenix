@@ -6,6 +6,7 @@
 
 
 #include "cpcSubSystem.h"
+#include "cpcCrtc.h"
 
 
 namespace CPC {
@@ -45,6 +46,10 @@ namespace CPC {
 
     void                    ResetVars                 ();
     void                    FreeVars                  ();
+
+    unsigned*               DecodeScanLine_B8G8R8X8_Mode0 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);
+    unsigned*               DecodeScanLine_B8G8R8X8_Mode1 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);
+    unsigned*               DecodeScanLine_B8G8R8X8_Mode2 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);
 
 
     bool                    m_bScanLineEffectActivated;
