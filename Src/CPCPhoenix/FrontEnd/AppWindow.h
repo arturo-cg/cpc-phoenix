@@ -7,6 +7,8 @@
 
 #include "Window/kmbWindow.h"
 
+class StatusBar;
+
 namespace CPC
 {
   enum ECpcKey;
@@ -44,6 +46,7 @@ public:
   // Returns 0 to continue the window creation, or -1 to cancel it.
   virtual LRESULT           _OnClose                  ();
   virtual LRESULT           _OnPaint                  (HDC hDc);
+  virtual LRESULT           _OnSize                   (int iWidth, int iHeight);
   virtual LRESULT           _OnMenuCommand            (WORD nItemId, bool bFromAccelerator);
   virtual LRESULT           _OnKeyDown                (unsigned nVirtualKey);
 
@@ -59,6 +62,7 @@ private:
 
   HMENU                     m_hMainMenu;
   HACCEL                    m_hAccelerators;
+  StatusBar*                m_pStatusBar;
 
   HDC                       m_BackBufferDC;
   HBITMAP                   m_BackBufferBitmap;

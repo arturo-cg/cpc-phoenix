@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by CPCPhoenix.rc
 //
+#define ID_STATUSBAR                    101
 #define IDR_MAINFRAME                   128
 #define IDR_APPWINDOW                   128
 #define IDR_APPWINDOWACCELERATORS       128
@@ -24,7 +25,6 @@
 #define ID_SETTINGS_CHANGECPCMODEL_CPC664 32785
 #define ID_SETTINGS_CHANGECPCMODEL_CPC6128 32786
 #define ID_SETTINGS_DRAWSCANLINES       32787
-#define IDACCEL_SETTINGS_RESET          32789
 
 // Next default values for new objects
 // 
@@ -33,6 +33,6 @@
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32791
 #define _APS_NEXT_CONTROL_VALUE         1000
-#define _APS_NEXT_SYMED_VALUE           101
+#define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

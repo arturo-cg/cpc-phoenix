@@ -378,6 +378,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FrontEnd\StatusBar.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FrontEnd\StatusBar.h"
+				>
+			</File>
+			<File
 				RelativePath=".\FrontEnd\WindowsKeyStateProvider.cpp"
 				>
 			</File>

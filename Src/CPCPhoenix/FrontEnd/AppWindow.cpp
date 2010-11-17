@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "AppWindow.h"
 #include "Application.h"
+#include "StatusBar.h"
 #include "cpcMachine.h"
 #include "cpcDisplay.h"
 #include "cpcKeyboard.h"
@@ -55,6 +56,13 @@ bool AppWindow::Init()
       ::SetMenu( this->GetHWnd(), m_hMainMenu );
       OnApplicationSettingsChanged();
     }
+  }
+
+  // Status bar
+  if (bRet)
+  {
+    m_pStatusBar = new StatusBar;
+    m_pStatusBar->Init( this );
   }
 
   // Key accelerators
@@ -128,6 +136,7 @@ void AppWindow::ResetVars()
 {
   m_hMainMenu        = NULL;
   m_hAccelerators    = NULL;
+  m_pStatusBar       = NULL;
   m_BackBufferDC     = NULL;
   m_BackBufferBitmap = NULL;
   m_pBackBuffer      = NULL;
@@ -139,6 +148,7 @@ void AppWindow::ResetVars()
 */
 void AppWindow::FreeVars()
 {
+  delete m_pStatusBar;
   delete m_pBackBuffer;
 }
 
@@ -202,6 +212,23 @@ void AppWindow::UpdateDisplayImage()
   //                &m_BackBufferDC, 0, 0, SRCCOPY );
 
   return 0;
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+/*virtual*/ LRESULT AppWindow::_OnSize(int iWidth, int iHeight)
+{
+  LRESULT nRet = 0;
+
+  if (m_pStatusBar != NULL)
+  {
+    // Resize the status bar
+    nRet = ::SendMessage( m_pStatusBar->GetHWnd(), WM_SIZE, 0, LOWORD(iWidth) | HIWORD(iHeight) );
+  }
+
+  return nRet;
 }
 
 //----------------------------------------------------------------------------
