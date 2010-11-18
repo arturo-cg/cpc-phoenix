@@ -24,8 +24,8 @@ public:
 
   HWND                      GetHWnd                   () const  { return m_hWnd; }
 
-  void                      SetInsertedDiskText       (const string& sText);
-  void                      SetEmulationSpeedText     (const string& sText);
+  void                      SetInsertedDiskName       (const string& sDiskName);
+  void                      SetEmulationSpeed         (float fSpeed);
 
 
 private:

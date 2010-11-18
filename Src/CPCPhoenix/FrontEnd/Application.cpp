@@ -6,9 +6,9 @@
 #include "cpcMachine.h"
 #include "cpcDisplay.h"
 #include "AppWindow.h"
+#include "StatusBar.h"
 #include "WindowsKeyStateProvider.h"
 #include "Window/kmbWindow.h"
-#include "Timer/kmbPrecisionTimer.h"
 
 #include <CommCtrl.h>
 
@@ -202,34 +202,24 @@ void Application::ProcessWindowsMessages()
 */
 void Application::Run()
 {
-  kmbPrecisionTimer        executionTimer;
-  kmbPrecisionTimer::Value previousTimerValue;
-  kmbPrecisionTimer::Value currentTimerValue;
   double                   dLogicTimeAccum = 0.f;
 
   // Initialize the execution timer, which is used to control the execution of the emulator
-  executionTimer.Init();
-  executionTimer.Read( &currentTimerValue );
+  m_executionTimer.Init();
+  m_executionTimer.Read( &m_currentTimerValue );
 
   // Enter the main loop
   while ( !m_bExitApp )
   {
+    m_previousTimerValue = m_currentTimerValue;
+
     // Process Windows messages
     ProcessWindowsMessages();
 
-    // Update the execution timer
-    previousTimerValue = currentTimerValue;
-    executionTimer.Read( &currentTimerValue );
-
-    double dDeltaTime;
-    dDeltaTime = executionTimer.ComputeElapsedSecs( previousTimerValue, currentTimerValue );
-
     // Run the emulated machine
-    static const unsigned TIME_STEP = 10;
+    static const unsigned TIME_STEP_USECS = 10;
 
-//****************************************** TODO - TODO - TODO ************************************************
-//****************************************** TODO - TODO - TODO ************************************************
-    m_pMachine->Run( TIME_STEP );
+    m_pMachine->Run( TIME_STEP_USECS );
 
     // Has the emulated machine completed a new video frame?
     if (m_uFrameCount < m_pMachine->GetFrameCount())
@@ -240,8 +230,27 @@ void Application::Run()
 
       m_uFrameCount = m_pMachine->GetFrameCount();
     }
-//****************************************** TODO - TODO - TODO ************************************************
-//****************************************** TODO - TODO - TODO ************************************************
+
+    // Limit the emulation speed
+    double dDeltaTimeSecs;
+    double dDeltaTimeUSecs;
+    do
+    {
+      m_executionTimer.Read( &m_currentTimerValue );
+      dDeltaTimeSecs  = m_executionTimer.ComputeElapsedSecs( m_previousTimerValue, m_currentTimerValue );
+      dDeltaTimeUSecs = dDeltaTimeSecs * 1000000.0;
+    } while (dDeltaTimeUSecs < double(TIME_STEP_USECS));
+
+    // Measure the emulation speed
+    static unsigned s_nStatusBarUpdateDelay = 0;
+    if (s_nStatusBarUpdateDelay == 0)
+    {
+      float fEmulationSpeed;
+      fEmulationSpeed = (float) ( (double(TIME_STEP_USECS) * 100.0) / dDeltaTimeUSecs );
+      GetAppWindow()->GetStatusBar()->SetEmulationSpeed( fEmulationSpeed );
+      s_nStatusBarUpdateDelay = 30000;
+    }
+    s_nStatusBarUpdateDelay--;
   }
 
   // TODO - Save application settings

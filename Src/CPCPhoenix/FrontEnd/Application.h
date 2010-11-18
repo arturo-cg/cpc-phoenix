@@ -7,6 +7,7 @@
 
 #include "Misc/kmbSingleton.h"
 #include "Settings.h"
+#include "Timer/kmbPrecisionTimer.h"
 
 class AppWindow;
 class WindowsKeyStateProvider;
@@ -63,7 +64,6 @@ private:
   void                      FreeVars                  ();
 
   void                      ProcessWindowsMessages    ();
-
   void                      UpdateMenu                ();
 
 
@@ -76,6 +76,11 @@ private:
   CPC::CMachine*            m_pMachine;
   unsigned                  m_uFrameCount;
   WindowsKeyStateProvider*  m_pKeyStateProvider;
+
+  kmbPrecisionTimer         m_executionTimer;
+  kmbPrecisionTimer::Value  m_previousTimerValue;
+  kmbPrecisionTimer::Value  m_currentTimerValue;
+
 };
 
 #endif // _APPLICATION_H_

@@ -41,8 +41,8 @@ bool StatusBar::Init(kmbWindow* pParentWnd)
     int aWidths[PART_LAST] = { 500, -1 };
     ::SendMessage( m_hWnd, SB_SETPARTS, PART_LAST/*part count*/, (LPARAM) aWidths );
 
-    SetInsertedDiskText( "\t<No disk inserted>" );
-    SetEmulationSpeedText( "\t\tSpeed: ---" );
+    SetInsertedDiskName( "" );
+    SetEmulationSpeed( 0.f );
   }
 
 
@@ -93,16 +93,29 @@ void StatusBar::FreeVars()
 /**
 ** 
 */
-void StatusBar::SetInsertedDiskText(const string& sText)
+void StatusBar::SetInsertedDiskName(const string& sDiskName)
 {
-  ::SendMessage( m_hWnd, SB_SETTEXT, PART_INSERTEDDISK | 0/*style*/, (LPARAM) sText.c_str() );
+  char szText[300];
+  if ( !sDiskName.empty() )
+  {
+    _snprintf_s( szText, sizeof(szText), "\tInserted disk: [%s]", sDiskName.c_str() );
+  }
+  else
+  {
+    _snprintf_s( szText, sizeof(szText), "\t<No disk inserted>" );
+  }
+
+  ::SendMessage( m_hWnd, SB_SETTEXT, PART_INSERTEDDISK | 0/*style*/, (LPARAM) szText );
 }
 
 //----------------------------------------------------------------------------
 /**
 ** 
 */
-void StatusBar::SetEmulationSpeedText(const string& sText)
+void StatusBar::SetEmulationSpeed(float fSpeed)
 {
-  ::SendMessage( m_hWnd, SB_SETTEXT, PART_EMULATIONSPEED | 0/*style*/, (LPARAM) sText.c_str() );
+  char szText[100];
+  _snprintf_s( szText, sizeof(szText), "\tSpeed: %.1f%%", fSpeed );
+
+  ::SendMessage( m_hWnd, SB_SETTEXT, PART_EMULATIONSPEED | 0/*style*/, (LPARAM) szText );
 }

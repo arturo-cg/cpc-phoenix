@@ -38,6 +38,11 @@ public:
   /** Returns the accelerators used by this window. */
   HACCEL                    GetAccelerators           () const  { return m_hAccelerators; }
 
+  /** Returns the status bar. */
+  StatusBar*                GetStatusBar              ()        { return m_pStatusBar; }
+  /** Returns the status bar (const version). */
+  const StatusBar*          GetStatusBar              () const  { return m_pStatusBar; }
+
 
   //
   // Message handlers (INTERNAL USE ONLY)
