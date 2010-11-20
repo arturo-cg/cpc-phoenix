@@ -211,8 +211,6 @@ void Application::Run()
   // Enter the main loop
   while ( !m_bExitApp )
   {
-    m_previousTimerValue = m_currentTimerValue;
-
     // Process Windows messages
     ProcessWindowsMessages();
 
@@ -229,28 +227,31 @@ void Application::Run()
       m_pAppWindow->InvalidateAll( false );
 
       m_uFrameCount = m_pMachine->GetFrameCount();
-    }
 
-    // Limit the emulation speed
-    double dDeltaTimeSecs;
-    double dDeltaTimeUSecs;
-    do
-    {
-      m_executionTimer.Read( &m_currentTimerValue );
-      dDeltaTimeSecs  = m_executionTimer.ComputeElapsedSecs( m_previousTimerValue, m_currentTimerValue );
-      dDeltaTimeUSecs = dDeltaTimeSecs * 1000000.0;
-    } while (dDeltaTimeUSecs < double(TIME_STEP_USECS));
+      // Limit the emulation speed
+      double dDeltaTimeSecs;
+      double dDeltaTimeUSecs;
+      do
+      {
+        m_executionTimer.Read( &m_currentTimerValue );
+        dDeltaTimeSecs  = m_executionTimer.ComputeElapsedSecs( m_previousTimerValue, m_currentTimerValue );
+        dDeltaTimeUSecs = dDeltaTimeSecs * 1000000.0;
+      } while (dDeltaTimeUSecs < double(FRAME_DURATION_USECS));
 
-    // Measure the emulation speed
-    static unsigned s_nStatusBarUpdateDelay = 0;
-    if (s_nStatusBarUpdateDelay == 0)
-    {
-      float fEmulationSpeed;
-      fEmulationSpeed = (float) ( (double(TIME_STEP_USECS) * 100.0) / dDeltaTimeUSecs );
-      GetAppWindow()->GetStatusBar()->SetEmulationSpeed( fEmulationSpeed );
-      s_nStatusBarUpdateDelay = 30000;
+
+      // Measure the emulation speed
+      static unsigned s_nStatusBarUpdateDelay = 0;
+      if (s_nStatusBarUpdateDelay == 0)
+      {
+        float fEmulationSpeed;
+        fEmulationSpeed = (float) ( (double(FRAME_DURATION_USECS) * 100.0) / dDeltaTimeUSecs );
+        GetAppWindow()->GetStatusBar()->SetEmulationSpeed( fEmulationSpeed );
+        s_nStatusBarUpdateDelay = 25;
+      }
+      s_nStatusBarUpdateDelay--;
+
+      m_previousTimerValue = m_currentTimerValue;
     }
-    s_nStatusBarUpdateDelay--;
   }
 
   // TODO - Save application settings

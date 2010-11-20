@@ -60,6 +60,9 @@ public:
 
 private:
 
+  static const unsigned     FRAME_DURATION_USECS = 20000;
+
+
   void                      ResetVars                 ();
   void                      FreeVars                  ();
 

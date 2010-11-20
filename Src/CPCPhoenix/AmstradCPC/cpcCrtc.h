@@ -90,7 +90,6 @@ namespace CPC {
 
     typedef                 CSubSystem                inherited;
 
-    static const unsigned   CYCLES_PER_FRAME    = 20000;
     static const unsigned   MAX_SCAN_LINE_COUNT = 200;
 
 
