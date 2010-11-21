@@ -29,9 +29,10 @@ namespace CPC {
 
     enum EModel
     {
-      MODEL_464 = 0,   // 64Kb RAM, 32Kb ROM (OS v1, BASIC 1.0), tape drive
-      MODEL_664,       // 64Kb RAM, 48Kb ROM (OS v2, BASIC 1.1, AMSDOS), disc drive
-      MODEL_6128,      // 128Kb RAM, 48Kb ROM (OS v3, BASIC 1.1, AMSDOS), disc drive
+      MODEL_464 = 0,      // 64Kb RAM, 32Kb ROM (OS v1, BASIC 1.0), tape drive
+      MODEL_664,          // 64Kb RAM, 48Kb ROM (OS v2, BASIC 1.1, AMSDOS), disc drive
+      MODEL_6128,         // 128Kb RAM, 48Kb ROM (OS v3, BASIC 1.1, AMSDOS), disc drive
+      MODEL_6128_MAXAM,   // MODEL_6128 + MAXAM ROM
 
       MODEL_LAST,
       MODEL_INVALID = 0xFFFFFFFF
