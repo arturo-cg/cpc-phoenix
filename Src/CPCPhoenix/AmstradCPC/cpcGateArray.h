@@ -96,7 +96,7 @@ namespace CPC {
     void                    SetScreenMode             (EScreenMode eScreenMode);
     void                    SetRamConfiguration       (unsigned nSecondaryPage, ERamConfig eConfig);
     void                    SetRomVisibility          (bool bLowerRomVisible, bool bUpperRomVisible);
-    void                    SelectUpperRom            (CMemory::ERomBlockIndex eIndex);
+    void                    SelectUpperRom            (cpcByte nIndex);
 
     void                    UpdateVisibleMemoryBlocks ();
     void                    RequestInterruptIfApplicable ();
@@ -132,7 +132,7 @@ namespace CPC {
     /** Whether the upper ROM (BASIC, AMSDOS or expansion ROM) is visible in the range &C000-&FFFF or not. */
     bool                    m_bUpperRomVisible;
     /** The upper ROM (range &C000-&FFFF) currently selected. */
-    CMemory::ERomBlockIndex m_eSelectedUpperRom;
+    cpcByte                 m_nSelectedUpperRom;
 
     /** 6-bit counter related to the HSYNC signal from the CRTC, used to generate interrupts. */
     unsigned                m_nHSyncCounter;

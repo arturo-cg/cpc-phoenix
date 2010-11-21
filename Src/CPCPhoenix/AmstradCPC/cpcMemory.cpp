@@ -20,17 +20,16 @@ namespace CPC {
 
   struct SMemoryProfile
   {
-    unsigned nRamBlockCount;                              // How many 16Kb RAM blocks are present. It must be 4 (64Kb) or 8 (128Kb).
-
-    bool     bHasAmsdosRom;                               // Whether the AMSDOS ROM is present or not.
-    string   sRomFileNames[CMemory::MAX_NUM_ROM_BLOCKS];  // Files that contain each ROM content.
+    unsigned nRamBlockCount;                                      // How many 16Kb RAM blocks are present. It must be 4 (64Kb) or 8 (128Kb).
+    string   sLowerRomFileName;                                   // Lower ROM file.
+    string   sUpperRomFileNames[CMemory::UPPER_ROM_BLOCK_COUNT];  // Upper ROM files.
   };
 
   static SMemoryProfile s_aMemoryProfiles[CMachine::MODEL_LAST] =
   {
-    { 4/*64Kb RAM*/,  false, { "OS_464.ROM",  "BASIC_464.ROM",  ""                } },    // MODEL_464
-    { 4/*64Kb RAM*/,  true,  { "OS_664.ROM",  "BASIC_664.ROM",  "AMSDOS_664.ROM"  } },    // MODEL_664
-    { 8/*128Kb RAM*/, true,  { "OS_6128.ROM", "BASIC_6128.ROM", "AMSDOS_6128.ROM" } },    // MODEL_6128
+    { 4/*64Kb RAM*/,  "OS_464.ROM",  { "BASIC_464.ROM",  "", "", "", "", "", "", "",                "", "", "", "", "", "", "", "" } },    // MODEL_464
+    { 4/*64Kb RAM*/,  "OS_664.ROM",  { "BASIC_664.ROM",  "", "", "", "", "", "", "AMSDOS_664.ROM",  "", "", "", "", "", "", "", "" } },    // MODEL_664
+    { 8/*128Kb RAM*/, "OS_6128.ROM", { "BASIC_6128.ROM", "", "", "", "", "", "", "AMSDOS_6128.ROM", "", "", "", "", "", "", "", "" } },    // MODEL_6128
   };
 
 
@@ -46,23 +45,38 @@ namespace CPC {
     // Get the memory profile for the current machine model
     const SMemoryProfile& memoryProfile = s_aMemoryProfiles[pMachine->GetModel()];
 
-    // Create the ROM blocks
+    // Create the lower ROM block
     kmbFileInputStream romStream;
-    unsigned i;
-    for (i = 0; i < MAX_NUM_ROM_BLOCKS; i++)
+    if ( romStream.Init("Roms/" + memoryProfile.sLowerRomFileName) )
     {
-      ERomBlockIndex eRomIndex;
-      eRomIndex = (ERomBlockIndex) i;
-      if ( (eRomIndex != ROMINDEX_AMSDOS) || memoryProfile.bHasAmsdosRom )
+      m_pLowerRomBlock = new CMemoryBlock( memoryProfile.sLowerRomFileName, &romStream );
+    }
+    else
+    {
+      m_pLowerRomBlock = NULL;
+      KMASSERTM( m_pLowerRomBlock != NULL, ("Could not load lower ROM block file '%s'.", memoryProfile.sLowerRomFileName.c_str()) );
+    }
+
+    // Create the upper ROM blocks
+    unsigned i;
+    for (i = 0; i < UPPER_ROM_BLOCK_COUNT; i++)
+    {
+      if ( !memoryProfile.sUpperRomFileNames[i].empty() )
       {
-        if ( romStream.Init("Roms/" + memoryProfile.sRomFileNames[eRomIndex]) )
+        if ( romStream.Init("Roms/" + memoryProfile.sUpperRomFileNames[i]) )
         {
-          m_apRomBlocks[eRomIndex] = new CMemoryBlock( memoryProfile.sRomFileNames[eRomIndex], &romStream );
+          m_apUpperRomBlocks[i] = new CMemoryBlock( memoryProfile.sUpperRomFileNames[i], &romStream );
         }
         else
         {
-          m_apRomBlocks[eRomIndex] = NULL;
+          m_apUpperRomBlocks[i] = NULL;
+          KMASSERTM( m_apUpperRomBlocks[i] != NULL, ("Could not load upper ROM block file '%s'.", memoryProfile.sUpperRomFileNames[i].c_str()) );
         }
+      }
+      else
+      {
+        // Put the same as Upper ROM 0 (usually Basic)
+        m_apUpperRomBlocks[i] = m_apUpperRomBlocks[0];
       }
     }
 
@@ -83,9 +97,11 @@ namespace CPC {
   {
     unsigned i;
 
-    for(i=0; i < MAX_NUM_ROM_BLOCKS; i++)
+    m_pLowerRomBlock = NULL;
+
+    for(i=0; i < UPPER_ROM_BLOCK_COUNT; i++)
     {
-      m_apRomBlocks[i] = NULL;
+      m_apUpperRomBlocks[i] = NULL;
     }
 
     for(i=0; i < MAX_NUM_RAM_BLOCKS; i++)
@@ -100,14 +116,20 @@ namespace CPC {
   */
   void CMemory::FreeVars()
   {
-    unsigned i;
+    delete m_pLowerRomBlock;
+    m_pLowerRomBlock = NULL;
 
-    for(i=0; i < MAX_NUM_ROM_BLOCKS; i++)
+    unsigned i;
+    for (i = UPPER_ROM_BLOCK_COUNT-1; i < UPPER_ROM_BLOCK_COUNT; i--)   // Note: Delete from back to front
     {
-      delete m_apRomBlocks[i];
+      if ( (i == 0) || (m_apUpperRomBlocks[i] != m_apUpperRomBlocks[0]) )     // To avoid deleting Basic ROM multiple times
+      {
+        delete m_apUpperRomBlocks[i];
+        m_apUpperRomBlocks[i] = NULL;
+      }
     }
 
-    for(i=0; i < MAX_NUM_RAM_BLOCKS; i++)
+    for (i = 0; i < MAX_NUM_RAM_BLOCKS; i++)
     {
       delete m_apRamBlocks[i];
     }
@@ -126,20 +148,10 @@ namespace CPC {
   /**
   ** 
   */
-  CMemoryBlock* CMemory::GetRomBlock(ERomBlockIndex eIndex)
+  CMemoryBlock* CMemory::GetUpperRomBlock(cpcByte nIndex)
   {
-    KMASSERT( (eIndex >= 0) && (eIndex < MAX_NUM_ROM_BLOCKS) );
-    return m_apRomBlocks[eIndex];
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  const CMemoryBlock* CMemory::GetRomBlock(ERomBlockIndex eIndex) const
-  {
-    KMASSERT( (eIndex >= 0) && (eIndex < MAX_NUM_ROM_BLOCKS) );
-    return m_apRomBlocks[eIndex];
+    KMASSERT( (nIndex >= 0) && (nIndex < UPPER_ROM_BLOCK_COUNT) );
+    return m_apUpperRomBlocks[nIndex];
   }
 
   //----------------------------------------------------------------------------

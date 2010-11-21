@@ -130,7 +130,7 @@ namespace CPC {
     m_eRamConfig        = RAM_CONFIG_0_1_2_3;
     m_bLowerRomVisible  = true;
     m_bUpperRomVisible  = false;
-    m_eSelectedUpperRom = CMemory::ROMINDEX_BASIC;
+    m_nSelectedUpperRom = 0;
     m_nHSyncCounter     = 0;
     m_bRequestingInterrupt = false;
   }
@@ -203,15 +203,7 @@ namespace CPC {
   */
   void CGateArray::Run(unsigned nMinNumCycles)
   {
-
-
-
-
-
-
-
-
-
+    //...
   }
 
   //----------------------------------------------------------------------------
@@ -298,13 +290,7 @@ namespace CPC {
       //
       // Every expansion ROM has a 8-bit identifier. BASIC has identifier 0 and AMSDOS has identifier 7.
       // If an attempt to select a ROM that is not connected is made, BASIC is selected.
-      switch (nValue)
-      {
-        case 0:   SelectUpperRom( CMemory::ROMINDEX_BASIC ); break;
-/////////////////////////////        case 7:   SelectUpperRom( CMemory::ROMINDEX_AMSDOS ); break;
-        // ...Insert other expansion ROMs here...
-        default:  SelectUpperRom( CMemory::ROMINDEX_BASIC ); break;
-      }
+      SelectUpperRom( nValue );
     }
   }
 
@@ -376,19 +362,9 @@ namespace CPC {
   /**
   ** 
   */
-  void CGateArray::SelectUpperRom(CMemory::ERomBlockIndex eIndex)
+  void CGateArray::SelectUpperRom(cpcByte nIndex)
   {
-    switch (eIndex)
-    {
-      case CMemory::ROMINDEX_BASIC:
-      case CMemory::ROMINDEX_AMSDOS:
-        m_eSelectedUpperRom = eIndex;
-        break;
-
-      default:
-        m_eSelectedUpperRom = CMemory::ROMINDEX_BASIC;     // If the requested ROM doesn't exist, BASIC ROM is selected.
-    }
-
+    m_nSelectedUpperRom = nIndex;
     UpdateVisibleMemoryBlocks();
   }
 
@@ -410,10 +386,10 @@ namespace CPC {
     }
 
     // Read blocks
-    m_apVisibleReadBlocks[0] = (m_bLowerRomVisible ? GetMachine()->GetMemory()->GetRomBlock(CMemory::ROMINDEX_OS) : m_apVisibleWriteBlocks[0]);
+    m_apVisibleReadBlocks[0] = (m_bLowerRomVisible ? GetMachine()->GetMemory()->GetLowerRomBlock() : m_apVisibleWriteBlocks[0]);
     m_apVisibleReadBlocks[1] = m_apVisibleWriteBlocks[1];
     m_apVisibleReadBlocks[2] = m_apVisibleWriteBlocks[2];
-    m_apVisibleReadBlocks[3] = (m_bUpperRomVisible ? GetMachine()->GetMemory()->GetRomBlock(m_eSelectedUpperRom) : m_apVisibleWriteBlocks[3]);
+    m_apVisibleReadBlocks[3] = (m_bUpperRomVisible ? GetMachine()->GetMemory()->GetUpperRomBlock(m_nSelectedUpperRom) : m_apVisibleWriteBlocks[3]);
 
     //// Print currently visible read and write blocks
     //{
