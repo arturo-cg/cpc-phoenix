@@ -71,8 +71,9 @@ bool Settings::Init()
 */
 void Settings::ResetVars()
 {
-  m_eCpcModel      = CPC::CMachine::MODEL_INVALID;
-  m_bDrawScanLines = false;
+  m_eCpcModel       = CPC::CMachine::MODEL_INVALID;
+  m_bDrawScanLines  = false;
+  m_fEmulationSpeed = 0.f;
 }
 
 //----------------------------------------------------------------------------
@@ -116,8 +117,9 @@ void Settings::SaveToFile()
 */
 void Settings::RestoreDefaultValues()
 {
-  m_eCpcModel      = CPC::CMachine::MODEL_464;
-  m_bDrawScanLines = false;
+  m_eCpcModel       = CPC::CMachine::MODEL_464;
+  m_bDrawScanLines  = false;
+  m_fEmulationSpeed = 1.f;
 
   m_anKeyMappings[CPC::CPCKEY_ESC] = VK_ESCAPE;
   m_anKeyMappings[CPC::CPCKEY_1] = '1';

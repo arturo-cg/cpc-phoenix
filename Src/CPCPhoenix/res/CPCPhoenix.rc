@@ -53,6 +53,13 @@ BEGIN
             MENUITEM "CPC 6128 + MAXAM",            ID_SETTINGS_CHANGECPCMODEL_CPC6128_MAXAM
         END
         MENUITEM "Draw Scan Lines\tF1",         ID_SETTINGS_DRAWSCANLINES
+        POPUP "Emulation Speed"
+        BEGIN
+            MENUITEM "25%",                         ID_SETTINGS_EMULATIONSPEED_25
+            MENUITEM "50%",                         ID_SETTINGS_EMULATIONSPEED_50
+            MENUITEM "100%",                        ID_SETTINGS_EMULATIONSPEED_100
+            MENUITEM "Unlimited",                   ID_SETTINGS_EMULATIONSPEED_UNLIMITED
+        END
         MENUITEM SEPARATOR
         MENUITEM "Reset\tF2",                   ID_SETTINGS_RESET
     END

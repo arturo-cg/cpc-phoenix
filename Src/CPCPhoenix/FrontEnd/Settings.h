@@ -37,6 +37,9 @@ public:
   void                      SetDrawScanLines          (bool bScanLines)  { m_bDrawScanLines = bScanLines; }
   bool                      GetDrawScanLines          () const           { return m_bDrawScanLines; }
 
+  void                      SetEmulationSpeed         (float fSpeed)  { m_fEmulationSpeed = fSpeed; }
+  float                     GetEmulationSpeed         () const        { return m_fEmulationSpeed; }
+
   int                       GetCpcKeyMapping          (CPC::ECpcKey eCpcKey) const  { return ( eCpcKey<CPC::CPCKEY_LAST ? m_anKeyMappings[eCpcKey] : 0 ); }
 
 
@@ -53,6 +56,7 @@ private:
 
   CPC::CMachine::EModel     m_eCpcModel;
   bool                      m_bDrawScanLines;
+  float                     m_fEmulationSpeed;
   int                       m_anKeyMappings[CPC::CPCKEY_LAST];
 
 };

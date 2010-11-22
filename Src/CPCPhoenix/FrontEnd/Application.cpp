@@ -162,6 +162,19 @@ void Application::ChangeDrawScanLinesSetting(bool bDrawScanLines)
 /**
 ** 
 */
+void Application::ChangeEmulationSpeedSetting(float fEmulationSpeed)
+{
+  // Change application settings
+  GetSettings()->SetEmulationSpeed( fEmulationSpeed );
+
+  // Notify the application window
+  m_pAppWindow->OnApplicationSettingsChanged();
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
 void Application::ProcessWindowsMessages()
 {
   BOOL bGotMsg;
@@ -236,7 +249,7 @@ void Application::Run()
         m_executionTimer.Read( &m_currentTimerValue );
         dDeltaTimeSecs  = m_executionTimer.ComputeElapsedSecs( m_previousTimerValue, m_currentTimerValue );
         dDeltaTimeUSecs = dDeltaTimeSecs * 1000000.0;
-      } while (dDeltaTimeUSecs < double(FRAME_DURATION_USECS));
+      } while ( (GetSettings()->GetEmulationSpeed() > 0.f) && ((dDeltaTimeUSecs * GetSettings()->GetEmulationSpeed()) < double(FRAME_DURATION_USECS)) );
 
 
       // Measure the emulation speed

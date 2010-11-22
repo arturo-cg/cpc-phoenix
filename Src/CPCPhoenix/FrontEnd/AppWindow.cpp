@@ -173,6 +173,31 @@ void AppWindow::OnApplicationSettingsChanged()
   }
   ::CheckMenuRadioItem( m_hMainMenu, ID_SETTINGS_CHANGECPCMODEL_CPC464, ID_SETTINGS_CHANGECPCMODEL_CPC6128_MAXAM, nItem, MF_BYCOMMAND );
   ::CheckMenuItem( m_hMainMenu, ID_SETTINGS_DRAWSCANLINES, /*MF_BYCOMMAND | */ pSettings->GetDrawScanLines() ? MF_CHECKED : MF_UNCHECKED );
+
+  if (pSettings->GetEmulationSpeed() < 0.f)
+  {
+    nItem = ID_SETTINGS_EMULATIONSPEED_UNLIMITED;
+  }
+  else
+  if (pSettings->GetEmulationSpeed() <= 0.251f)
+  {
+    nItem = ID_SETTINGS_EMULATIONSPEED_25;
+  }
+  else
+  if (pSettings->GetEmulationSpeed() <= 0.51f)
+  {
+    nItem = ID_SETTINGS_EMULATIONSPEED_50;
+  }
+  else
+  if (pSettings->GetEmulationSpeed() <= 1.1f)
+  {
+    nItem = ID_SETTINGS_EMULATIONSPEED_100;
+  }
+  else
+  {
+    nItem = ID_SETTINGS_EMULATIONSPEED_UNLIMITED;
+  }
+  ::CheckMenuRadioItem( m_hMainMenu, ID_SETTINGS_EMULATIONSPEED_25, ID_SETTINGS_EMULATIONSPEED_UNLIMITED, nItem, MF_BYCOMMAND );
 }
 
 //----------------------------------------------------------------------------
@@ -263,6 +288,11 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
     case ID_SETTINGS_CHANGECPCMODEL_CPC6128_MAXAM:  pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_6128_MAXAM ); break;
 
     case ID_SETTINGS_DRAWSCANLINES:  pApplication->ChangeDrawScanLinesSetting( !pApplication->GetSettings()->GetDrawScanLines() ); break;
+
+    case ID_SETTINGS_EMULATIONSPEED_25:         pApplication->ChangeEmulationSpeedSetting( 0.25 ); break;
+    case ID_SETTINGS_EMULATIONSPEED_50:         pApplication->ChangeEmulationSpeedSetting( 0.5 ); break;
+    case ID_SETTINGS_EMULATIONSPEED_100:        pApplication->ChangeEmulationSpeedSetting( 1.f ); break;
+    case ID_SETTINGS_EMULATIONSPEED_UNLIMITED:  pApplication->ChangeEmulationSpeedSetting( -1.f ); break;
 
     case ID_SETTINGS_RESET:  pEmulatedMachine->Reset(); break;
   }
