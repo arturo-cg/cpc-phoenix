@@ -237,7 +237,6 @@ void Application::Run()
     {
       // Grab the new display image
       m_pAppWindow->UpdateDisplayImage();
-      m_pAppWindow->InvalidateAll( false );
 
       m_uFrameCount = m_pMachine->GetFrameCount();
 

@@ -196,6 +196,7 @@ void AppWindow::OnApplicationSettingsChanged()
 void AppWindow::UpdateDisplayImage()
 {
   m_pDisplayWindow->UpdateDisplayImage();
+  m_pDisplayWindow->InvalidateAll( false );
 }
 
 //----------------------------------------------------------------------------
