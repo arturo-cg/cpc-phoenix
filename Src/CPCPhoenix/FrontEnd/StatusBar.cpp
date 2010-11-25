@@ -29,7 +29,7 @@ bool StatusBar::Init(kmbWindow* pParentWnd)
   // Create the status bar window
   if (bRet)
   {
-    m_hWnd = ::CreateWindowEx( 0/*dwExStyle*/, STATUSCLASSNAME/*lpClassName*/, "CPCPhoenix Status Bar"/*lpWindowName*/,
+    m_hWnd = ::CreateWindowEx( 0/*dwExStyle*/, STATUSCLASSNAME/*lpClassName*/, (LPCTSTR) NULL/*lpWindowName*/,
                                WS_CHILD | WS_VISIBLE/*dwStyle*/, 0/*X*/, 0/*Y*/, 0/*nWidth*/, 0/*nHeight*/, pParentWnd->GetHWnd()/*hWndParent*/,
                                (HMENU) ID_STATUSBAR/*hMenu*/, ::GetModuleHandle(NULL), NULL/*lpParam*/ );
     bRet = (m_hWnd != NULL);
@@ -87,6 +87,17 @@ void StatusBar::ResetVars()
 void StatusBar::FreeVars()
 {
   //...
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+long StatusBar::GetHeight() const
+{
+  RECT rRect;
+  ::GetWindowRect( m_hWnd, &rRect );
+  return (rRect.bottom - rRect.top);
 }
 
 //----------------------------------------------------------------------------

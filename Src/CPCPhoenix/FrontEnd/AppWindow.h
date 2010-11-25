@@ -7,6 +7,7 @@
 
 #include "Window/kmbWindow.h"
 
+class DisplayWindow;
 class StatusBar;
 
 namespace CPC
@@ -38,6 +39,11 @@ public:
   /** Returns the accelerators used by this window. */
   HACCEL                    GetAccelerators           () const  { return m_hAccelerators; }
 
+  /** Returns the display window (the one that shows the emulated machine display output). */
+  DisplayWindow*            GetDisplayWindow          ()        { return m_pDisplayWindow; }
+  /** Returns the display window (the one that shows the emulated machine display output) (const version). */
+  const DisplayWindow*      GetDisplayWindow          () const  { return m_pDisplayWindow; }
+
   /** Returns the status bar. */
   StatusBar*                GetStatusBar              ()        { return m_pStatusBar; }
   /** Returns the status bar (const version). */
@@ -50,7 +56,6 @@ public:
 
   // Returns 0 to continue the window creation, or -1 to cancel it.
   virtual LRESULT           _OnClose                  ();
-  virtual LRESULT           _OnPaint                  (HDC hDc);
   virtual LRESULT           _OnSize                   (int iWidth, int iHeight);
   virtual LRESULT           _OnMenuCommand            (WORD nItemId, bool bFromAccelerator);
   virtual LRESULT           _OnKeyDown                (unsigned nVirtualKey);
@@ -67,11 +72,8 @@ private:
 
   HMENU                     m_hMainMenu;
   HACCEL                    m_hAccelerators;
+  DisplayWindow*            m_pDisplayWindow;
   StatusBar*                m_pStatusBar;
-
-  HDC                       m_BackBufferDC;
-  HBITMAP                   m_BackBufferBitmap;
-  unsigned char*            m_pBackBuffer;
 
 };
 

@@ -366,6 +366,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FrontEnd\DisplayWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FrontEnd\DisplayWindow.h"
+				>
+			</File>
+			<File
 				RelativePath=".\FrontEnd\Main.cpp"
 				>
 			</File>

@@ -23,6 +23,7 @@ public:
   bool                      IsOk                      () const  { return m_bOk; }
 
   HWND                      GetHWnd                   () const  { return m_hWnd; }
+  long                      GetHeight                 () const;
 
   void                      SetInsertedDiskName       (const string& sDiskName);
   void                      SetEmulationSpeed         (float fSpeed);

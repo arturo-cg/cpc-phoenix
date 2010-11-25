@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "AppWindow.h"
 #include "Application.h"
+#include "DisplayWindow.h"
 #include "StatusBar.h"
 #include "cpcMachine.h"
 #include "cpcDisplay.h"
@@ -28,16 +29,10 @@ bool AppWindow::Init()
   // Initialize base class
   if (bRet)
   {
-    // Calculate the window rectangle based on the desired client rectangle
     DWORD dwStyles;
     dwStyles = (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
-    RECT rWndRect;
-    ::SetRect( &rWndRect, 0, 0, 1280, 800 );
-    ::AdjustWindowRect( &rWndRect, dwStyles, TRUE/*bMenu*/ );
-    ::OffsetRect( &rWndRect, -rWndRect.left, -rWndRect.top );
-
-    bRet = Super::Init( "CPCPhoenix", dwStyles, rWndRect.left, rWndRect.top, rWndRect.right, rWndRect.bottom, NULL/*hParentOrOwner*/ );
+    bRet = Super::Init( "CPCPhoenix", dwStyles, 0/*x*/, 0/*y*/, 1/*width*/, 1/*height*/, NULL/*hParentOrOwner*/ );
   }
 
   // Check parameters
@@ -58,6 +53,16 @@ bool AppWindow::Init()
     }
   }
 
+  // DisplayWindow
+  if (bRet)
+  {
+    RECT rWndRect;
+    ::SetRect( &rWndRect, 0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH * 2, CPC::CDisplay::IMAGEBUFFER_HEIGHT * 2 );
+
+    m_pDisplayWindow = new DisplayWindow;
+    m_pDisplayWindow->Init( rWndRect, this );
+  }
+
   // Status bar
   if (bRet)
   {
@@ -65,40 +70,26 @@ bool AppWindow::Init()
     m_pStatusBar->Init( this );
   }
 
+  // Resize application window
+  if (bRet)
+  {
+    // Calculate the window rectangle
+    DWORD dwStyles;
+    dwStyles = (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+
+    RECT rWndRect;
+    ::SetRect( &rWndRect, 0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH * 2, (CPC::CDisplay::IMAGEBUFFER_HEIGHT * 2) + m_pStatusBar->GetHeight() );
+    ::AdjustWindowRect( &rWndRect, dwStyles, TRUE/*bMenu*/ );
+    ::OffsetRect( &rWndRect, -rWndRect.left, -rWndRect.top );
+
+    // Resize it
+    SetRect( rWndRect );
+  }
+
   // Key accelerators
   if (bRet)
   {
     m_hAccelerators = ::LoadAccelerators( ::GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_APPWINDOWACCELERATORS) );
-  }
-
-  // Back-buffer
-  if (bRet)
-  {
-    // Create the back-buffer
-    unsigned nBackBufferLength;
-    nBackBufferLength = CPC::CDisplay::IMAGEBUFFER_WIDTH * CPC::CDisplay::IMAGEBUFFER_HEIGHT * 4/*bytes-per-pixel*/;
-
-    m_pBackBuffer = new unsigned char [nBackBufferLength];
-
-    // Create a CBitmap to hold the back-buffer and tell it to grab pixels from m_pBackBuffer
-    SIZE bitmapSize;
-    bitmapSize.cx = CPC::CDisplay::IMAGEBUFFER_WIDTH;
-    bitmapSize.cy = CPC::CDisplay::IMAGEBUFFER_HEIGHT;
-
-    ////////m_BackBufferBitmap.CreateBitmap( bitmapSize.cx, bitmapSize.cy, 1/*nPlanes*/, 32/*nBitCount = bpp*/, m_pBackBuffer/*lpBits*/ );
-    m_BackBufferBitmap = ::CreateCompatibleBitmap( this->GetDc(), bitmapSize.cx, bitmapSize.cy );
-
-//*************************************** TODO - TODO - TODO *********************************************
-//*************************************** TODO - TODO - TODO *********************************************
-    //// Check device context format and tell CPC::CDisplay to decode the image in the same format.
-    //BITMAP bitmapInfo;
-    //m_BackBufferBitmap.GetBitmap( &bitmapInfo );
-//*************************************** TODO - TODO - TODO *********************************************
-//*************************************** TODO - TODO - TODO *********************************************
-
-    // Create the memory DC that will be used as the back-buffer
-    m_BackBufferDC = ::CreateCompatibleDC( this->GetDc() );
-    ::SelectObject( m_BackBufferDC, m_BackBufferBitmap );
   }
 
 
@@ -134,12 +125,10 @@ bool AppWindow::Init()
 */
 void AppWindow::ResetVars()
 {
-  m_hMainMenu        = NULL;
-  m_hAccelerators    = NULL;
-  m_pStatusBar       = NULL;
-  m_BackBufferDC     = NULL;
-  m_BackBufferBitmap = NULL;
-  m_pBackBuffer      = NULL;
+  m_hMainMenu      = NULL;
+  m_hAccelerators  = NULL;
+  m_pDisplayWindow = NULL;
+  m_pStatusBar     = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -149,7 +138,7 @@ void AppWindow::ResetVars()
 void AppWindow::FreeVars()
 {
   delete m_pStatusBar;
-  delete m_pBackBuffer;
+  delete m_pDisplayWindow;
 }
 
 //----------------------------------------------------------------------------
@@ -206,9 +195,7 @@ void AppWindow::OnApplicationSettingsChanged()
 */
 void AppWindow::UpdateDisplayImage()
 {
-  // Tell the emulated machine to decode the current frame
-  Application::Singleton()->GetEmulatedMachine()->GetDisplay()->DecodeImage_B8G8R8X8( m_pBackBuffer );
-  ::SetBitmapBits( m_BackBufferBitmap, CPC::CDisplay::IMAGEBUFFER_WIDTH * CPC::CDisplay::IMAGEBUFFER_HEIGHT * 4/*bytes-per-pixel*/, m_pBackBuffer );
+  m_pDisplayWindow->UpdateDisplayImage();
 }
 
 //----------------------------------------------------------------------------
@@ -225,36 +212,23 @@ void AppWindow::UpdateDisplayImage()
 /**
 ** 
 */
-/*virtual*/ LRESULT AppWindow::_OnPaint(HDC hDc)
-{
-  // Copy the back-buffer to the window DC
-  RECT rClientArea;
-  GetClientRect( &rClientArea );
-
-  ::StretchBlt( hDc, 0, 0, rClientArea.right - rClientArea.left, rClientArea.bottom - rClientArea.top,
-                m_BackBufferDC, 0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH, CPC::CDisplay::IMAGEBUFFER_HEIGHT,
-                SRCCOPY );
-  //     dc.BitBlt( 0, 0, rClientArea.Width(), rClientArea.Height(),
-  //                &m_BackBufferDC, 0, 0, SRCCOPY );
-
-  return 0;
-}
-
-//----------------------------------------------------------------------------
-/**
-** 
-*/
 /*virtual*/ LRESULT AppWindow::_OnSize(int iWidth, int iHeight)
 {
-  LRESULT nRet = 0;
-
+  // Resize the status bar
   if (m_pStatusBar != NULL)
   {
-    // Resize the status bar
-    nRet = ::SendMessage( m_pStatusBar->GetHWnd(), WM_SIZE, 0, LOWORD(iWidth) | HIWORD(iHeight) );
+    ::SendMessage( m_pStatusBar->GetHWnd(), WM_SIZE, 0, LOWORD(iWidth) | HIWORD(iHeight) );
+    ::InvalidateRect( m_pStatusBar->GetHWnd(), NULL, FALSE );
   }
 
-  return nRet;
+  // Resize the display window
+  if (m_pDisplayWindow != NULL)
+  {
+    m_pDisplayWindow->SetSize( iWidth, iHeight - m_pStatusBar->GetHeight() );
+    m_pDisplayWindow->InvalidateAll( FALSE );
+  }
+
+  return 0;
 }
 
 //----------------------------------------------------------------------------

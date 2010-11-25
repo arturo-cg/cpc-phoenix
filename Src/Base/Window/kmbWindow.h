@@ -50,7 +50,9 @@ public:
   /** Changes the position and size of the window.
   *** Note that the size is specified in terms of the bottom-right corner position. */
   void                      SetRect                   (const RECT& newRect);
-
+  /** Returns the RECT of the window, which includes its position and its size. */
+  void                      GetRect                   (RECT* pRect)        { ::GetWindowRect(m_hWnd, pRect); }
+  /** Returns the RECT of the window client area, which includes its position and its size. */
   void                      GetClientRect             (RECT* pClientRect)  { ::GetClientRect(m_hWnd, pClientRect); }
 
   /** Sets the input focus to this window. A _OnKillFocus event will be sent to the window that currently has the focus
