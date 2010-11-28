@@ -43,9 +43,8 @@ private:
   void                      FreeVars                  ();
 
 
-  HDC                       m_BackBufferDC;
-  HBITMAP                   m_BackBufferBitmap;
-  unsigned char*            m_pBackBuffer;
+  BITMAPINFO                m_backBufferDibInfo;
+  unsigned char*            m_pBackBufferDibBits;
 
 };
 

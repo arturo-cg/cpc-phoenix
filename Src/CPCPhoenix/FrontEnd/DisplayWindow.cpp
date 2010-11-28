@@ -45,27 +45,19 @@ bool DisplayWindow::Init(const RECT& placement, kmbWindow* pParent)
     unsigned nBackBufferLength;
     nBackBufferLength = CPC::CDisplay::IMAGEBUFFER_WIDTH * CPC::CDisplay::IMAGEBUFFER_HEIGHT * 4/*bytes-per-pixel*/;
 
-    m_pBackBuffer = new unsigned char [nBackBufferLength];
+    m_pBackBufferDibBits = new unsigned char [nBackBufferLength];
 
-    // Create a CBitmap to hold the back-buffer and tell it to grab pixels from m_pBackBuffer
-    SIZE bitmapSize;
-    bitmapSize.cx = CPC::CDisplay::IMAGEBUFFER_WIDTH;
-    bitmapSize.cy = CPC::CDisplay::IMAGEBUFFER_HEIGHT;
-
-    ////////m_BackBufferBitmap.CreateBitmap( bitmapSize.cx, bitmapSize.cy, 1/*nPlanes*/, 32/*nBitCount = bpp*/, m_pBackBuffer/*lpBits*/ );
-    m_BackBufferBitmap = ::CreateCompatibleBitmap( this->GetDc(), bitmapSize.cx, bitmapSize.cy );
-
-//*************************************** TODO - TODO - TODO *********************************************
-//*************************************** TODO - TODO - TODO *********************************************
-    //// Check device context format and tell CPC::CDisplay to decode the image in the same format.
-    //BITMAP bitmapInfo;
-    //m_BackBufferBitmap.GetBitmap( &bitmapInfo );
-//*************************************** TODO - TODO - TODO *********************************************
-//*************************************** TODO - TODO - TODO *********************************************
-
-    // Create the memory DC that will be used as the back-buffer
-    m_BackBufferDC = ::CreateCompatibleDC( this->GetDc() );
-    ::SelectObject( m_BackBufferDC, m_BackBufferBitmap );
+    // Fill back-buffer DIB info
+    memset( &m_backBufferDibInfo, 0, sizeof(m_backBufferDibInfo) );
+    m_backBufferDibInfo.bmiHeader.biSize = sizeof(m_backBufferDibInfo);
+    m_backBufferDibInfo.bmiHeader.biWidth = (LONG) CPC::CDisplay::IMAGEBUFFER_WIDTH;
+    m_backBufferDibInfo.bmiHeader.biHeight = -(LONG) CPC::CDisplay::IMAGEBUFFER_HEIGHT;    // Note: Negative height for a top-down DIB, with its origin at the upper-left corner.
+    m_backBufferDibInfo.bmiHeader.biPlanes = 1;
+    m_backBufferDibInfo.bmiHeader.biBitCount = 32;
+    m_backBufferDibInfo.bmiHeader.biCompression = BI_RGB;
+    m_backBufferDibInfo.bmiHeader.biSizeImage = 0;
+    m_backBufferDibInfo.bmiHeader.biClrUsed = 0;
+    m_backBufferDibInfo.bmiHeader.biClrImportant = 0;
   }
 
 
@@ -101,9 +93,8 @@ bool DisplayWindow::Init(const RECT& placement, kmbWindow* pParent)
 */
 void DisplayWindow::ResetVars()
 {
-  m_BackBufferDC     = NULL;
-  m_BackBufferBitmap = NULL;
-  m_pBackBuffer      = NULL;
+  memset( &m_backBufferDibInfo, 0, sizeof(m_backBufferDibInfo) );
+  m_pBackBufferDibBits = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -112,7 +103,7 @@ void DisplayWindow::ResetVars()
 */
 void DisplayWindow::FreeVars()
 {
-  delete m_pBackBuffer;
+  delete m_pBackBufferDibBits;
 }
 
 //----------------------------------------------------------------------------
@@ -122,8 +113,7 @@ void DisplayWindow::FreeVars()
 void DisplayWindow::UpdateDisplayImage()
 {
   // Tell the emulated machine to decode the current frame
-  Application::Singleton()->GetEmulatedMachine()->GetDisplay()->DecodeImage_B8G8R8X8( m_pBackBuffer );
-  ::SetBitmapBits( m_BackBufferBitmap, CPC::CDisplay::IMAGEBUFFER_WIDTH * CPC::CDisplay::IMAGEBUFFER_HEIGHT * 4/*bytes-per-pixel*/, m_pBackBuffer );
+  Application::Singleton()->GetEmulatedMachine()->GetDisplay()->DecodeImage_B8G8R8X8( m_pBackBufferDibBits );
 }
 
 //----------------------------------------------------------------------------
@@ -132,15 +122,13 @@ void DisplayWindow::UpdateDisplayImage()
 */
 /*virtual*/ LRESULT DisplayWindow::_OnPaint(HDC hDc)
 {
-  // Copy the back-buffer to the window DC
+  // Copy the back-buffer DIB to the window DC
   RECT rClientArea;
   GetClientRect( &rClientArea );
 
-  ::StretchBlt( hDc, 0, 0, rClientArea.right - rClientArea.left, rClientArea.bottom - rClientArea.top,
-                m_BackBufferDC, 0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH, CPC::CDisplay::IMAGEBUFFER_HEIGHT,
-                SRCCOPY );
-  //     dc.BitBlt( 0, 0, rClientArea.Width(), rClientArea.Height(),
-  //                &m_BackBufferDC, 0, 0, SRCCOPY );
+  ::StretchDIBits( hDc, 0, 0, rClientArea.right - rClientArea.left, rClientArea.bottom - rClientArea.top,
+                   0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH, CPC::CDisplay::IMAGEBUFFER_HEIGHT,
+                   m_pBackBufferDibBits, &m_backBufferDibInfo, DIB_RGB_COLORS, SRCCOPY );
 
   return 0;
 }
