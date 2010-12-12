@@ -152,7 +152,7 @@ namespace CPC {
   CMemoryBlock* CMemory::GetUpperRomBlock(cpcByte nIndex)
   {
     KMASSERT( (nIndex >= 0) && (nIndex < UPPER_ROM_BLOCK_COUNT) );
-    return m_apUpperRomBlocks[nIndex];
+    return ( (nIndex >= 0) && (nIndex < UPPER_ROM_BLOCK_COUNT) ? m_apUpperRomBlocks[nIndex] : m_apUpperRomBlocks[0] );
   }
 
   //----------------------------------------------------------------------------

@@ -270,6 +270,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\AmstradCPC\cpcFdc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcFdc.h"
+				>
+			</File>
+			<File
 				RelativePath=".\AmstradCPC\cpcGateArray.cpp"
 				>
 			</File>

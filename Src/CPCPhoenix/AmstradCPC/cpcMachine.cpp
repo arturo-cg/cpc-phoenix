@@ -9,6 +9,7 @@
 #include "cpcCrtc.h"
 #include "cpcPpi.h"
 #include "cpcPsg.h"
+#include "cpcFdc.h"
 #include "cpcDisplay.h"
 #include "cpcKeyboard.h"
 
@@ -35,6 +36,7 @@ namespace CPC {
     m_pCrtc      = new CCrtc( this );
     m_pPpi       = new CPpi( this );
     m_pPsg       = new CPsg( this );
+    m_pFdc       = new CFdc( this );
     m_pDisplay   = new CDisplay( this );
     m_pKeyboard  = new CKeyboard( this, pKeyStateProvider );
   }
@@ -52,6 +54,7 @@ namespace CPC {
     m_pCrtc      = NULL;
     m_pPpi       = NULL;
     m_pPsg       = NULL;
+    m_pFdc       = NULL;
     m_pDisplay   = NULL;
     m_pKeyboard  = NULL;
   }
@@ -64,6 +67,7 @@ namespace CPC {
   {
     delete m_pKeyboard; m_pKeyboard = NULL;
     delete m_pDisplay; m_pDisplay = NULL;
+    delete m_pFdc; m_pFdc = NULL;
     delete m_pPsg; m_pPsg = NULL;
     delete m_pPpi; m_pPpi = NULL;
     delete m_pCrtc; m_pCrtc = NULL;
@@ -90,7 +94,7 @@ namespace CPC {
     cpcByte nRet;
     if ( !GetPpi()->RespondToReadPortRequest(nPort, &nRet) )
     {
-      //if ( !GetDEVICE2()->RespondToReadPortRequest(nPort, &nRet) )
+      if ( !GetFdc()->RespondToReadPortRequest(nPort, &nRet) )
       {
         //if ( !GetDEVICE3()->RespondToReadPortRequest(nPort, &nRet) )
         {
@@ -115,6 +119,8 @@ namespace CPC {
     GetGateArray()->RespondToWritePortRequest( nPort, nValue );
     GetCrtc()->RespondToWritePortRequest( nPort, nValue );
     GetPpi()->RespondToWritePortRequest( nPort, nValue );
+    GetPsg()->RespondToWritePortRequest( nPort, nValue );
+    GetFdc()->RespondToWritePortRequest( nPort, nValue );
   }
 
   //----------------------------------------------------------------------------
@@ -127,6 +133,9 @@ namespace CPC {
     GetMemory()->Reset();
     GetGateArray()->Reset();
     GetCrtc()->Reset();
+    GetPpi()->Reset();
+    GetPsg()->Reset();
+    GetFdc()->Reset();
   }
 
   //----------------------------------------------------------------------------

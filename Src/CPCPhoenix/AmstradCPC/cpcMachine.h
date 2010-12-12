@@ -14,6 +14,7 @@ namespace CPC {
   class CCrtc;
   class CPpi;
   class CPsg;
+  class CFdc;
   class CDisplay;
   class CKeyboard;
   class CKeyStateProvider;
@@ -66,6 +67,9 @@ namespace CPC {
     /** Returns the AY-3-8912 Programmable Sound Generator (PSG) subsystem. */
     CPsg*                   GetPsg                    ()        { return m_pPsg; }
     const CPsg*             GetPsg                    () const  { return m_pPsg; }
+    /** Returns the 765 FDC (Floppy Disk Controller) subsystem. */
+    CFdc*                   GetFdc                    ()        { return m_pFdc; }
+    const CFdc*             GetFdc                    () const  { return m_pFdc; }
     /** Returns the display subsystem. */
     CDisplay*               GetDisplay                ()        { return m_pDisplay; }
     const CDisplay*         GetDisplay                () const  { return m_pDisplay; }
@@ -100,6 +104,7 @@ namespace CPC {
     CCrtc*                  m_pCrtc;
     CPpi*                   m_pPpi;
     CPsg*                   m_pPsg;
+    CFdc*                   m_pFdc;
     CDisplay*               m_pDisplay;
     CKeyboard*              m_pKeyboard;
 
