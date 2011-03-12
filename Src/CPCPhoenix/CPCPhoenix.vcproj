@@ -71,6 +71,7 @@
 				Name="VCLinkerTool"
 				OutputFile="$(OutDir)\$(ProjectName)_d.exe"
 				LinkIncremental="2"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -153,6 +154,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="1"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -262,11 +264,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\AmstradCPC\cpcDisk.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcDisk.h"
+				>
+			</File>
+			<File
 				RelativePath=".\AmstradCPC\cpcDisplay.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\AmstradCPC\cpcDisplay.h"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcDskDisk.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcDskDisk.h"
 				>
 			</File>
 			<File
