@@ -100,8 +100,9 @@ namespace CPC {
     cpcByte                 ReadStatusRegister3       () const;
     cpcByte                 ReadDataRegister          ();
     void                    WriteDataRegister         (cpcByte nValue);
-    void                    FinishExecutionPhase      ();
-    void                    FinishResultPhase         ();
+    void                    EnterCommandPhase         ();
+    void                    EnterResultPhase          ();
+    void                    ExitResultPhase           ();
     void                    DecodeTypicalParameters   (STypicalParameters* pParams);
 
     void                    ExecuteCommand_SpecifySpdDma   ();

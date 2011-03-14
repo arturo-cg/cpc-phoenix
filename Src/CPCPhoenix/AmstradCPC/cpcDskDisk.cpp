@@ -276,7 +276,7 @@ namespace CPC {
     if ( (nSide < m_diskInfo.nSideCount) && (nTrack < m_diskInfo.nTrackCount) )
     {
       unsigned nIndex;
-      nIndex = (nTrack * m_diskInfo.nSideCount) + nTrack;
+      nIndex = (nTrack * m_diskInfo.nSideCount) + nSide;
       pRet = &m_lTracks[nIndex];
     }
     return pRet;

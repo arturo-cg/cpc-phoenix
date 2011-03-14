@@ -287,7 +287,7 @@ namespace CPC {
       // Check whether all result bytes have been sent
       if (m_nCurrentResult >= s_aCommandInfos[m_eCurrentCommand].nResultCount)
       {
-        FinishResultPhase();
+        ExitResultPhase();
       }
     }
 
@@ -302,8 +302,7 @@ namespace CPC {
   {
     if (m_eCurrentPhase == PHASE_NONE)
     {
-      m_eCurrentPhase   = PHASE_COMMAND;
-      m_eCurrentCommand = COMMAND_INVALID;
+      EnterCommandPhase();
     }
 
     if (m_eCurrentPhase == PHASE_COMMAND)
@@ -349,7 +348,19 @@ namespace CPC {
   /**
   ** 
   */
-  void CFdc::FinishExecutionPhase()
+  void CFdc::EnterCommandPhase()
+  {
+    // Enter Command phase
+    m_eCurrentPhase   = PHASE_COMMAND;
+    m_eCurrentCommand = COMMAND_INVALID;
+    m_nCurrentDataDir = DIRECTION_TO_FDC;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CFdc::EnterResultPhase()
   {
     // Enter Result phase
     m_eCurrentPhase   = PHASE_RESULT;
@@ -361,7 +372,7 @@ namespace CPC {
   /**
   ** 
   */
-  void CFdc::FinishResultPhase()
+  void CFdc::ExitResultPhase()
   {
     m_eCurrentPhase   = PHASE_NONE;
     m_nCurrentDataDir = DIRECTION_TO_FDC;
@@ -392,8 +403,8 @@ namespace CPC {
   */
   void CFdc::ExecuteCommand_SpecifySpdDma()
   {
-    FinishExecutionPhase();
-    FinishResultPhase();
+    EnterResultPhase();
+    ExitResultPhase();
   }
 
   //----------------------------------------------------------------------------
@@ -412,8 +423,8 @@ namespace CPC {
       pDrive->_SetCurrentSideAndTrack( m_nDesiredSide, 0 );
     }
 
-    FinishExecutionPhase();
-    FinishResultPhase();
+    EnterResultPhase();
+    ExitResultPhase();
   }
 
   //----------------------------------------------------------------------------
@@ -432,8 +443,8 @@ namespace CPC {
       pDrive->_SetCurrentSideAndTrack( m_nDesiredSide, m_anParameters[1] );
     }
 
-    FinishExecutionPhase();
-    FinishResultPhase();
+    EnterResultPhase();
+    ExitResultPhase();
   }
 
   //----------------------------------------------------------------------------
@@ -442,7 +453,7 @@ namespace CPC {
   */
   void CFdc::ExecuteCommand_SenseIntState()
   {
-    FinishExecutionPhase();
+    EnterResultPhase();
 
     CDiskDrive* pDrive;
     pDrive = GetMachine()->GetDiskDrive( m_nDesiredDrive );
@@ -460,7 +471,7 @@ namespace CPC {
     // Read the first correct ID on the track
     DECODE_HU;
 
-    FinishExecutionPhase();
+    EnterResultPhase();
 
     CDiskDrive* pDrive;
     pDrive = GetMachine()->GetDiskDrive( m_nDesiredDrive );
@@ -511,6 +522,8 @@ namespace CPC {
       KMASSERT( m_pDataPointer != NULL );
       m_nBytesToTransfer = params.nSectorSize << 8;
       KMASSERT( m_nBytesToTransfer > 0 );
+
+      m_nCurrentDataDir = DIRECTION_TO_CPU;
     }
   }
 
@@ -530,7 +543,7 @@ namespace CPC {
     // Check whether we are done reading
     if (m_nBytesToTransfer == 0)
     {
-      FinishExecutionPhase();
+      EnterResultPhase();
 
       m_anResult[0] = ReadStatusRegister0();
       m_anResult[1] = m_pSectorInfo->nStatusRegister1;
