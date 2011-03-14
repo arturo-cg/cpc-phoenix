@@ -18,6 +18,7 @@ namespace CPC {
   class CDisplay;
   class CKeyboard;
   class CKeyStateProvider;
+  class CDiskDrive;
 
 
   /**
@@ -38,6 +39,8 @@ namespace CPC {
       MODEL_LAST,
       MODEL_INVALID = 0xFFFFFFFF
     };
+
+    static const unsigned DRIVE_COUNT = 2;
 
 
                             CMachine                  (EModel eType, CKeyStateProvider* pKeyStateProvider);
@@ -76,6 +79,9 @@ namespace CPC {
     /** Returns the display subsystem. */
     CKeyboard*              GetKeyboard               ()        { return m_pKeyboard; }
     const CKeyboard*        GetKeyboard               () const  { return m_pKeyboard; }
+    /** Returns the specified disk drive. */
+    CDiskDrive*             GetDiskDrive              (unsigned nDrive)        { return ( nDrive<DRIVE_COUNT ? m_pDiskDrives[nDrive] : NULL ); }
+    const CDiskDrive*       GetDiskDrive              (unsigned nDrive) const  { return ( nDrive<DRIVE_COUNT ? m_pDiskDrives[nDrive] : NULL ); }
 
     /** Reads a byte from the specified port. */
     cpcByte                 ReadByteFromPort          (cpcWord nPort);
@@ -107,6 +113,7 @@ namespace CPC {
     CFdc*                   m_pFdc;
     CDisplay*               m_pDisplay;
     CKeyboard*              m_pKeyboard;
+    CDiskDrive*             m_pDiskDrives[DRIVE_COUNT];
 
   };
 

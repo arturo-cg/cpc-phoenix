@@ -270,6 +270,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\AmstradCPC\cpcDiskDrive.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AmstradCPC\cpcDiskDrive.h"
+				>
+			</File>
+			<File
 				RelativePath=".\AmstradCPC\cpcDisplay.cpp"
 				>
 			</File>

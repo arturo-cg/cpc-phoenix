@@ -28,64 +28,40 @@ namespace CPC {
     virtual EFormat         GetFormat                 () const  { return m_eFormat; }
 
     /** Returns how many sides the disk has. */
-    virtual unsigned        GetSideCount              () const  { return (unsigned)m_diskHeader.nSideCount; }
+    virtual unsigned        GetSideCount              () const  { return (unsigned)m_diskInfo.nSideCount; }
     /** Returns how many tracks the disk has per side. */
-    virtual unsigned        GetTrackCount             () const  { return (unsigned)m_diskHeader.nTrackCount; }
+    virtual unsigned        GetTrackCount             () const  { return (unsigned)m_diskInfo.nTrackCount; }
+
+    /** Returns information about the disk. */
+    virtual const SDiskInfo* GetDiskInfo              () const  { return &m_diskInfo; }
+    /** Returns information about a specific track. */
+    virtual const STrackInfo* GetTrackInfo            (unsigned nSide, unsigned nTrack) const;
+    /** Returns information about a sector given its index. */
+    virtual const SSectorInfo* GetSectorInfo          (unsigned nSide, unsigned nTrack, unsigned nSector) const;
+    /** Returns information about a sector given its ID. */
+    virtual const SSectorInfo* GetSectorInfoById      (unsigned nSide, unsigned nTrack, unsigned nSectorId) const;
+    /** Returns the data of a sector given its index. */
+    virtual const cpcByte*  GetSectorData             (unsigned nSide, unsigned nTrack, unsigned nSector) const;
+    /** Returns the data of a sector given its ID. */
+    virtual const cpcByte*  GetSectorDataById         (unsigned nSide, unsigned nTrack, unsigned nSectorId) const;
 
 
   private:
 
-#pragma pack(push, Dsk_Structs_Pack_Section)
-#pragma pack(1)
-
-    struct SDskSectorInfo
-    {
-      cpcByte nTrack;              // Track number (equivalent to C parameter in NEC765 commands).
-      cpcByte nSide;               // Side number (equivalent to H parameter in NEC765 commands).
-      cpcByte nId;                 // Sector ID (equivalent to R parameter in NEC765 commands).
-      cpcByte nSize;               // Sector size (equivalent to N parameter in NEC765 commands).
-      cpcByte nStatusRegister1;    // FDC status register 1 (equivalent to NEC765 ST1 status register).
-      cpcByte nStatusRegister2;    // FDC status register 2 (equivalent to NEC765 ST2 status register).
-      cpcWord nDataLength;         // Actual data length in bytes (little endian notation). Special case: When N=6, only 1800h bytes are stored.
-    };
-
-    struct SDskTrackHeader
-    {
-      char szTag[13];              // Should contain "Track-Info\r\n".
-      cpcByte _unused1[3];
-      cpcByte nTrackNumber;
-      cpcByte nSideNumber;
-      cpcByte _unused2[2];
-      cpcByte nSectorSize;
-      cpcByte nSectorCount;
-      cpcByte nGapLength;
-      cpcByte nFillerByte;
-    };
-
-    struct SDskDiskHeader
-    {
-      char szTag[34];              // Should contain "EXTENDED CPC DSK File\r\nDisk-Info\r\n".
-      char szCreator[14];          // Name of creator (utility/emulator).
-      cpcByte nTrackCount;
-      cpcByte nSideCount;
-      cpcByte _unused[2];          // Used only in standard DSK format.
-      cpcByte anTrackSizes[204];   // Each element n contains the high byte of track n length (equivalent to track length/256).
-    };
-
-#pragma pack(pop, Dsk_Structs_Pack_Section)
-
     struct SDskSector
     {
-      SDskSectorInfo* pHeader;
-      cpcByte*        pData;
+      SSectorInfo* pInfo;
+      cpcByte*     pData;
     };
 
     struct SDskTrack
     {
       typedef std::vector<SDskSector> TDskSectorList;
+      typedef std::map<unsigned, unsigned> TIndexMap;
 
-      SDskTrackHeader* pHeader;
-      TDskSectorList   lSectors;
+      STrackInfo*    pInfo;
+      TDskSectorList lSectors;
+      TIndexMap      lIdsToIndex;
     };
 
 
@@ -96,7 +72,7 @@ namespace CPC {
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
-    const SDskTrack&        GetTrack                  (unsigned nSide, unsigned nTrack) const;
+    const SDskTrack*        GetTrack                  (unsigned nSide, unsigned nTrack) const;
 
     bool                    ReadImage                 (kmbInputStream* pStream);
     void                    BuildTrackList            ();
@@ -104,7 +80,7 @@ namespace CPC {
 
 
     EFormat                 m_eFormat;
-    SDskDiskHeader          m_diskHeader;
+    SDiskInfo               m_diskInfo;
     TTrackList              m_lTracks;
     cpcByte*                m_pRawData;
 

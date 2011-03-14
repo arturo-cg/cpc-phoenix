@@ -6,6 +6,7 @@
 
 
 #include "cpcSubSystem.h"
+#include "cpcDisk.h"
 
 
 namespace CPC {
@@ -36,7 +37,8 @@ namespace CPC {
 
     enum EPhase
     {
-      PHASE_COMMAND = 0,      // Receiving command byte and parameters from the CPU.
+      PHASE_NONE = 0,         // The FDC is idle.
+      PHASE_COMMAND,          // Receiving command byte and parameters from the CPU.
       PHASE_EXECUTION,        // Transferring data from/to the disk.
       PHASE_RESULT,           // Returning status information to the CPU.
 
@@ -51,7 +53,7 @@ namespace CPC {
       COMMAND_SENSE_DRIVE_STATE     = 0x04,
       COMMAND_WRITE_SECTORS         = 0x05,
       COMMAND_READ_SECTORS          = 0x06,
-      COMMAND_RECALIBRATE_SEEK      = 0x07,
+      COMMAND_RECALIBRATE_SEEK_0    = 0x07,
       COMMAND_SENSE_INT_STATE       = 0x08,
       COMMAND_WRITE_DELETED_SECTORS = 0x09,
       COMMAND_READ_ID               = 0x0A,
@@ -65,8 +67,28 @@ namespace CPC {
       COMMAND_INVALID               = 0xFFFFFFFF,
     };
 
+    enum EDataDirection
+    {
+      DIRECTION_TO_FDC = 0,       // CPU -> FDC
+      DIRECTION_TO_CPU = 1,       // FDC -> CPU
+    };
+
     static const unsigned   MAX_PARAMETER_COUNT = 8;
     static const unsigned   MAX_RESULT_COUNT = 7;
+    static const unsigned   DRIVE_COUNT = 4;          // The 765 FDC supports up to four drives, though the Amstrad CPC supports two only.
+
+    struct STypicalParameters
+    {
+      //unsigned nDrive;   <--- Stored in m_nDesiredDrive
+      //unsigned nSide;    <--- Stored in m_nDesiredSide
+      unsigned nTrackId;
+      unsigned nSideId;
+      unsigned nFirstSectorId;
+      unsigned nSectorSize;
+      unsigned nLastSectorId;
+      cpcByte nGap;
+      unsigned nSectorLen;
+    };
 
 
     void                    ResetVars                 ();
@@ -74,15 +96,38 @@ namespace CPC {
 
     void                    TurnMotorOn               (bool bOn);
     cpcByte                 ReadMainStatusRegister    () const;
-    cpcByte                 ReadDataRegister          () const;
+    cpcByte                 ReadStatusRegister0       () const;
+    cpcByte                 ReadStatusRegister3       () const;
+    cpcByte                 ReadDataRegister          ();
     void                    WriteDataRegister         (cpcByte nValue);
+    void                    FinishExecutionPhase      ();
+    void                    FinishResultPhase         ();
+    void                    DecodeTypicalParameters   (STypicalParameters* pParams);
+
+    void                    ExecuteCommand_SpecifySpdDma   ();
+    void                    ExecuteCommand_RecalibrateSeek0();
+    void                    ExecuteCommand_SenseIntState   ();
+    void                    ExecuteCommand_ReadId          ();
+    void                    ExecuteCommand_ReadSectors     ();
+    cpcByte                 ReadDataRegister_ReadSectors   ();
+    void                    ExecuteCommand_SeekTrackN      ();
+    //void                    ExecuteCommand_ ();
 
 
     EPhase                  m_eCurrentPhase;
     ECommand                m_eCurrentCommand;
-    cpcByte                 m_anParameters[1 + MAX_PARAMETER_COUNT];   // The first byte is the command byte.
+    cpcByte                 m_anParameters[MAX_PARAMETER_COUNT];
+    unsigned                m_nParameterCount;
     cpcByte                 m_anResult[MAX_PARAMETER_COUNT];
-    unsigned                m_nCurrentIndex;
+    unsigned                m_nCurrentResult;
+    EDataDirection          m_nCurrentDataDir;
+
+    unsigned                m_nDesiredDrive;
+    unsigned                m_nDesiredSide;
+
+    const CDisk::SSectorInfo* m_pSectorInfo;
+    const cpcByte*          m_pDataPointer;
+    unsigned                m_nBytesToTransfer;
 
   };
 

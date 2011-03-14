@@ -29,6 +29,45 @@ namespace CPC {
       FORMAT_INVALID = 0x7FFFFFFF
     };
 
+#pragma pack(push, Structs_Pack_Section)
+#pragma pack(1)
+
+    struct SSectorInfo
+    {
+      cpcByte nTrack;              // Track number (equivalent to C parameter in NEC765 commands).
+      cpcByte nSide;               // Side number (equivalent to H parameter in NEC765 commands).
+      cpcByte nId;                 // Sector ID (equivalent to R parameter in NEC765 commands).
+      cpcByte nSize;               // Sector size (equivalent to N parameter in NEC765 commands).
+      cpcByte nStatusRegister1;    // FDC status register 1 (equivalent to NEC765 ST1 status register).
+      cpcByte nStatusRegister2;    // FDC status register 2 (equivalent to NEC765 ST2 status register).
+      cpcWord nDataLength;         // Actual data length in bytes (little endian notation). Special case: When N=6, only 1800h bytes are stored.
+    };
+
+    struct STrackInfo
+    {
+      char szTag[13];              // Should contain "Track-Info\r\n".
+      cpcByte _unused1[3];
+      cpcByte nTrackNumber;
+      cpcByte nSideNumber;
+      cpcByte _unused2[2];
+      cpcByte nSectorSize;
+      cpcByte nSectorCount;
+      cpcByte nGapLength;
+      cpcByte nFillerByte;
+    };
+
+    struct SDiskInfo
+    {
+      char szTag[34];              // Should contain "EXTENDED CPC DSK File\r\nDisk-Info\r\n".
+      char szCreator[14];          // Name of creator (utility/emulator).
+      cpcByte nTrackCount;
+      cpcByte nSideCount;
+      cpcByte _unused[2];          // Used only in standard DSK format.
+      cpcByte anTrackSizes[204];   // Each element n contains the high byte of track n length (equivalent to track length/256).
+    };
+
+#pragma pack(pop, Structs_Pack_Section)
+
 
     virtual                ~CDisk                     ()  { FreeVars(); }
 
@@ -39,6 +78,19 @@ namespace CPC {
     virtual unsigned        GetSideCount              () const = 0;
     /** Returns how many tracks the disk has. */
     virtual unsigned        GetTrackCount             () const = 0;
+
+    /** Returns information about the disk. */
+    virtual const SDiskInfo* GetDiskInfo              () const = 0;
+    /** Returns information about a specific track. */
+    virtual const STrackInfo* GetTrackInfo            (unsigned nSide, unsigned nTrack) const = 0;
+    /** Returns information about a specific sector. */
+    virtual const SSectorInfo* GetSectorInfo          (unsigned nSide, unsigned nTrack, unsigned nSector) const = 0;
+    /** Returns information about a sector given its ID. */
+    virtual const SSectorInfo* GetSectorInfoById      (unsigned nSide, unsigned nTrack, unsigned nSectorId) const = 0;
+    /** Returns the data of a specific sector. */
+    virtual const cpcByte*  GetSectorData             (unsigned nSide, unsigned nTrack, unsigned nSector) const = 0;
+    /** Returns the data of a sector given its ID. */
+    virtual const cpcByte*  GetSectorDataById         (unsigned nSide, unsigned nTrack, unsigned nSectorId) const = 0;
 
 
   protected:
