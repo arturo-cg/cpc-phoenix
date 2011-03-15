@@ -74,6 +74,8 @@ void Settings::ResetVars()
   m_eCpcModel       = CPC::CMachine::MODEL_INVALID;
   m_bDrawScanLines  = false;
   m_fEmulationSpeed = 0.f;
+  m_asDiskImages[0].clear();
+  m_asDiskImages[1].clear();
 }
 
 //----------------------------------------------------------------------------
@@ -120,6 +122,8 @@ void Settings::RestoreDefaultValues()
   m_eCpcModel       = CPC::CMachine::MODEL_464;
   m_bDrawScanLines  = false;
   m_fEmulationSpeed = 1.f;
+  m_asDiskImages[0].clear();
+  m_asDiskImages[1].clear();
 
   m_anKeyMappings[CPC::CPCKEY_ESC] = VK_ESCAPE;
   m_anKeyMappings[CPC::CPCKEY_1] = '1';

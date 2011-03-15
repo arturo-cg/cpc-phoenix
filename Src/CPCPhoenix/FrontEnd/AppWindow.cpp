@@ -49,7 +49,6 @@ bool AppWindow::Init()
     if (m_hMainMenu != NULL)
     {
       ::SetMenu( this->GetHWnd(), m_hMainMenu );
-      OnApplicationSettingsChanged();
     }
   }
 
@@ -90,6 +89,12 @@ bool AppWindow::Init()
   if (bRet)
   {
     m_hAccelerators = ::LoadAccelerators( ::GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_APPWINDOWACCELERATORS) );
+  }
+
+  // Update GUI based on settings
+  if (bRet)
+  {
+    OnApplicationSettingsChanged();
   }
 
 
@@ -187,6 +192,9 @@ void AppWindow::OnApplicationSettingsChanged()
     nItem = ID_SETTINGS_EMULATIONSPEED_UNLIMITED;
   }
   ::CheckMenuRadioItem( m_hMainMenu, ID_SETTINGS_EMULATIONSPEED_25, ID_SETTINGS_EMULATIONSPEED_UNLIMITED, nItem, MF_BYCOMMAND );
+
+  // Update the status bar
+  m_pStatusBar->SetInsertedDiskNames( pSettings->GetDiskImage(0), pSettings->GetDiskImage(1) );
 }
 
 //----------------------------------------------------------------------------
@@ -197,6 +205,46 @@ void AppWindow::UpdateDisplayImage()
 {
   m_pDisplayWindow->UpdateDisplayImage();
   m_pDisplayWindow->InvalidateAll( false );
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void AppWindow::OpenLoadDiskImageDialog(unsigned nDrive)
+{
+  // Show the File Dialog to let the user pick a file
+  char szCurrentDir[1000];
+  ::GetCurrentDirectory( sizeof(szCurrentDir), szCurrentDir );
+
+  string sInitialDir;
+  sInitialDir = szCurrentDir + string("\\Disks");
+
+  char szFileFullPath[1000];
+  char szFileName[1000];
+
+  OPENFILENAME openFileName;
+  memset( &openFileName, 0, sizeof(openFileName) );
+  openFileName.lStructSize    = sizeof( OPENFILENAME );
+  openFileName.hwndOwner      = GetHWnd();
+  openFileName.lpstrFilter    = "DSK disk images (*.dsk)\0*.dsk\0\0";
+  //strncpy( szFileFullPath, "", sizeof(szFileFullPath) );
+  szFileFullPath[0]           = '\0';
+  openFileName.lpstrFile      = szFileFullPath;
+  openFileName.nMaxFile       = sizeof( szFileFullPath );
+  openFileName.lpstrFileTitle = szFileName;
+  openFileName.nMaxFileTitle  = sizeof( szFileName );
+  openFileName.lpstrInitialDir = sInitialDir.c_str();
+  openFileName.Flags          = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;  // The flag OFN_NOCHANGEDIR is ignored on Windows XP and below.
+  openFileName.FlagsEx        = OFN_EX_NOPLACESBAR;
+
+  if (::GetOpenFileName(&openFileName) != FALSE)
+  {
+    Application::Singleton()->SetDisk( nDrive, szFileFullPath );
+  }
+
+  // Restore the working directory, changed by the Open File Dialog
+  ::SetCurrentDirectory( szCurrentDir );
 }
 
 //----------------------------------------------------------------------------
@@ -249,6 +297,11 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
     //
     // File Menu
     //
+
+    case ID_DRIVEA_INSERTDISK:  OpenLoadDiskImageDialog( 0 ); break;
+    case ID_DRIVEA_EJECTDISK:   pApplication->SetDisk( 0, "" ); break;
+    case ID_DRIVEB_INSERTDISK:  OpenLoadDiskImageDialog( 1 ); break;
+    case ID_DRIVEB_EJECTDISK:   pApplication->SetDisk( 1, "" ); break;
 
     case ID_FILE_EXIT:  RequestClose(); break;
 

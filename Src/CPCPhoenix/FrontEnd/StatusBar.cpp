@@ -38,10 +38,10 @@ bool StatusBar::Init(kmbWindow* pParentWnd)
   // Add parts
   if (bRet)
   {
-    int aWidths[PART_LAST] = { 500, -1 };
+    int aWidths[PART_LAST] = { 400, 800, -1 };
     ::SendMessage( m_hWnd, SB_SETPARTS, PART_LAST/*part count*/, (LPARAM) aWidths );
 
-    SetInsertedDiskName( "" );
+    SetInsertedDiskNames( "", "" );
     SetEmulationSpeed( 0.f );
   }
 
@@ -104,19 +104,33 @@ long StatusBar::GetHeight() const
 /**
 ** 
 */
-void StatusBar::SetInsertedDiskName(const string& sDiskName)
+void StatusBar::SetInsertedDiskNames(const std::string& sDiskNameA, const std::string& sDiskNameB)
 {
   char szText[300];
-  if ( !sDiskName.empty() )
+
+  // Drive A
+  if ( !sDiskNameA.empty() )
   {
-    _snprintf_s( szText, sizeof(szText), "\tInserted disk: [%s]", sDiskName.c_str() );
+    _snprintf_s( szText, sizeof(szText), "\tDrive A: [\"%s\"]", sDiskNameA.c_str() );
   }
   else
   {
-    _snprintf_s( szText, sizeof(szText), "\t<No disk inserted>" );
+    _snprintf_s( szText, sizeof(szText), "\tDrive A: <No disk>" );
   }
 
-  ::SendMessage( m_hWnd, SB_SETTEXT, PART_INSERTEDDISK | 0/*style*/, (LPARAM) szText );
+  ::SendMessage( m_hWnd, SB_SETTEXT, PART_DRIVE_A | 0/*style*/, (LPARAM) szText );
+
+  // Drive B
+  if ( !sDiskNameB.empty() )
+  {
+    _snprintf_s( szText, sizeof(szText), "\tDrive B: [\"%s\"]", sDiskNameB.c_str() );
+  }
+  else
+  {
+    _snprintf_s( szText, sizeof(szText), "\tDrive B: <No disk>" );
+  }
+
+  ::SendMessage( m_hWnd, SB_SETTEXT, PART_DRIVE_B | 0/*style*/, (LPARAM) szText );
 }
 
 //----------------------------------------------------------------------------

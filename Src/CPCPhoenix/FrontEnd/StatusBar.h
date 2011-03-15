@@ -25,7 +25,7 @@ public:
   HWND                      GetHWnd                   () const  { return m_hWnd; }
   long                      GetHeight                 () const;
 
-  void                      SetInsertedDiskName       (const string& sDiskName);
+  void                      SetInsertedDiskNames      (const string& sDiskNameA, const string& sDiskNameB);
   void                      SetEmulationSpeed         (float fSpeed);
 
 
@@ -33,7 +33,8 @@ private:
 
   enum EPart
   {
-    PART_INSERTEDDISK = 0,
+    PART_DRIVE_A = 0,
+    PART_DRIVE_B,
     PART_EMULATIONSPEED,
 
     PART_LAST,

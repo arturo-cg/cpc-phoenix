@@ -42,6 +42,7 @@ public:
   void                      ChangeCpcModelSetting     (CPC::CMachine::EModel eNewModel);
   void                      ChangeDrawScanLinesSetting(bool bDrawScanLines);
   void                      ChangeEmulationSpeedSetting (float fEmulationSpeed);
+  void                      SetDisk                   (unsigned nDrive, const std::string& sDiskImageFileName);
 
   /** Returns the machine being emulated. */
   CPC::CMachine*            GetEmulatedMachine        ()        { return m_pMachine; }

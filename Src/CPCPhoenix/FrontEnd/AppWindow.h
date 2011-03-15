@@ -69,6 +69,8 @@ private:
   void                      ResetVars                 ();
   void                      FreeVars                  ();
 
+  void                      OpenLoadDiskImageDialog   (unsigned nDrive);
+
 
   HMENU                     m_hMainMenu;
   HACCEL                    m_hAccelerators;

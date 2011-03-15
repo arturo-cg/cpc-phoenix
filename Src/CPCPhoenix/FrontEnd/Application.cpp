@@ -5,10 +5,13 @@
 #include "Application.h"
 #include "cpcMachine.h"
 #include "cpcDisplay.h"
+#include "cpcDiskDrive.h"
+#include "cpcDskDisk.h"
 #include "AppWindow.h"
 #include "StatusBar.h"
 #include "WindowsKeyStateProvider.h"
 #include "Window/kmbWindow.h"
+#include "Stream/kmbFileInputStream.h"
 
 #include <CommCtrl.h>
 
@@ -169,6 +172,59 @@ void Application::ChangeEmulationSpeedSetting(float fEmulationSpeed)
 
   // Notify the application window
   m_pAppWindow->OnApplicationSettingsChanged();
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void Application::SetDisk(unsigned nDrive, const std::string& sDiskImageFileName)
+{
+  if (nDrive < CPC::CMachine::DRIVE_COUNT)
+  {
+    CPC::CDiskDrive* pDrive;
+    pDrive = m_pMachine->GetDiskDrive( nDrive );
+
+    // Eject current disk
+    CPC::CDisk* pOldDisk;
+    pOldDisk = pDrive->GetDisk();
+    if (pOldDisk != NULL)
+    {
+      pDrive->SetDisk( NULL );
+      delete pOldDisk;
+
+      GetSettings()->SetDiskImage( nDrive, "" );
+    }
+
+    // Load the image, if any
+    if ( !sDiskImageFileName.empty() )
+    {
+      kmbFileInputStream stream;
+      if ( stream.Init(sDiskImageFileName) )
+      {
+        CPC::CDskDisk* pDisk;
+        pDisk = new CPC::CDskDisk;
+        if ( pDisk->LoadImage(&stream) )
+        {
+          m_pMachine->GetDiskDrive(0)->SetDisk( pDisk );
+          GetSettings()->SetDiskImage( nDrive, sDiskImageFileName );
+        }
+        else
+        {
+          delete pDisk;
+          pDisk = NULL;
+          ::MessageBox( NULL, "Unknown disk image format.", "Disk image error", MB_OK | MB_ICONEXCLAMATION );
+        }
+      }
+      else
+      {
+        ::MessageBox( NULL, "Could not open the disk image.", "Disk image error", MB_OK | MB_ICONEXCLAMATION );
+      }
+    }
+
+    // Notify the application window
+    m_pAppWindow->OnApplicationSettingsChanged();
+  }
 }
 
 //----------------------------------------------------------------------------

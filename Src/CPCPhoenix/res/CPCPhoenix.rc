@@ -30,15 +30,15 @@ IDR_MAINMENU MENU
 BEGIN
     POPUP "File"
     BEGIN
-        POPUP "Drive A", INACTIVE
+        POPUP "Drive A"
         BEGIN
             MENUITEM "Insert Disk...",              ID_DRIVEA_INSERTDISK
-            MENUITEM "Remove Disk",                 ID_DRIVEA_REMOVEDISK
+            MENUITEM "Eject Disk",                  ID_DRIVEA_EJECTDISK
         END
-        POPUP "Drive B", INACTIVE
+        POPUP "Drive B"
         BEGIN
             MENUITEM "Insert Disk...",              ID_DRIVEB_INSERTDISK
-            MENUITEM "Remove Disk",                 ID_DRIVEB_REMOVEDISK
+            MENUITEM "Eject Disk",                  ID_DRIVEB_EJECTDISK
         END
         MENUITEM SEPARATOR
         MENUITEM "Exit\tAlt+F4",                ID_FILE_EXIT

@@ -42,6 +42,9 @@ public:
 
   int                       GetCpcKeyMapping          (CPC::ECpcKey eCpcKey) const  { return ( eCpcKey<CPC::CPCKEY_LAST ? m_anKeyMappings[eCpcKey] : 0 ); }
 
+  void                      SetDiskImage              (unsigned nDrive, const std::string& sDiskImageFileName)  { m_asDiskImages[nDrive] = sDiskImageFileName; }
+  const std::string&        GetDiskImage              (unsigned nDrive) const                                   { return m_asDiskImages[nDrive]; }
+
 
 private:
 
@@ -58,6 +61,7 @@ private:
   bool                      m_bDrawScanLines;
   float                     m_fEmulationSpeed;
   int                       m_anKeyMappings[CPC::CPCKEY_LAST];
+  std::string               m_asDiskImages[CPC::CMachine::DRIVE_COUNT];
 
 };
 
