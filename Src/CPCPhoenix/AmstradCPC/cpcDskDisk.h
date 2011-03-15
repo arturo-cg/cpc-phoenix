@@ -18,6 +18,35 @@ namespace CPC {
   {
   public:
 
+#pragma pack(push, Structs_Pack_Section)
+#pragma pack(1)
+
+    struct SDskTrackInfo
+    {
+      char szTag[13];              // Should contain "Track-Info\r\n".
+      cpcByte _unused1[3];
+      cpcByte nTrackNumber;
+      cpcByte nSideNumber;
+      cpcByte _unused2[2];
+      cpcByte nSectorSize;
+      cpcByte nSectorCount;
+      cpcByte nGapLength;
+      cpcByte nFillerByte;
+    };
+
+    struct SDskDiskInfo
+    {
+      char szTag[34];              // Should contain "EXTENDED CPC DSK File\r\nDisk-Info\r\n".
+      char szCreator[14];          // Name of creator (utility/emulator).
+      cpcByte nTrackCount;
+      cpcByte nSideCount;
+      cpcByte _unused[2];          // Used only in standard DSK format.
+      cpcByte anTrackSizes[204];   // Each element n contains the high byte of track n length (equivalent to track length/256).
+    };
+
+#pragma pack(pop, Structs_Pack_Section)
+
+
                             CDskDisk                  ();
     virtual                ~CDskDisk                  ()  { FreeVars(); }
 
@@ -33,9 +62,9 @@ namespace CPC {
     virtual unsigned        GetTrackCount             () const  { return (unsigned)m_diskInfo.nTrackCount; }
 
     /** Returns information about the disk. */
-    virtual const SDiskInfo* GetDiskInfo              () const  { return &m_diskInfo; }
+    const SDskDiskInfo*     GetDiskInfo               () const  { return &m_diskInfo; }
     /** Returns information about a specific track. */
-    virtual const STrackInfo* GetTrackInfo            (unsigned nSide, unsigned nTrack) const;
+    const SDskTrackInfo*    GetTrackInfo              (unsigned nSide, unsigned nTrack) const;
     /** Returns information about a sector given its index. */
     virtual const SSectorInfo* GetSectorInfo          (unsigned nSide, unsigned nTrack, unsigned nSector) const;
     /** Returns information about a sector given its ID. */
@@ -59,7 +88,7 @@ namespace CPC {
       typedef std::vector<SDskSector> TDskSectorList;
       typedef std::map<unsigned, unsigned> TIndexMap;
 
-      STrackInfo*    pInfo;
+      SDskTrackInfo* pInfo;
       TDskSectorList lSectors;
       TIndexMap      lIdsToIndex;
     };
@@ -80,7 +109,7 @@ namespace CPC {
 
 
     EFormat                 m_eFormat;
-    SDiskInfo               m_diskInfo;
+    SDskDiskInfo            m_diskInfo;
     TTrackList              m_lTracks;
     cpcByte*                m_pRawData;
 

@@ -115,7 +115,7 @@ namespace CPC {
       if (m_diskInfo.anTrackSizes[i] > 0)
       {
         // The track exists
-        newTrack.pInfo = (STrackInfo*) pCurrOffset;
+        newTrack.pInfo = (SDskTrackInfo*) pCurrOffset;
 
         // Build sector list
         BuildSectorList( newTrack );
@@ -146,7 +146,7 @@ namespace CPC {
     track.lSectors.reserve( track.pInfo->nSectorCount );
 
     SSectorInfo* pSectorInfos;
-    pSectorInfos = (SSectorInfo*) ( (cpcByte*)track.pInfo + sizeof(STrackInfo) );
+    pSectorInfos = (SSectorInfo*) ( (cpcByte*)track.pInfo + sizeof(SDskTrackInfo) );
 
     cpcByte* pDataOffset;
     pDataOffset = (cpcByte*)track.pInfo + 256;
@@ -170,9 +170,9 @@ namespace CPC {
   /**
   ** 
   */
-  /*virtual*/ const CDisk::STrackInfo* CDskDisk::GetTrackInfo(unsigned nSide, unsigned nTrack) const
+  /*virtual*/ const CDskDisk::SDskTrackInfo* CDskDisk::GetTrackInfo(unsigned nSide, unsigned nTrack) const
   {
-    const STrackInfo* pRet = NULL;
+    const SDskTrackInfo* pRet = NULL;
 
     const SDskTrack* pTrack;
     pTrack = GetTrack( nSide, nTrack );
