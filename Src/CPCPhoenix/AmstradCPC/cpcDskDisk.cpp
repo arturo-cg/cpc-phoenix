@@ -60,18 +60,32 @@ namespace CPC {
       // Read the disk header
       if ( pStream->Read(&m_diskInfo) )
       {
+        unsigned nTotalLength = 0;
+
         if (_mbsnbcmp((const unsigned char*)m_diskInfo.szTag, (const unsigned char*)"EXTENDED CPC DSK", 16/*char_count*/) == 0)
         {
           m_eFormat = FORMAT_EXTENDED_DSK;
 
           // Calculate total image length, excluding disk header
-          unsigned nTotalLength = 0;
           cpcByte i;
           for (i = 0; i < (m_diskInfo.nTrackCount * m_diskInfo.nSideCount); i++)
           {
             nTotalLength += unsigned(m_diskInfo.anTrackSizes[i]) << 8;
           }
+        }
+        else if (_mbsnbcmp((const unsigned char*)m_diskInfo.szTag, (const unsigned char*)"MV - CPC", 8/*char_count*/) == 0)
+        {
+          m_eFormat    = FORMAT_STANDARD_DSK;
+          nTotalLength = m_diskInfo.nTrackCount * m_diskInfo.nSideCount * m_diskInfo.nTrackSize;
+        }
+        else
+        {
+          // ERROR - Unknown format
+          m_eFormat = FORMAT_INVALID;
+        }
 
+        if (m_eFormat != FORMAT_INVALID)
+        {
           // Allocate buffer for the image and load it
           m_pRawData = new cpcByte[nTotalLength];
           if ( pStream->Read(m_pRawData, nTotalLength) )
@@ -80,10 +94,6 @@ namespace CPC {
             BuildTrackList();
             bRet = true;
           }
-        }
-        else
-        {
-          // ERROR - Unknown format
         }
       }
     }
@@ -112,7 +122,12 @@ namespace CPC {
     {
       // Register current track
       SDskTrack newTrack;
-      if (m_diskInfo.anTrackSizes[i] > 0)
+      newTrack.pInfo = NULL;
+      newTrack.lSectors.clear();
+      newTrack.lIdsToIndex.clear();
+
+      if ( (m_eFormat == FORMAT_STANDARD_DSK) ||                                        // If it's standard format...
+           ((m_eFormat == FORMAT_EXTENDED_DSK) && (m_diskInfo.anTrackSizes[i] > 0)) )   // If it's extended format and track size is non-zero...
       {
         // The track exists
         newTrack.pInfo = (SDskTrackInfo*) pCurrOffset;
@@ -123,14 +138,13 @@ namespace CPC {
       else
       {
         // The track does NOT exist
-        newTrack.pInfo = NULL;
-        newTrack.lSectors.clear();
-        newTrack.lIdsToIndex.clear();
       }
-      m_lTracks.push_back( newTrack );
 
       // Advance pointer to next track
-      pCurrOffset += unsigned(m_diskInfo.anTrackSizes[i]) << 8;
+      pCurrOffset += ( m_eFormat==FORMAT_STANDARD_DSK ? unsigned(m_diskInfo.nTrackSize) :
+                                                        unsigned(m_diskInfo.anTrackSizes[i]) << 8 );
+
+      m_lTracks.push_back( newTrack );
     }
   }
 
@@ -162,7 +176,11 @@ namespace CPC {
       track.lIdsToIndex.insert( SDskTrack::TIndexMap::value_type(newSector.pInfo->nId, i) );
 
       // Advance pointer to next sector data
-      pDataOffset += unsigned(newSector.pInfo->nDataLength);
+      unsigned nDataLength;
+      nDataLength = ( newSector.pInfo->nSize!=6 ? newSector.pInfo->nSize << 8 : 0x1800 );
+      KMASSERT( (m_eFormat==FORMAT_STANDARD_DSK) || (nDataLength == unsigned(newSector.pInfo->nDataLength)) );
+
+      pDataOffset += nDataLength;
     }
   }
 

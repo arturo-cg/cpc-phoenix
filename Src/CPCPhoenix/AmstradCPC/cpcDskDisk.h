@@ -40,8 +40,8 @@ namespace CPC {
       char szCreator[14];          // Name of creator (utility/emulator).
       cpcByte nTrackCount;
       cpcByte nSideCount;
-      cpcByte _unused[2];          // Used only in standard DSK format.
-      cpcByte anTrackSizes[204];   // Each element n contains the high byte of track n length (equivalent to track length/256).
+      cpcWord nTrackSize;          // [Standard only] Track size. All tracks are this size.
+      cpcByte anTrackSizes[204];   // [Extended only] Each element n contains the high byte of track n length (equivalent to track length/256).
     };
 
 #pragma pack(pop, Structs_Pack_Section)
