@@ -20,23 +20,25 @@
   if (::GetFocus() == Application::Singleton()->GetAppWindow()->GetHWnd())
   {
     // Get the Windows key the CPC key is mapped to
-    int nWindowsKey;
-    nWindowsKey = Application::Singleton()->GetSettings()->GetCpcKeyMapping( eCpcKey );
+    const Settings::SMappedKey& mappedKey = Application::Singleton()->GetSettings()->GetCpcKeyMapping( eCpcKey );
 
-    if (nWindowsKey != 0)  // If it is a valid key...
+    // Get the current state of the Windows key
+    if (::GetAsyncKeyState(mappedKey.nWindowsKey) & 0x8000)      // If the key is pressed...
     {
-      //
-      // TODO - Take Num Lock ON/OFF state into account for certain keys.
-      //
-
-      // Get the current state of the Windows key
-      if (::GetAsyncKeyState(nWindowsKey) & 0x8000)      // If the key is pressed...
+      // Check NUM LOCK key state
+      Settings::EModifierKeyState eNumLockState;
+      if (::GetKeyState(VK_NUMLOCK) & 0x0001)
       {
-        eRet = CPC::CPCKEYSTATE_PRESSED;
+        eNumLockState = Settings::MODIFIERKEY_ON;
       }
       else
       {
-        eRet = CPC::CPCKEYSTATE_RELEASED;
+        eNumLockState = Settings::MODIFIERKEY_OFF;
+      }
+
+      if (mappedKey.eNumLock & eNumLockState)
+      {
+        eRet = CPC::CPCKEYSTATE_PRESSED;
       }
     }
   }

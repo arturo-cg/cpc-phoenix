@@ -8,6 +8,89 @@
 
 /*static*/ const char* Settings::SETTINGS_FILE_NAME = "CPCPhoenix.cfg";
 
+/*static*/ const Settings::SMappedKey Settings::DEFAULT_KEY_MAPPINGS[CPC::CPCKEY_LAST] =
+{
+  { VK_ESCAPE, MODIFIERKEY_ANY },  /*CPCKEY_ESC*/
+  { '1', MODIFIERKEY_ANY },  /*CPCKEY_1*/
+  { '2', MODIFIERKEY_ANY },  /*CPCKEY_2*/
+  { '3', MODIFIERKEY_ANY },  /*CPCKEY_3*/
+  { '4', MODIFIERKEY_ANY },  /*CPCKEY_4*/
+  { '5', MODIFIERKEY_ANY },  /*CPCKEY_5*/
+  { '6', MODIFIERKEY_ANY },  /*CPCKEY_6*/
+  { '7', MODIFIERKEY_ANY },  /*CPCKEY_7*/
+  { '8', MODIFIERKEY_ANY },  /*CPCKEY_8*/
+  { '9', MODIFIERKEY_ANY },  /*CPCKEY_9*/
+  { '0', MODIFIERKEY_ANY },  /*CPCKEY_0*/
+  { VK_OEM_MINUS, MODIFIERKEY_ANY },  /*CPCKEY_MINUS*/
+  { VK_OEM_PLUS, MODIFIERKEY_ANY },  /*CPCKEY_ARROW*/
+  { '<', MODIFIERKEY_ANY },  /*CPCKEY_CLR*/
+  { VK_BACK, MODIFIERKEY_ANY },  /*CPCKEY_DEL*/
+  { VK_TAB, MODIFIERKEY_ANY },  /*CPCKEY_TAB*/
+  { 'Q', MODIFIERKEY_ANY },  /*CPCKEY_Q*/
+  { 'W', MODIFIERKEY_ANY },  /*CPCKEY_W*/
+  { 'E', MODIFIERKEY_ANY },  /*CPCKEY_E*/
+  { 'R', MODIFIERKEY_ANY },  /*CPCKEY_R*/
+  { 'T', MODIFIERKEY_ANY },  /*CPCKEY_T*/
+  { 'Y', MODIFIERKEY_ANY },  /*CPCKEY_Y*/
+  { 'U', MODIFIERKEY_ANY },  /*CPCKEY_U*/
+  { 'I', MODIFIERKEY_ANY },  /*CPCKEY_I*/
+  { 'O', MODIFIERKEY_ANY },  /*CPCKEY_O*/
+  { 'P', MODIFIERKEY_ANY },  /*CPCKEY_P*/
+  { VK_OEM_4, MODIFIERKEY_ANY },  /*CPCKEY_AT*/
+  { '+', MODIFIERKEY_ANY },  /*CPCKEY_BRACKET_OPEN*/
+  { VK_RETURN, MODIFIERKEY_ANY },  /*CPCKEY_RETURN*/
+  { VK_CAPITAL/*CAPS LOCK key*/, MODIFIERKEY_ANY },  /*CPCKEY_CAPS_LOCK*/
+  { 'A', MODIFIERKEY_ANY },  /*CPCKEY_A*/
+  { 'S', MODIFIERKEY_ANY },  /*CPCKEY_S*/
+  { 'D', MODIFIERKEY_ANY },  /*CPCKEY_D*/
+  { 'F', MODIFIERKEY_ANY },  /*CPCKEY_F*/
+  { 'G', MODIFIERKEY_ANY },  /*CPCKEY_G*/
+  { 'H', MODIFIERKEY_ANY },  /*CPCKEY_H*/
+  { 'J', MODIFIERKEY_ANY },  /*CPCKEY_J*/
+  { 'K', MODIFIERKEY_ANY },  /*CPCKEY_K*/
+  { 'L', MODIFIERKEY_ANY },  /*CPCKEY_L*/
+  { VK_OEM_1, MODIFIERKEY_ANY },  /*CPCKEY_COLON*/
+  { VK_OEM_7, MODIFIERKEY_ANY },  /*CPCKEY_SEMICOLON*/
+  { VK_OEM_6, MODIFIERKEY_ANY },  /*CPCKEY_BRACKET_CLOSE*/
+  { VK_SHIFT, MODIFIERKEY_ANY },  /*CPCKEY_SHIFT*/
+  { 'Z', MODIFIERKEY_ANY },  /*CPCKEY_Z*/
+  { 'X', MODIFIERKEY_ANY },  /*CPCKEY_X*/
+  { 'C', MODIFIERKEY_ANY },  /*CPCKEY_C*/
+  { 'V', MODIFIERKEY_ANY },  /*CPCKEY_V*/
+  { 'B', MODIFIERKEY_ANY },  /*CPCKEY_B*/
+  { 'N', MODIFIERKEY_ANY },  /*CPCKEY_N*/
+  { 'M', MODIFIERKEY_ANY },  /*CPCKEY_M*/
+  { VK_OEM_COMMA, MODIFIERKEY_ANY },  /*CPCKEY_COMMA*/
+  { VK_OEM_PERIOD, MODIFIERKEY_ANY },  /*CPCKEY_PERIOD*/
+  { VK_OEM_2, MODIFIERKEY_ANY },  /*CPCKEY_SLASH*/
+  { VK_OEM_5, MODIFIERKEY_ANY },  /*CPCKEY_INVERTED_SLASH*/
+  { VK_SPACE, MODIFIERKEY_ANY },  /*CPCKEY_SPACE*/
+  { VK_LCONTROL/*Left CTRL key*/, MODIFIERKEY_ANY },  /*CPCKEY_CTRL*/
+  { VK_UP, MODIFIERKEY_ON },  /*CPCKEY_CURSOR_UP*/
+  { VK_DOWN, MODIFIERKEY_ON },  /*CPCKEY_CURSOR_DOWN*/
+  { VK_LEFT, MODIFIERKEY_ON },  /*CPCKEY_CURSOR_LEFT*/
+  { VK_RIGHT, MODIFIERKEY_ON },  /*CPCKEY_CURSOR_RIGHT*/
+  { VK_RMENU/*Right ALT key*/, MODIFIERKEY_ANY },  /*CPCKEY_COPY*/
+  { VK_NUMPAD0, MODIFIERKEY_ON },  /*CPCKEY_NUM_0*/
+  { VK_NUMPAD1, MODIFIERKEY_ON },  /*CPCKEY_NUM_1*/
+  { VK_NUMPAD2, MODIFIERKEY_ON },  /*CPCKEY_NUM_2*/
+  { VK_NUMPAD3, MODIFIERKEY_ON },  /*CPCKEY_NUM_3*/
+  { VK_NUMPAD4, MODIFIERKEY_ON },  /*CPCKEY_NUM_4*/
+  { VK_NUMPAD5, MODIFIERKEY_ON },  /*CPCKEY_NUM_5*/
+  { VK_NUMPAD6, MODIFIERKEY_ON },  /*CPCKEY_NUM_6*/
+  { VK_NUMPAD7, MODIFIERKEY_ON },  /*CPCKEY_NUM_7*/
+  { VK_NUMPAD8, MODIFIERKEY_ON },  /*CPCKEY_NUM_8*/
+  { VK_NUMPAD9, MODIFIERKEY_ON },  /*CPCKEY_NUM_9*/
+  { VK_DECIMAL, MODIFIERKEY_ON },  /*CPCKEY_NUM_PERIOD*/
+  { VK_SEPARATOR, MODIFIERKEY_ANY },  /*CPCKEY_NUM_ENTER*/
+  { VK_UP, MODIFIERKEY_OFF },  /*CPCKEY_JOY_UP*/
+  { VK_DOWN, MODIFIERKEY_OFF },  /*CPCKEY_JOY_DOWN*/
+  { VK_LEFT, MODIFIERKEY_OFF },  /*CPCKEY_JOY_LEFT*/
+  { VK_RIGHT, MODIFIERKEY_OFF },  /*CPCKEY_JOY_RIGHT*/
+  { VK_DELETE, MODIFIERKEY_OFF },  /*CPCKEY_JOY_FIRE1*/
+  { VK_END, MODIFIERKEY_OFF },  /*CPCKEY_JOY_FIRE2*/
+};
+
 
 
 //----------------------------------------------------------------------------
@@ -124,84 +207,5 @@ void Settings::RestoreDefaultValues()
   m_fEmulationSpeed = 1.f;
   m_asDiskImages[0].clear();
   m_asDiskImages[1].clear();
-
-  m_anKeyMappings[CPC::CPCKEY_ESC] = VK_ESCAPE;
-  m_anKeyMappings[CPC::CPCKEY_1] = '1';
-  m_anKeyMappings[CPC::CPCKEY_2] = '2';
-  m_anKeyMappings[CPC::CPCKEY_3] = '3';
-  m_anKeyMappings[CPC::CPCKEY_4] = '4';
-  m_anKeyMappings[CPC::CPCKEY_5] = '5';
-  m_anKeyMappings[CPC::CPCKEY_6] = '6';
-  m_anKeyMappings[CPC::CPCKEY_7] = '7';
-  m_anKeyMappings[CPC::CPCKEY_8] = '8';
-  m_anKeyMappings[CPC::CPCKEY_9] = '9';
-  m_anKeyMappings[CPC::CPCKEY_0] = '0';
-  m_anKeyMappings[CPC::CPCKEY_MINUS] = VK_OEM_MINUS;
-  m_anKeyMappings[CPC::CPCKEY_ARROW] = VK_OEM_PLUS;
-  m_anKeyMappings[CPC::CPCKEY_CLR] = '<';
-  m_anKeyMappings[CPC::CPCKEY_DEL] = VK_BACK;
-  m_anKeyMappings[CPC::CPCKEY_TAB] = VK_TAB;
-  m_anKeyMappings[CPC::CPCKEY_Q] = 'Q';
-  m_anKeyMappings[CPC::CPCKEY_W] = 'W';
-  m_anKeyMappings[CPC::CPCKEY_E] = 'E';
-  m_anKeyMappings[CPC::CPCKEY_R] = 'R';
-  m_anKeyMappings[CPC::CPCKEY_T] = 'T';
-  m_anKeyMappings[CPC::CPCKEY_Y] = 'Y';
-  m_anKeyMappings[CPC::CPCKEY_U] = 'U';
-  m_anKeyMappings[CPC::CPCKEY_I] = 'I';
-  m_anKeyMappings[CPC::CPCKEY_O] = 'O';
-  m_anKeyMappings[CPC::CPCKEY_P] = 'P';
-  m_anKeyMappings[CPC::CPCKEY_AT] = VK_OEM_4;
-  m_anKeyMappings[CPC::CPCKEY_BRACKET_OPEN] = '+';
-  m_anKeyMappings[CPC::CPCKEY_RETURN] = VK_RETURN;
-  m_anKeyMappings[CPC::CPCKEY_CAPS_LOCK] = VK_CAPITAL/*CAPS LOCK key*/;
-  m_anKeyMappings[CPC::CPCKEY_A] = 'A';
-  m_anKeyMappings[CPC::CPCKEY_S] = 'S';
-  m_anKeyMappings[CPC::CPCKEY_D] = 'D';
-  m_anKeyMappings[CPC::CPCKEY_F] = 'F';
-  m_anKeyMappings[CPC::CPCKEY_G] = 'G';
-  m_anKeyMappings[CPC::CPCKEY_H] = 'H';
-  m_anKeyMappings[CPC::CPCKEY_J] = 'J';
-  m_anKeyMappings[CPC::CPCKEY_K] = 'K';
-  m_anKeyMappings[CPC::CPCKEY_L] = 'L';
-  m_anKeyMappings[CPC::CPCKEY_COLON] = VK_OEM_1;
-  m_anKeyMappings[CPC::CPCKEY_SEMICOLON] = VK_OEM_7;
-  m_anKeyMappings[CPC::CPCKEY_BRACKET_CLOSE] = VK_OEM_6;
-  m_anKeyMappings[CPC::CPCKEY_SHIFT] = VK_SHIFT;
-  m_anKeyMappings[CPC::CPCKEY_Z] = 'Z';
-  m_anKeyMappings[CPC::CPCKEY_X] = 'X';
-  m_anKeyMappings[CPC::CPCKEY_C] = 'C';
-  m_anKeyMappings[CPC::CPCKEY_V] = 'V';
-  m_anKeyMappings[CPC::CPCKEY_B] = 'B';
-  m_anKeyMappings[CPC::CPCKEY_N] = 'N';
-  m_anKeyMappings[CPC::CPCKEY_M] = 'M';
-  m_anKeyMappings[CPC::CPCKEY_COMMA] = VK_OEM_COMMA;
-  m_anKeyMappings[CPC::CPCKEY_PERIOD] = VK_OEM_PERIOD;
-  m_anKeyMappings[CPC::CPCKEY_SLASH] = VK_OEM_2;
-  m_anKeyMappings[CPC::CPCKEY_INVERTED_SLASH] = VK_OEM_5;
-  m_anKeyMappings[CPC::CPCKEY_SPACE] = VK_SPACE;
-  m_anKeyMappings[CPC::CPCKEY_CTRL] = VK_LCONTROL/* Left CTRL key*/;
-  m_anKeyMappings[CPC::CPCKEY_CURSOR_UP] = VK_UP;
-  m_anKeyMappings[CPC::CPCKEY_CURSOR_DOWN] = VK_DOWN;
-  m_anKeyMappings[CPC::CPCKEY_CURSOR_LEFT] = VK_LEFT;
-  m_anKeyMappings[CPC::CPCKEY_CURSOR_RIGHT] = VK_RIGHT;
-  m_anKeyMappings[CPC::CPCKEY_COPY] = VK_RMENU/*Right ALT key*/;
-  m_anKeyMappings[CPC::CPCKEY_NUM_0] = VK_NUMPAD0;
-  m_anKeyMappings[CPC::CPCKEY_NUM_1] = VK_NUMPAD1;
-  m_anKeyMappings[CPC::CPCKEY_NUM_2] = VK_NUMPAD2;  // With Num Lock ON (special case)
-  m_anKeyMappings[CPC::CPCKEY_NUM_3] = VK_NUMPAD3;
-  m_anKeyMappings[CPC::CPCKEY_NUM_4] = VK_NUMPAD4;  // With Num Lock ON (special case)
-  m_anKeyMappings[CPC::CPCKEY_NUM_5] = VK_NUMPAD5;
-  m_anKeyMappings[CPC::CPCKEY_NUM_6] = VK_NUMPAD6;  // With Num Lock ON (special case)
-  m_anKeyMappings[CPC::CPCKEY_NUM_7] = VK_NUMPAD7;
-  m_anKeyMappings[CPC::CPCKEY_NUM_8] = VK_NUMPAD8;  // With Num Lock ON (special case)
-  m_anKeyMappings[CPC::CPCKEY_NUM_9] = VK_NUMPAD9;
-  m_anKeyMappings[CPC::CPCKEY_NUM_PERIOD] = VK_DECIMAL;
-  m_anKeyMappings[CPC::CPCKEY_NUM_ENTER] = VK_SEPARATOR;
-  m_anKeyMappings[CPC::CPCKEY_JOY_UP] = VK_NUMPAD8;  // With Num Lock OFF (special case)
-  m_anKeyMappings[CPC::CPCKEY_JOY_DOWN] = VK_NUMPAD2;  // With Num Lock OFF (special case)
-  m_anKeyMappings[CPC::CPCKEY_JOY_LEFT] = VK_NUMPAD4;  // With Num Lock OFF (special case)
-  m_anKeyMappings[CPC::CPCKEY_JOY_RIGHT] = VK_NUMPAD6;  // With Num Lock OFF (special case)
-  m_anKeyMappings[CPC::CPCKEY_JOY_FIRE1] = VK_DELETE;
-  m_anKeyMappings[CPC::CPCKEY_JOY_FIRE2] = VK_END;
+  ::memcpy( m_aKeyMappings, DEFAULT_KEY_MAPPINGS, sizeof(m_aKeyMappings) );
 }

@@ -16,6 +16,20 @@ class Settings
 {
 public:
 
+  enum EModifierKeyState
+  {
+    MODIFIERKEY_ON  = 0x01,
+    MODIFIERKEY_OFF = 0x02,
+    MODIFIERKEY_ANY = 0x03 /*MODIFIERKEY_ON | MODIFIERKEY_OFF*/,
+  };
+
+  struct SMappedKey
+  {
+    int               nWindowsKey;
+    EModifierKeyState eNumLock;
+  };
+
+
                             Settings                  ()  { m_bOk = false; }
   virtual                  ~Settings                  ()  { End(); }
 
@@ -40,7 +54,7 @@ public:
   void                      SetEmulationSpeed         (float fSpeed)  { m_fEmulationSpeed = fSpeed; }
   float                     GetEmulationSpeed         () const        { return m_fEmulationSpeed; }
 
-  int                       GetCpcKeyMapping          (CPC::ECpcKey eCpcKey) const  { return ( eCpcKey<CPC::CPCKEY_LAST ? m_anKeyMappings[eCpcKey] : 0 ); }
+  const SMappedKey&         GetCpcKeyMapping          (CPC::ECpcKey eCpcKey) const  { return m_aKeyMappings[eCpcKey]; }
 
   void                      SetDiskImage              (unsigned nDrive, const std::string& sDiskImageFileName)  { m_asDiskImages[nDrive] = sDiskImageFileName; }
   const std::string&        GetDiskImage              (unsigned nDrive) const                                   { return m_asDiskImages[nDrive]; }
@@ -49,6 +63,7 @@ public:
 private:
 
   static const char*        SETTINGS_FILE_NAME;
+  static const SMappedKey   DEFAULT_KEY_MAPPINGS[CPC::CPCKEY_LAST];
 
 
   void                      ResetVars                 ();
@@ -60,7 +75,7 @@ private:
   CPC::CMachine::EModel     m_eCpcModel;
   bool                      m_bDrawScanLines;
   float                     m_fEmulationSpeed;
-  int                       m_anKeyMappings[CPC::CPCKEY_LAST];
+  SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];
   std::string               m_asDiskImages[CPC::CMachine::DRIVE_COUNT];
 
 };
