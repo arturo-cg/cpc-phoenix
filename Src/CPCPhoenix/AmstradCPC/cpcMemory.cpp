@@ -27,7 +27,7 @@ namespace CPC {
 
   static SMemoryProfile s_aMemoryProfiles[CMachine::MODEL_LAST] =
   {
-    { 4/*64Kb RAM*/,  "OS_464.ROM",  { "BASIC_464.ROM",  "",            "", "", "", "", "", "",                "", "", "", "", "", "", "", "" } },    // MODEL_464
+    { 4/*64Kb RAM*/,  "OS_464.ROM",  { "BASIC_464.ROM",  "",            "", "", "", "", "", "AMSDOS_664.ROM",  "", "", "", "", "", "", "", "" } },    // MODEL_464
     { 4/*64Kb RAM*/,  "OS_664.ROM",  { "BASIC_664.ROM",  "",            "", "", "", "", "", "AMSDOS_664.ROM",  "", "", "", "", "", "", "", "" } },    // MODEL_664
     { 8/*128Kb RAM*/, "OS_6128.ROM", { "BASIC_6128.ROM", "",            "", "", "", "", "", "AMSDOS_6128.ROM", "", "", "", "", "", "", "", "" } },    // MODEL_6128
     { 8/*128Kb RAM*/, "OS_6128.ROM", { "BASIC_6128.ROM", "maxam15.rom", "", "", "", "", "", "AMSDOS_6128.ROM", "", "", "", "", "", "", "", "" } },    // MODEL_6128_MAXAM
