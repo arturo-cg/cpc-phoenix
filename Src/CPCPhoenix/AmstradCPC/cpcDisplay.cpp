@@ -94,7 +94,19 @@ namespace CPC {
       unsigned* pDestPixel;
       pDestPixel = (unsigned*) pImageBuffer;
 
-      unsigned nScanLineCount;
+      //
+      // Notes:
+      //
+      // - There are CCrtc::VERTICAL_DISPLAYED * (CCrtc::MAXIMUM_RASTER_ADDRESS + 1) scan lines, i.e. vertical resolution.
+      // - For each scan line, there are CCrtc::HORIZONTAL_DISPLAYED characters.
+      // - For each character, two bytes are read from memory:
+      //        - Mode 0 --> Two bytes contain 4 source pixels (as each pixel is written four times, 16 pixels are written in destination buffer)
+      //        - Mode 1 --> Two bytes contain 8 source pixels (as each pixel is written twice, 16 pixels are written in destination buffer)
+      //        - Mode 2 --> Two bytes contain 16 source pixels (as each pixel is written just once, 16 pixels are written in destination buffer)
+      // - Native horizontal resolution is equal to CCrtc::HORIZONTAL_DISPLAYED * 4/8/16 (depending on whether current mode is 0, 1 or 2 respectively).
+      //
+
+      unsigned nScanLineCount;    // Vertical resolution, in pixels
       nScanLineCount = pCrtc->GetRegisterValue(CCrtc::VERTICAL_DISPLAYED) * (pCrtc->GetRegisterValue(CCrtc::MAXIMUM_RASTER_ADDRESS) + 1);
       nScanLineCount = ( nScanLineCount<=(IMAGEBUFFER_HEIGHT/2) ? nScanLineCount : IMAGEBUFFER_HEIGHT/2 );  // Limit to 200 scan lines
 
@@ -129,6 +141,16 @@ namespace CPC {
             KMASSERTM( false, ("Unofficial video mode 3 not implemented.") );
           }
           break;
+        }
+
+        // Complete the destination image scan line with black pixels
+        unsigned nPixelsWritten;
+        nPixelsWritten = pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_DISPLAYED) * 16;  // 16 pixels are always written per character to destination image
+
+        unsigned x;
+        for (x = nPixelsWritten; x < IMAGEBUFFER_WIDTH; x++)
+        {
+          *pDestPixel++ = 0;
         }
 
         if (m_bScanLineEffectActivated)
