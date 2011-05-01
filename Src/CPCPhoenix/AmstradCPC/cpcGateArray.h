@@ -35,6 +35,15 @@ namespace CPC {
       SCREEN_MODE_3 = 3,   // 160x200 resolution, 4 colors (unofficial)
     };
 
+    enum ERgbConversionTableType
+    {
+      RGBCONVERSIONTABLE_COLOR = 0,     // Simulates a color monitor.
+      RGBCONVERSIONTABLE_GREEN,         // Simulates a green monitor.
+
+      RGBCONVERSIONTABLE_LAST,
+      RGBCONVERSIONTABLE_INVALID = 0x7FFFFFFF,
+    };
+
     static const unsigned   MAX_NUM_PENS           = 16;
     static const unsigned   MAX_NUM_PALETTE_COLORS = 32;
 
@@ -48,8 +57,13 @@ namespace CPC {
     /** Returns the current screen mode. */
     EScreenMode             GetScreenMode             () const  { return m_eScreenMode; }
 
+    /** Sets the RGB conversion table to use. It allows to simulate a color or a green monitor. */
+    void                    SetRgbConversionTable     (ERgbConversionTableType eTableType);
+    /** Gets the RGB conversion table currently in use. */
+    ERgbConversionTableType GetRgbConversionTable     () const  { return m_eRgbConversionTableType; }
+
     /** Returns the current RGB of the specified pen. */
-    unsigned                GetPenRgb                 (cpcByte nPen) const  { return m_paCurrentPalette[ m_anPenColors[nPen] ]; }
+    unsigned                GetPenRgb                 (cpcByte nPen) const  { return m_paCurrentRgbConversionTable[ m_anPenColors[nPen] ]; }
 
     /** Reads a byte from memory at the specified address.
     *** The CPU doesn't access memory directly. Instead, it goes through the Gate Array which provides RAM paging. */
@@ -109,10 +123,9 @@ namespace CPC {
     int                     m_anPenColors[MAX_NUM_PENS];
     /** Border color. It is an index into the hardware color palette. */
     int                     m_nBorderColor;
-    /** The hardware color palette in use (there are two in total, one to emulate a color monitor and one to emulate green monitor).
-    *** The palette maps a color index to a RGB value. */
-    const unsigned*         m_paCurrentPalette;
-    /** Color palette for a green monitor. The palette maps a color index to a RGB value. */
+    /** RGB conversion table. It allows to simulate a color or a green monitor. */
+    ERgbConversionTableType m_eRgbConversionTableType;
+    const unsigned*         m_paCurrentRgbConversionTable;
 
     /** Screen mode. When this value is changed, it won't take effect until the next HSYNC. */
     EScreenMode             m_eScreenMode;

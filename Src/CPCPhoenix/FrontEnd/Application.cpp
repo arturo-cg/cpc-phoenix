@@ -5,6 +5,7 @@
 #include "Application.h"
 #include "cpcMachine.h"
 #include "cpcDisplay.h"
+#include "cpcGateArray.h"
 #include "cpcDiskDrive.h"
 #include "cpcDskDisk.h"
 #include "AppWindow.h"
@@ -140,6 +141,22 @@ void Application::ChangeCpcModelSetting(CPC::CMachine::EModel eNewModel)
   m_pMachine = new CPC::CMachine( eNewModel, m_pKeyStateProvider );
   m_pMachine->Reset();
   m_uFrameCount = 0;
+
+  // Notify the application window
+  m_pAppWindow->OnApplicationSettingsChanged();
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void Application::ChangeMonitorTypeSetting(CPC::CGateArray::ERgbConversionTableType eMonitorType)
+{
+  // Change application settings
+  GetSettings()->SetMonitorType( eMonitorType );
+
+  // Set the new monitor type
+  m_pMachine->GetGateArray()->SetRgbConversionTable( eMonitorType );
 
   // Notify the application window
   m_pAppWindow->OnApplicationSettingsChanged();

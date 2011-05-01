@@ -45,12 +45,17 @@ BEGIN
     END
     POPUP "Settings"
     BEGIN
-        POPUP "Change CPC Model"
+        POPUP "CPC Model"
         BEGIN
-            MENUITEM "CPC 464",                     ID_SETTINGS_CHANGECPCMODEL_CPC464
-            MENUITEM "CPC 664",                     ID_SETTINGS_CHANGECPCMODEL_CPC664
-            MENUITEM "CPC 6128",                    ID_SETTINGS_CHANGECPCMODEL_CPC6128
-            MENUITEM "CPC 6128 + MAXAM",            ID_SETTINGS_CHANGECPCMODEL_CPC6128_MAXAM
+            MENUITEM "CPC 464",                     ID_SETTINGS_CPCMODEL_CPC464
+            MENUITEM "CPC 664",                     ID_SETTINGS_CPCMODEL_CPC664
+            MENUITEM "CPC 6128",                    ID_SETTINGS_CPCMODEL_CPC6128
+            MENUITEM "CPC 6128 + MAXAM",            ID_SETTINGS_CPCMODEL_CPC6128_MAXAM
+        END
+        POPUP "Monitor Type"
+        BEGIN
+            MENUITEM "Color",                       ID_SETTINGS_MONITORTYPE_COLOR
+            MENUITEM "Green",                       ID_SETTINGS_MONITORTYPE_GREEN
         END
         MENUITEM "Draw Scan Lines\tF1",         ID_SETTINGS_DRAWSCANLINES
         POPUP "Emulation Speed"

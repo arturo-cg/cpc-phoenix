@@ -155,6 +155,7 @@ bool Settings::Init()
 void Settings::ResetVars()
 {
   m_eCpcModel       = CPC::CMachine::MODEL_INVALID;
+  m_eMonitorType    = CPC::CGateArray::RGBCONVERSIONTABLE_INVALID;
   m_bDrawScanLines  = false;
   m_fEmulationSpeed = 0.f;
   m_asDiskImages[0].clear();
@@ -203,6 +204,7 @@ void Settings::SaveToFile()
 void Settings::RestoreDefaultValues()
 {
   m_eCpcModel       = CPC::CMachine::MODEL_464;
+  m_eMonitorType    = CPC::CGateArray::RGBCONVERSIONTABLE_COLOR;
   m_bDrawScanLines  = false;
   m_fEmulationSpeed = 1.f;
   m_asDiskImages[0].clear();

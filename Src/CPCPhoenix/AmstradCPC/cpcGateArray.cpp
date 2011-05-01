@@ -17,9 +17,10 @@ namespace CPC {
 
 
   /**
-  ** Hardware palette for a color monitor.
+  ** RGB conversion table that mimics a color monitor.
+  ** It specifies the resulting RGB for each entry in the hardware palette.
   */
-  static const unsigned s_aColorMonitorPalette[CGateArray::MAX_NUM_PALETTE_COLORS] =
+  static const unsigned s_aRgbConversionTable_Color[CGateArray::MAX_NUM_PALETTE_COLORS] =
   {
   //                     Red          Green      Blue
   //                     ---          -----      ----
@@ -58,10 +59,45 @@ namespace CPC {
   };
 
   /**
-  ** Hardware palette for a green monitor.
+  ** RGB conversion table that mimics a green monitor.
+  ** It specifies the resulting RGB for each entry in the hardware palette.
   */
-  static const unsigned s_aGreenMonitorPalette[CGateArray::MAX_NUM_PALETTE_COLORS] =
+  static const unsigned s_aRgbConversionTable_Green[CGateArray::MAX_NUM_PALETTE_COLORS] =
   {
+  //                     Red          Green      Blue
+  //                     ---          -----      ----
+ /*0 - White*/          (0 << 16) | (123 << 8) | 0,
+ /*1 - White*/          (0 << 16) | (123 << 8) | 0,
+ /*2 - Sea Green*/      (0 << 16) | (255 << 8) | 0,
+ /*3 - Pastel Yellow*/  (0 << 16) | (255 << 8) | 0,
+ /*4 - Blue*/           (0 << 16) | (0   << 8) | 0,
+ /*5 - Purple*/         (0 << 16) | (0   << 8) | 0,
+ /*6 - Cyan*/           (0 << 16) | (94  << 8) | 0,
+ /*7 - Pink*/           (0 << 16) | (151 << 8) | 0,
+ /*8 - Purple*/         (0 << 16) | (66  << 8) | 0,
+ /*9 - Pastel Yellow*/  (0 << 16) | (236 << 8) | 0,
+/*10 - Bright Yellow*/  (0 << 16) | (226 << 8) | 0,
+/*11 - Bright White*/   (0 << 16) | (255 << 8) | 0,
+/*12 - Bright Red*/     (0 << 16) | (57  << 8) | 0,
+/*13 - Bright Magenta*/ (0 << 16) | (76  << 8) | 0,
+/*14 - Orange*/         (0 << 16) | (141 << 8) | 0,
+/*15 - Pastel Magenta*/ (0 << 16) | (160 << 8) | 0,
+/*16 - Blue*/           (0 << 16) | (9   << 8) | 0,
+/*17 - Sea Green*/      (0 << 16) | (179 << 8) | 0,
+/*18 - Bright Green*/   (0 << 16) | (169 << 8) | 0,
+/*19 - Bright Cyan*/    (0 << 16) | (188 << 8) | 0,
+/*20 - Black*/          (0 << 16) | (0   << 8) | 0,
+/*21 - Bright Blue*/    (0 << 16) | (19  << 8) | 0,
+/*22 - Green*/          (0 << 16) | (85  << 8) | 0,
+/*23 - Sky Blue*/       (0 << 16) | (104 << 8) | 0,
+/*24 - Magenta*/        (0 << 16) | (38  << 8) | 0,
+/*25 - Pastel Green*/   (0 << 16) | (207 << 8) | 0,
+/*26 - Lime*/           (0 << 16) | (198 << 8) | 0,
+/*27 - Pastel Cyan*/    (0 << 16) | (217 << 8) | 0,
+/*28 - Red*/            (0 << 16) | (28  << 8) | 0,
+/*29 - Mauve*/          (0 << 16) | (47  << 8) | 0,
+/*30 - Yellow*/         (0 << 16) | (113 << 8) | 0,
+/*31 - Pastel Blue*/    (0 << 16) | (132 << 8) | 0,
   };
 
 
@@ -124,7 +160,7 @@ namespace CPC {
     }
 
     m_nBorderColor      = 0;
-    m_paCurrentPalette  = s_aColorMonitorPalette;      // TODO - Allow the user to change this.
+    m_paCurrentRgbConversionTable = s_aRgbConversionTable_Color;
     m_eScreenMode       = SCREEN_MODE_1;
     m_nSecondaryRamPage = 1;
     m_eRamConfig        = RAM_CONFIG_0_1_2_3;
@@ -323,6 +359,24 @@ namespace CPC {
   {
     KMASSERT( nColorIndex < MAX_NUM_PALETTE_COLORS );
     m_nBorderColor = nColorIndex;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::SetRgbConversionTable(ERgbConversionTableType eTableType)
+  {
+    if (eTableType < RGBCONVERSIONTABLE_LAST)
+    {
+      m_eRgbConversionTableType = eTableType;
+      switch (eTableType)
+      {
+        case RGBCONVERSIONTABLE_COLOR:  m_paCurrentRgbConversionTable = s_aRgbConversionTable_Color; break;
+        case RGBCONVERSIONTABLE_GREEN:  m_paCurrentRgbConversionTable = s_aRgbConversionTable_Green; break;
+        default:                        KMASSERTM( false, ("Unknown RGB conversion table.") );
+      }
+    }
   }
 
   //----------------------------------------------------------------------------

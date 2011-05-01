@@ -159,13 +159,22 @@ void AppWindow::OnApplicationSettingsChanged()
   UINT nItem;
   switch ( pSettings->GetCpcModel() )
   {
-    case CPC::CMachine::MODEL_464:         nItem = ID_SETTINGS_CHANGECPCMODEL_CPC464; break;
-    case CPC::CMachine::MODEL_664:         nItem = ID_SETTINGS_CHANGECPCMODEL_CPC664; break;
-    case CPC::CMachine::MODEL_6128:        nItem = ID_SETTINGS_CHANGECPCMODEL_CPC6128; break;
-    case CPC::CMachine::MODEL_6128_MAXAM:  nItem = ID_SETTINGS_CHANGECPCMODEL_CPC6128_MAXAM; break;
-    default:                               KMASSERT(false); nItem = ID_SETTINGS_CHANGECPCMODEL_CPC464; break;
+    case CPC::CMachine::MODEL_464:         nItem = ID_SETTINGS_CPCMODEL_CPC464; break;
+    case CPC::CMachine::MODEL_664:         nItem = ID_SETTINGS_CPCMODEL_CPC664; break;
+    case CPC::CMachine::MODEL_6128:        nItem = ID_SETTINGS_CPCMODEL_CPC6128; break;
+    case CPC::CMachine::MODEL_6128_MAXAM:  nItem = ID_SETTINGS_CPCMODEL_CPC6128_MAXAM; break;
+    default:                               KMASSERT(false); nItem = ID_SETTINGS_CPCMODEL_CPC464; break;
   }
-  ::CheckMenuRadioItem( m_hMainMenu, ID_SETTINGS_CHANGECPCMODEL_CPC464, ID_SETTINGS_CHANGECPCMODEL_CPC6128_MAXAM, nItem, MF_BYCOMMAND );
+  ::CheckMenuRadioItem( m_hMainMenu, ID_SETTINGS_CPCMODEL_CPC464, ID_SETTINGS_CPCMODEL_CPC6128_MAXAM, nItem, MF_BYCOMMAND );
+
+  switch ( pSettings->GetMonitorType() )
+  {
+    case CPC::CGateArray::RGBCONVERSIONTABLE_COLOR:  nItem = ID_SETTINGS_MONITORTYPE_COLOR; break;
+    case CPC::CGateArray::RGBCONVERSIONTABLE_GREEN:  nItem = ID_SETTINGS_MONITORTYPE_GREEN; break;
+    default:                                         KMASSERT(false); nItem = ID_SETTINGS_MONITORTYPE_COLOR; break;
+  }
+  ::CheckMenuRadioItem( m_hMainMenu, ID_SETTINGS_MONITORTYPE_COLOR, ID_SETTINGS_MONITORTYPE_GREEN, nItem, MF_BYCOMMAND );
+
   ::CheckMenuItem( m_hMainMenu, ID_SETTINGS_DRAWSCANLINES, /*MF_BYCOMMAND | */ pSettings->GetDrawScanLines() ? MF_CHECKED : MF_UNCHECKED );
 
   if (pSettings->GetEmulationSpeed() < 0.f)
@@ -310,10 +319,13 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
     // Settings Menu
     //
 
-    case ID_SETTINGS_CHANGECPCMODEL_CPC464:         pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_464 ); break;
-    case ID_SETTINGS_CHANGECPCMODEL_CPC664:         pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_664 ); break;
-    case ID_SETTINGS_CHANGECPCMODEL_CPC6128:        pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_6128 ); break;
-    case ID_SETTINGS_CHANGECPCMODEL_CPC6128_MAXAM:  pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_6128_MAXAM ); break;
+    case ID_SETTINGS_CPCMODEL_CPC464:         pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_464 ); break;
+    case ID_SETTINGS_CPCMODEL_CPC664:         pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_664 ); break;
+    case ID_SETTINGS_CPCMODEL_CPC6128:        pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_6128 ); break;
+    case ID_SETTINGS_CPCMODEL_CPC6128_MAXAM:  pApplication->ChangeCpcModelSetting( CPC::CMachine::MODEL_6128_MAXAM ); break;
+
+    case ID_SETTINGS_MONITORTYPE_COLOR:  pApplication->ChangeMonitorTypeSetting( CPC::CGateArray::RGBCONVERSIONTABLE_COLOR ); break;
+    case ID_SETTINGS_MONITORTYPE_GREEN:  pApplication->ChangeMonitorTypeSetting( CPC::CGateArray::RGBCONVERSIONTABLE_GREEN ); break;
 
     case ID_SETTINGS_DRAWSCANLINES:  pApplication->ChangeDrawScanLinesSetting( !pApplication->GetSettings()->GetDrawScanLines() ); break;
 

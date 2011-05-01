@@ -40,6 +40,7 @@ public:
   const Settings*           GetSettings               () const  { return &m_settings; }
 
   void                      ChangeCpcModelSetting     (CPC::CMachine::EModel eNewModel);
+  void                      ChangeMonitorTypeSetting  (CPC::CGateArray::ERgbConversionTableType eMonitorType);
   void                      ChangeDrawScanLinesSetting(bool bDrawScanLines);
   void                      ChangeEmulationSpeedSetting (float fEmulationSpeed);
   void                      SetDisk                   (unsigned nDrive, const std::string& sDiskImageFileName);

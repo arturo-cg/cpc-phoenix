@@ -6,6 +6,7 @@
 
 
 #include "cpcMachine.h"
+#include "cpcGateArray.h"
 #include "cpcKeyboardTypes.h"
 
 
@@ -48,6 +49,9 @@ public:
   void                      SetCpcModel               (CPC::CMachine::EModel eNewModel)  { m_eCpcModel = eNewModel; }
   CPC::CMachine::EModel     GetCpcModel               () const                           { return m_eCpcModel; }
 
+  void                                     SetMonitorType (CPC::CGateArray::ERgbConversionTableType eType)  { m_eMonitorType = eType; }
+  CPC::CGateArray::ERgbConversionTableType GetMonitorType () const                                          { return m_eMonitorType; }
+
   void                      SetDrawScanLines          (bool bScanLines)  { m_bDrawScanLines = bScanLines; }
   bool                      GetDrawScanLines          () const           { return m_bDrawScanLines; }
 
@@ -73,6 +77,7 @@ private:
   bool                      m_bOk;
 
   CPC::CMachine::EModel     m_eCpcModel;
+  CPC::CGateArray::ERgbConversionTableType m_eMonitorType;
   bool                      m_bDrawScanLines;
   float                     m_fEmulationSpeed;
   SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];
