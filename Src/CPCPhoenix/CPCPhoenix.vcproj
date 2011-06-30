@@ -215,55 +215,51 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\FrontEnd\Application.cpp"
+			RelativePath=".\Application.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\Application.h"
+			RelativePath=".\Application.h"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\AppWindow.cpp"
+			RelativePath=".\AppWindow.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\AppWindow.h"
+			RelativePath=".\AppWindow.h"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\DisplayWindow.cpp"
+			RelativePath=".\DisplayWindow.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\DisplayWindow.h"
+			RelativePath=".\DisplayWindow.h"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\Main.cpp"
+			RelativePath=".\Main.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\res\resource.h"
+			RelativePath=".\Settings.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\Settings.cpp"
+			RelativePath=".\Settings.h"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\Settings.h"
+			RelativePath=".\StatusBar.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\StatusBar.cpp"
+			RelativePath=".\StatusBar.h"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\StatusBar.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Main\stdafx.cpp"
+			RelativePath=".\stdafx.cpp"
 			>
 			<FileConfiguration
 				Name="Debug|Win32"
@@ -283,15 +279,15 @@
 			</FileConfiguration>
 		</File>
 		<File
-			RelativePath=".\Main\stdafx.h"
+			RelativePath=".\stdafx.h"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\WindowsKeyStateProvider.cpp"
+			RelativePath=".\WindowsKeyStateProvider.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\FrontEnd\WindowsKeyStateProvider.h"
+			RelativePath=".\WindowsKeyStateProvider.h"
 			>
 		</File>
 	</Files>
