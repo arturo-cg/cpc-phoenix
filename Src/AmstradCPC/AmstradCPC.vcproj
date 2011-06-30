@@ -19,7 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="2"
 			>
 			<Tool
@@ -40,9 +40,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="../Base;../z80ex/include"
+				PreprocessorDefinitions="_DEBUG;KM_DEBUG_BUILD"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -56,15 +59,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				GenerateDebugInformation="true"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -76,9 +74,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -86,7 +81,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -109,8 +104,9 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="true"
+				AdditionalIncludeDirectories="../Base;../z80ex/include"
+				PreprocessorDefinitions="NDEBUG;KM_RELEASE_BUILD"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -124,17 +120,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				GenerateDebugInformation="true"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -146,9 +135,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -156,6 +142,162 @@
 	<References>
 	</References>
 	<Files>
+		<File
+			RelativePath=".\cpcCpu.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcCpu.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcCrtc.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcCrtc.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcDisk.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcDisk.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcDiskDrive.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcDiskDrive.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcDisplay.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcDisplay.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcDskDisk.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcDskDisk.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcFdc.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcFdc.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcGateArray.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcGateArray.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcKeyboard.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcKeyboard.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcKeyboardTypes.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcKeyStateProvider.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcMachine.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcMachine.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcMemory.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcMemory.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcMemoryBlock.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcMemoryBlock.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcPpi.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcPpi.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcPsg.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcPsg.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcSubSystem.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcSubSystem.h"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcTypes.h"
+			>
+		</File>
+		<File
+			RelativePath=".\stdafx.cpp"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\stdafx.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

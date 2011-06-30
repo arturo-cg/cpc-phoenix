@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="kmbBase"
+	Name="Base"
 	ProjectGUID="{8E18F230-3CCD-469D-AEFF-6B453862059A}"
 	RootNamespace="Base"
 	Keyword="Win32Proj"
