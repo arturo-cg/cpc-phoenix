@@ -11,6 +11,8 @@
 
 class AppWindow;
 class WindowsKeyStateProvider;
+class CWinSoundOutput;
+
 namespace CPC
 {
   class CMachine;
@@ -82,6 +84,7 @@ private:
   CPC::CMachine*            m_pMachine;
   unsigned                  m_uFrameCount;
   WindowsKeyStateProvider*  m_pKeyStateProvider;
+  CWinSoundOutput*          m_pSoundOutput;
 
   kmbPrecisionTimer         m_executionTimer;
   kmbPrecisionTimer::Value  m_previousTimerValue;

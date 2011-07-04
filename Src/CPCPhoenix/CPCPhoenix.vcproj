@@ -290,6 +290,14 @@
 			RelativePath=".\WindowsKeyStateProvider.h"
 			>
 		</File>
+		<File
+			RelativePath=".\WinSoundOutput.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\WinSoundOutput.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

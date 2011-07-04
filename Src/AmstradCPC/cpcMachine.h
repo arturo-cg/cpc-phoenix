@@ -19,6 +19,7 @@ namespace CPC {
   class CKeyboard;
   class CKeyStateProvider;
   class CDiskDrive;
+  class CSoundOutput;
 
 
   /**
@@ -82,6 +83,11 @@ namespace CPC {
     /** Returns the specified disk drive. */
     CDiskDrive*             GetDiskDrive              (unsigned nDrive)        { return ( nDrive<DRIVE_COUNT ? m_pDiskDrives[nDrive] : NULL ); }
     const CDiskDrive*       GetDiskDrive              (unsigned nDrive) const  { return ( nDrive<DRIVE_COUNT ? m_pDiskDrives[nDrive] : NULL ); }
+    /** Sets the sound output subsystem, or removes it if NULL is specified. This object is created and destroyed by the front-end. */
+    void                    SetSoundOutput            (CSoundOutput* pSoundOutput)  { m_pSoundOutput = pSoundOutput; }
+    /** Returns the sound output subsystem. */
+    CSoundOutput*           GetSoundOutput            ()                            { return m_pSoundOutput; }
+    const CSoundOutput*     GetSoundOutput            () const                      { return m_pSoundOutput; }
 
     /** Reads a byte from the specified port. */
     cpcByte                 ReadByteFromPort          (cpcWord nPort);
@@ -114,6 +120,7 @@ namespace CPC {
     CDisplay*               m_pDisplay;
     CKeyboard*              m_pKeyboard;
     CDiskDrive*             m_pDiskDrives[DRIVE_COUNT];
+    CSoundOutput*           m_pSoundOutput;
 
   };
 

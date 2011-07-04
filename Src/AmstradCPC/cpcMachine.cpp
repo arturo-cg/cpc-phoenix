@@ -13,6 +13,7 @@
 #include "cpcDisplay.h"
 #include "cpcKeyboard.h"
 #include "cpcDiskDrive.h"
+#include "cpcSoundOutput.h"
 
 
 
@@ -42,6 +43,7 @@ namespace CPC {
     m_pKeyboard   = new CKeyboard( this, pKeyStateProvider );
     m_pDiskDrives[0] = new CDiskDrive( this );
     m_pDiskDrives[1] = new CDiskDrive( this );
+    m_pSoundOutput = NULL;       // This object is provided by the front-end
   }
 
   //----------------------------------------------------------------------------
@@ -62,6 +64,7 @@ namespace CPC {
     m_pKeyboard  = NULL;
     m_pDiskDrives[0] = NULL;
     m_pDiskDrives[1] = NULL;
+    m_pSoundOutput = NULL;
   }
 
   //----------------------------------------------------------------------------
@@ -143,6 +146,11 @@ namespace CPC {
     GetPpi()->Reset();
     GetPsg()->Reset();
     GetFdc()->Reset();
+
+    if (GetSoundOutput() != NULL)
+    {
+      GetSoundOutput()->Reset();
+    }
   }
 
   //----------------------------------------------------------------------------

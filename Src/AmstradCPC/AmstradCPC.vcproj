@@ -263,6 +263,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\cpcSoundOutput.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\cpcSoundOutput.h"
+			>
+		</File>
+		<File
 			RelativePath=".\cpcSubSystem.cpp"
 			>
 		</File>

@@ -11,6 +11,7 @@
 #include "AppWindow.h"
 #include "StatusBar.h"
 #include "WindowsKeyStateProvider.h"
+#include "WinSoundOutput.h"
 #include "Window/kmbWindow.h"
 #include "Stream/kmbFileInputStream.h"
 
@@ -44,16 +45,18 @@ bool Application::Init(HINSTANCE hInstance)
     m_settings.Init();
   }
 
-  // Key state provider
+  // Key state provider and sound output
   if (bRet)
   {
     m_pKeyStateProvider = new WindowsKeyStateProvider();
+    m_pSoundOutput = new CWinSoundOutput();
   }
 
   // Emulator
   if (bRet)
   {
     m_pMachine = new CPC::CMachine( GetSettings()->GetCpcModel(), m_pKeyStateProvider );
+    m_pMachine->SetSoundOutput( m_pSoundOutput );
     m_pMachine->Reset();
   }
 
@@ -101,6 +104,7 @@ void Application::ResetVars()
   m_pMachine    = NULL;
   m_uFrameCount = 0;
   m_pKeyStateProvider = NULL;
+  m_pSoundOutput = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -109,6 +113,8 @@ void Application::ResetVars()
 */
 void Application::FreeVars()
 {
+  m_pMachine->SetSoundOutput( NULL );
+  delete m_pSoundOutput;
   delete m_pKeyStateProvider;
   delete m_pAppWindow;
   delete m_pMachine;
