@@ -27,8 +27,8 @@ namespace CPC {
     /** Called by the emulator when the emulated machine is reset. */
     virtual void            Reset                     () = 0;
 
-    /** Called by the emulator to output a new audio sample. The sample format is always 8-bit mono. */
-    virtual void            WriteSample               (cpcByte nSample) = 0;
+    /** Called by the emulator to output a new audio sample. The sample format is always a 32-bit float in the range [-1,1] with one channel (mono). */
+    virtual void            WriteSample               (float fSample) = 0;
 
 
   private:

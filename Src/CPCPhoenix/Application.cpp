@@ -49,7 +49,10 @@ bool Application::Init(HINSTANCE hInstance)
   if (bRet)
   {
     m_pKeyStateProvider = new WindowsKeyStateProvider();
+
     m_pSoundOutput = new CWinSoundOutput();
+    m_pSoundOutput->Init();
+    m_pSoundOutput->SetVolume( 0.2f );   // TODO - Move volume to CSettings
   }
 
   // Emulator
@@ -113,8 +116,13 @@ void Application::ResetVars()
 */
 void Application::FreeVars()
 {
-  m_pMachine->SetSoundOutput( NULL );
-  delete m_pSoundOutput;
+  if (m_pSoundOutput != NULL)
+  {
+    m_pMachine->SetSoundOutput( NULL );
+    m_pSoundOutput->End();
+    delete m_pSoundOutput;
+  }
+
   delete m_pKeyStateProvider;
   delete m_pAppWindow;
   delete m_pMachine;

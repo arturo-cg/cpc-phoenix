@@ -40,20 +40,12 @@
 
 
 
-
-
 #ifndef _AFX_NO_OLE_SUPPORT
 #include <afxdtctl.h>		// MFC support for Internet Explorer 4 Common Controls
 #endif
 #ifndef _AFX_NO_AFXCMN_SUPPORT
 #include <afxcmn.h>			// MFC support for Windows Common Controls
 #endif // _AFX_NO_AFXCMN_SUPPORT
-
-
-
-
-
-
 
 
 
@@ -90,6 +82,7 @@ using namespace stdext; // No need to specify stdext:: for STL symbols (hash_map
 #define OEMRESOURCE    // This enables definition of OCR_ macros
 #include <Windows.h>
 #include <CommCtrl.h>
+#include <Mmsystem.h>
 
 // Own general purpose includes
 #include "kmbGlobalDefs.h"
