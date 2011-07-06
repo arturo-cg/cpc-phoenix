@@ -179,6 +179,10 @@ namespace CPC {
     // Gate-Array (1Mhz clock)
     nNumCycles = nMicroSecs;
     GetGateArray()->Run( nNumCycles );
+
+    // PSG (1Mhz clock)
+    nNumCycles = nMicroSecs;
+    GetPsg()->Run( nNumCycles );
   }
 
 } //namespace CPC

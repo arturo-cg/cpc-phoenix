@@ -34,10 +34,26 @@ namespace CPC {
       FUNCTION_INVALID = 0x7FFFFFFF
     };
 
-    static const unsigned   IO_PORT_A_REGISTER = 14;     // PSG register index that holds data about the PSG I/O Port A (in the CPC it is connected to the selected keyboard matrix).
-                                                         // Note: According to PSG datasheet, I/O Port A uses register 16. Probably the CPC has some logic
-                                                         //       that makes that, when a program selects register 14, register 16 is actually selected (and yes,
-                                                         //       this would have the side effect of hiding the actual register 14 (Envelope Coarse Tune) to the CPU.
+    enum ERegister
+    {
+      REG_A_TONE_PERIOD_LOW    = 0x00,         // [Channel A] Lowest 8 bits of the period of the generated square wave.
+      REG_A_TONE_PERIOD_HIGH   = 0x01,         // [Channel A] Highest 4 bits of the period of the generated square wave.
+      REG_B_TONE_PERIOD_LOW    = 0x02,         // [Channel B] Lowest 8 bits of the period of the generated square wave.
+      REG_B_TONE_PERIOD_HIGH   = 0x03,         // [Channel B] Highest 4 bits of the period of the generated square wave.
+      REG_C_TONE_PERIOD_LOW    = 0x04,         // [Channel C] Lowest 8 bits of the period of the generated square wave.
+      REG_C_TONE_PERIOD_HIGH   = 0x05,         // [Channel C] Highest 4 bits of the period of the generated square wave.
+      REG_NOISE_PERIOD         = 0x06,         // Period of the noise. The generated noise can be mixed into any of the three channels.
+      REG_MIXER                = 0x07,         // Enables or disables the tone and the noise for each of the three channels.
+      REG_A_AMPLITUDE          = 0x08,         // [Channel A] If bit 4 is set, amplitude is controlled by the envelope. If bit 4 is clear, bits 3-0 determine a constant amplitude.
+      REG_B_AMPLITUDE          = 0x09,         // [Channel B] If bit 4 is set, amplitude is controlled by the envelope. If bit 4 is clear, bits 3-0 determine a constant amplitude.
+      REG_C_AMPLITUDE          = 0x0A,         // [Channel C] If bit 4 is set, amplitude is controlled by the envelope. If bit 4 is clear, bits 3-0 determine a constant amplitude.
+      REG_ENVELOPE_PERIOD_LOW  = 0x0B,         // Lowest 8 bits of the period of the envelope.
+      REG_ENVELOPE_PERIOD_HIGH = 0x0C,         // Highest 8 bits of the period of the envelope.
+      REG_ENVELOPE_SHAPE       = 0x0D,         // Envelope shape (see data sheet).
+      REG_IO_PORT              = 0x0E,         // I/O Port A (the only one in the AY-3-8912). In the CPC, it is connected to the selected keyboard matrix.
+
+      REG_COUNT
+    };
 
 
                             CPsg                      (CMachine *pMachine);
@@ -51,25 +67,42 @@ namespace CPC {
 
     /** Writes a new value into the specified register.
     *** This is used by CKeyboard each time a new keyboard matrix line is selected or a key is pressed or released. */
-    void                    SetRegisterValue          (int nRegister, cpcByte nValue)  { m_anRegisters[nRegister] = nValue; }
+    void                    SetRegisterValue          (ERegister eRegister, cpcByte nValue)  { m_anRegisters[eRegister] = nValue; }
     /** Writes a new value into the currently selected register. */
-    void                    SetSelectedRegisterValue  (cpcByte nValue)                 { m_anRegisters[m_nSelectedRegister] = nValue; }
+    void                    SetSelectedRegisterValue  (cpcByte nValue)                 { m_anRegisters[m_eSelectedRegister] = nValue; }
     /** Returns the value of the currently selected value. */
-    cpcByte                 GetSelectedRegisterValue  () const                         { return m_anRegisters[m_nSelectedRegister]; }
+    cpcByte                 GetSelectedRegisterValue  () const                         { return m_anRegisters[m_eSelectedRegister]; }
+
+    /** Runs the PSG for the given number of cycles. */
+    void                    Run                       (unsigned nNumCycles);
 
 
   private:
 
     typedef                 CSubSystem                inherited;
 
-    static const unsigned   REGISTER_COUNT     = 16;     // (Read note about I/O Port A above)
+    static const float      CYCLES_PER_SAMPLE;        // Every how many cycles we need to generate a sample (chip_clock/sample_rate = 1Mhz/44.1kHz).
+    static const float      ANGLE_INC_PER_SAMPLE;     // Angle increment at every sample.
+
+    enum EGenerateSampleFlags
+    {
+      GENSAMPLE_TONE_ENABLED  = 0x01,      // Mix tone wave in.
+      GENSAMPLE_NOISE_ENABLED = 0x02,      // Min noise wave in.
+      GENSAMPLE_USE_ENVELOPE  = 0x04,      // Amplitude is controlled by the envelope.
+    };
+
 
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
+    float                   GenerateSample            (unsigned nTonePeriod, unsigned nFixedAmplitude, int/*EGenerateSampleFlags*/ nFlags);
 
-    unsigned                m_nSelectedRegister;
-    cpcByte                 m_anRegisters[REGISTER_COUNT];
+
+    ERegister               m_eSelectedRegister;
+    cpcByte                 m_anRegisters[REG_COUNT];
+
+    float                   m_fAccumCycles;           // Used to determine when to compute a new sound sample.
+    float                   m_fAngle;
 
   };
 

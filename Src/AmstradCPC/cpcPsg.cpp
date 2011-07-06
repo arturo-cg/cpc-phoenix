@@ -5,6 +5,14 @@
 #include "cpcPsg.h"
 #include "cpcMachine.h"
 #include "cpcPpi.h"
+#include "cpcSoundOutput.h"
+
+
+
+static const float PI = 3.1415926535897932384626433832795f;
+
+/*static*/ const float CPC::CPsg::CYCLES_PER_SAMPLE = 22.675736961451247165532879818594f;  // chip_clock/sample_rate = 1Mhz/44.1kHz
+/*static*/ const float CPC::CPsg::ANGLE_INC_PER_SAMPLE = (CYCLES_PER_SAMPLE * 2.f * PI) / 1000000.f;
 
 
 
@@ -29,7 +37,9 @@ namespace CPC {
   */
   void CPsg::ResetVars()
   {
-    m_nSelectedRegister = 0;
+    m_eSelectedRegister = REG_A_TONE_PERIOD_LOW;
+    m_fAccumCycles      = 0.f;
+    m_fAngle            = 0.f;
   }
 
   //----------------------------------------------------------------------------
@@ -68,12 +78,106 @@ namespace CPC {
 
       case FUNCTION_WRITE_REGISTER:
         // We take the value from PPI port A and write it to the currently selected PSG register.
-        m_anRegisters[m_nSelectedRegister] = GetMachine()->GetPpi()->GetPortOutputValue( CPpi::PORT_A );
+        m_anRegisters[m_eSelectedRegister] = GetMachine()->GetPpi()->GetPortOutputValue( CPpi::PORT_A );
         break;
 
       case FUNCTION_SELECT_REGISTER:
         // We take the register index from PPI port A and remember it for subsequent register reads/writes.
-        m_nSelectedRegister = (unsigned) (GetMachine()->GetPpi()->GetPortOutputValue( CPpi::PORT_A ) & 0x0F);   // Bits 3-0 of PPI port A value contain the register index.
+        m_eSelectedRegister = (ERegister) (GetMachine()->GetPpi()->GetPortOutputValue( CPpi::PORT_A ) & 0x0F);   // Bits 3-0 of PPI port A value contain the register index.
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  float CPsg::GenerateSample(unsigned nTonePeriod, unsigned nFixedAmplitude, int/*EGenerateSampleFlags*/ nFlags)
+  {
+    float fRet = 0.f;
+
+    // Tone
+    if (nFlags & GENSAMPLE_TONE_ENABLED)
+    {
+      float fFrequency;
+      fFrequency = 1000000.f / ( float(nTonePeriod) * 16.f );
+
+      fRet = ::sinf( m_fAngle * fFrequency );
+      fRet = ( fRet<0.f ? -1.f : 1.f );     // Convert to square wave
+    }
+
+    return fRet;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CPsg::Run(unsigned nNumCycles)
+  {
+    m_fAccumCycles += (float) nNumCycles;
+
+    // Generate sound samples while there are enough accumulated cycles
+    while (m_fAccumCycles >= CYCLES_PER_SAMPLE)
+    {
+      m_fAccumCycles -= CYCLES_PER_SAMPLE;
+      m_fAngle += ANGLE_INC_PER_SAMPLE;
+      while (m_fAngle >= 2.f * PI)
+      {
+        m_fAngle -= 2.f * PI;
+      }
+
+      // Generate a sample for each channel
+      float fSampleA = 0.f;
+      float fSampleB = 0.f;
+      float fSampleC = 0.f;
+      int nFlags;
+      unsigned nNumActiveChannels = 0;
+
+      nFlags = ((m_anRegisters[REG_MIXER]&0x01) == 0 ? GENSAMPLE_TONE_ENABLED : 0) |
+               ((m_anRegisters[REG_MIXER]&0x08) == 0 ? GENSAMPLE_NOISE_ENABLED : 0) |
+               ((m_anRegisters[REG_A_AMPLITUDE]&0x08) != 0 ? GENSAMPLE_USE_ENVELOPE : 0);
+      if ((nFlags & (GENSAMPLE_TONE_ENABLED | GENSAMPLE_NOISE_ENABLED)) != 0)   // If the channel is active...
+      {
+        fSampleA = GenerateSample( ((m_anRegisters[REG_A_TONE_PERIOD_HIGH]&0x0F) << 8) | m_anRegisters[REG_A_TONE_PERIOD_LOW],
+                                   m_anRegisters[REG_A_AMPLITUDE] & 0x0F,
+                                   nFlags );
+        nNumActiveChannels++;
+      }
+
+      nFlags = ((m_anRegisters[REG_MIXER]&0x02) == 0 ? GENSAMPLE_TONE_ENABLED : 0) |
+               ((m_anRegisters[REG_MIXER]&0x10) == 0 ? GENSAMPLE_NOISE_ENABLED : 0) |
+               ((m_anRegisters[REG_B_AMPLITUDE]&0x08) != 0 ? GENSAMPLE_USE_ENVELOPE : 0);
+      if ((nFlags & (GENSAMPLE_TONE_ENABLED | GENSAMPLE_NOISE_ENABLED)) != 0)   // If the channel is active...
+      {
+        fSampleB = GenerateSample( ((m_anRegisters[REG_B_TONE_PERIOD_HIGH]&0x0F) << 8) | m_anRegisters[REG_B_TONE_PERIOD_LOW],
+                                   m_anRegisters[REG_B_AMPLITUDE] & 0x0F,
+                                   nFlags );
+        nNumActiveChannels++;
+      }
+
+      nFlags = ((m_anRegisters[REG_MIXER]&0x04) == 0 ? GENSAMPLE_TONE_ENABLED : 0) |
+               ((m_anRegisters[REG_MIXER]&0x20) == 0 ? GENSAMPLE_NOISE_ENABLED : 0) |
+               ((m_anRegisters[REG_C_AMPLITUDE]&0x08) != 0 ? GENSAMPLE_USE_ENVELOPE : 0);
+      if ((nFlags & (GENSAMPLE_TONE_ENABLED | GENSAMPLE_NOISE_ENABLED)) != 0)   // If the channel is active...
+      {
+        fSampleC = GenerateSample( ((m_anRegisters[REG_C_TONE_PERIOD_HIGH]&0x0F) << 8) | m_anRegisters[REG_C_TONE_PERIOD_LOW],
+                                   m_anRegisters[REG_C_AMPLITUDE] & 0x0F,
+                                   nFlags );
+        nNumActiveChannels++;
+      }
+
+      // Mix samples from each channel and write the resulting sample to the sound output
+      float fSample;
+      if (nNumActiveChannels > 0)
+      {
+        fSample = (fSampleA + fSampleB + fSampleC) / nNumActiveChannels;
+      }
+      else
+      {
+        fSample = 0.f;
+      }
+
+      GetMachine()->GetSoundOutput()->WriteSample( fSample );
     }
   }
 

@@ -141,7 +141,7 @@ namespace CPC {
   */
   void CKeyboard::WriteSelectedLineStatusToPsg()
   {
-    GetMachine()->GetPsg()->SetRegisterValue( CPsg::IO_PORT_A_REGISTER, GetSelectedLineStatus() );
+    GetMachine()->GetPsg()->SetRegisterValue( CPsg::REG_IO_PORT, GetSelectedLineStatus() );
   }
 
 } //namespace CPC

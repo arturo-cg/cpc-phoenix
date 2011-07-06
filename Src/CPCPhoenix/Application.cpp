@@ -52,7 +52,7 @@ bool Application::Init(HINSTANCE hInstance)
 
     m_pSoundOutput = new CWinSoundOutput();
     m_pSoundOutput->Init();
-    m_pSoundOutput->SetVolume( 0.2f );   // TODO - Move volume to CSettings
+    m_pSoundOutput->SetVolume( 0.1f );   // TODO - Move volume to CSettings
   }
 
   // Emulator
