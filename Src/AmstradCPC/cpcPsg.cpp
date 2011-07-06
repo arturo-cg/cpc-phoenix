@@ -11,8 +11,8 @@
 
 static const float PI = 3.1415926535897932384626433832795f;
 
-/*static*/ const float CPC::CPsg::CYCLES_PER_SAMPLE = 22.675736961451247165532879818594f;  // chip_clock/sample_rate = 1Mhz/44.1kHz
-/*static*/ const float CPC::CPsg::ANGLE_INC_PER_SAMPLE = (CYCLES_PER_SAMPLE * 2.f * PI) / 1000000.f;
+/*static*/ const float CPC::CPsg::CYCLES_PER_SAMPLE = 1000000.f / 44100.f;  // chip_clock/sample_rate = 1Mhz/44.1kHz = 22.675737
+/*static*/ const float CPC::CPsg::ANGLE_INC_PER_SAMPLE = (2.f * PI) / 44100.f;
 
 
 
@@ -99,10 +99,19 @@ namespace CPC {
     if (nFlags & GENSAMPLE_TONE_ENABLED)
     {
       float fFrequency;
-      fFrequency = 1000000.f / ( float(nTonePeriod) * 16.f );
+      fFrequency = 1000000.f / ( float(nTonePeriod + 1) * 8.f * 2.f );     // HACK - Extra division by 2.
 
-      fRet = ::sinf( m_fAngle * fFrequency );
+      float fSinParam;
+      fSinParam = fmod( m_fAngle * fFrequency, 2.f * PI );
+
+      fRet = ::sinf( fSinParam );
       fRet = ( fRet<0.f ? -1.f : 1.f );     // Convert to square wave
+
+      // Apply amplitude
+      float fAmplitude;
+      fAmplitude = ( (nFlags&GENSAMPLE_USE_ENVELOPE) ? 1.f :                                //***** TODO - TODO - TODO *****
+                                                       float(nFixedAmplitude) / 15.f );     // nFixedAmplitude is in the range [0,15].
+      fRet *= fAmplitude;
     }
 
     return fRet;
@@ -119,13 +128,6 @@ namespace CPC {
     // Generate sound samples while there are enough accumulated cycles
     while (m_fAccumCycles >= CYCLES_PER_SAMPLE)
     {
-      m_fAccumCycles -= CYCLES_PER_SAMPLE;
-      m_fAngle += ANGLE_INC_PER_SAMPLE;
-      while (m_fAngle >= 2.f * PI)
-      {
-        m_fAngle -= 2.f * PI;
-      }
-
       // Generate a sample for each channel
       float fSampleA = 0.f;
       float fSampleB = 0.f;
@@ -178,6 +180,14 @@ namespace CPC {
       }
 
       GetMachine()->GetSoundOutput()->WriteSample( fSample );
+
+      // Update cycle accumulator, angle, etc.
+      m_fAccumCycles -= CYCLES_PER_SAMPLE;
+      m_fAngle += ANGLE_INC_PER_SAMPLE;
+      while (m_fAngle >= 2.f * PI)
+      {
+        m_fAngle -= 2.f * PI;
+      }
     }
   }
 
