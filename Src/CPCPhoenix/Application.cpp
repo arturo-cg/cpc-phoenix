@@ -55,12 +55,10 @@ bool Application::Init(HINSTANCE hInstance)
     m_pSoundOutput->SetVolume( 0.1f );   // TODO - Move volume to CSettings
   }
 
-  // Emulator
+  // Emulated machine (emulator)
   if (bRet)
   {
-    m_pMachine = new CPC::CMachine( GetSettings()->GetCpcModel(), m_pKeyStateProvider );
-    m_pMachine->SetSoundOutput( m_pSoundOutput );
-    m_pMachine->Reset();
+    CreateMachine();
   }
 
   // Application main window
@@ -125,8 +123,36 @@ void Application::FreeVars()
 
   delete m_pKeyStateProvider;
   delete m_pAppWindow;
-  delete m_pMachine;
+  DestroyMachine();
   m_settings.End();
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void Application::CreateMachine()
+{
+  // Destroy current machine, if any
+  DestroyMachine();
+
+  // Create the new one
+  m_pMachine = new CPC::CMachine( GetSettings()->GetCpcModel(), m_pKeyStateProvider );
+  m_pMachine->SetSoundOutput( m_pSoundOutput );
+  m_pMachine->Reset();
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void Application::DestroyMachine()
+{
+  if (m_pMachine != NULL)
+  {
+    delete m_pMachine;
+    m_pMachine = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -151,9 +177,7 @@ void Application::ChangeCpcModelSetting(CPC::CMachine::EModel eNewModel)
   GetSettings()->SetCpcModel( eNewModel );
 
   // Delete the current machine and create the new one
-  delete m_pMachine;
-  m_pMachine = new CPC::CMachine( eNewModel, m_pKeyStateProvider );
-  m_pMachine->Reset();
+  CreateMachine();
   m_uFrameCount = 0;
 
   // Notify the application window

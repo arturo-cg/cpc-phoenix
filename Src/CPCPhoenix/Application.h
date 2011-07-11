@@ -71,6 +71,9 @@ private:
   void                      ResetVars                 ();
   void                      FreeVars                  ();
 
+  void                      CreateMachine             ();
+  void                      DestroyMachine            ();
+
   void                      ProcessWindowsMessages    ();
   void                      UpdateMenu                ();
 
