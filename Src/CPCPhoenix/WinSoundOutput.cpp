@@ -173,11 +173,11 @@ void CWinSoundOutput::CreateSoundBlocks()
     SSoundBlock& currBlock = m_soundBlocks[i];
 
     // Reserve memory for the block data
-    currBlock.pSamples = new char [nBlockLength];
+    currBlock.pSamples = new unsigned char [nBlockLength];
 
     // Prepare the block header
     ::memset( &currBlock.header, 0, sizeof(currBlock.header) );
-    currBlock.header.lpData = currBlock.pSamples;
+    currBlock.header.lpData = (LPSTR) currBlock.pSamples;
     currBlock.header.dwBufferLength = nBlockLength;
     currBlock.header.dwBytesRecorded = 0;
     currBlock.header.dwUser = i;
@@ -241,11 +241,23 @@ void CWinSoundOutput::DestroySoundBlocks()
   if (!writeBlock.bIsPlaying)    // If the block to be written is not being used by the device...
   {
     // Convert the sample to the device format
-    char nSample;
-    nSample = (char) ( (fSample * m_fVolume * 127.5f) + 127.5 );
+    unsigned char nSample;
+    nSample = (unsigned char) ( (fSample * m_fVolume * 127.5f) + 127.5f );
 
     // Write the sample to the current block
     *(writeBlock.pSamples + (m_nCurrPos * BYTES_PER_SAMPLE)) = nSample;
+
+////{
+////  static unsigned char nLastSample = nSample;
+////  if (nSample != nLastSample)
+////  {
+////    static char szBuffer[300];
+////    _snprintf( szBuffer, sizeof(szBuffer), "Sample: %.2f --> %d\n", fSample, nSample );
+////    OutputDebugString( szBuffer );
+////
+////    nLastSample = nSample;
+////  }
+////}
 
     // Advance position
     m_nCurrPos++;

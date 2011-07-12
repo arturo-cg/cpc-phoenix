@@ -95,6 +95,7 @@ namespace CPC {
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
+    float                   GenerateChannelSample     (unsigned nRegToneLow, unsigned nRegToneHigh, unsigned nRegAmplitude, unsigned nMixerOffset);
     float                   GenerateSample            (unsigned nTonePeriod, unsigned nFixedAmplitude, int/*EGenerateSampleFlags*/ nFlags);
 
 

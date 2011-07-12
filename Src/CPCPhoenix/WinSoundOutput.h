@@ -44,9 +44,9 @@ private:
 
   struct SSoundBlock
   {
-    WAVEHDR header;               // Header
-    char*   pSamples;             // Samples
-    bool    bIsPlaying;           // True if the block has been sent to the device and is playing or is queued for playback. False if ready for receiving new samples.
+    WAVEHDR        header;               // Header
+    unsigned char* pSamples;             // Samples
+    bool           bIsPlaying;           // True if the block has been sent to the device and is playing or is queued for playback. False if ready for receiving new samples.
   };
 
 

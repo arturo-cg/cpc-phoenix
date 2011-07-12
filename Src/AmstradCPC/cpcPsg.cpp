@@ -121,72 +121,68 @@ namespace CPC {
   /**
   ** 
   */
+  float CPsg::GenerateChannelSample(unsigned nRegToneLow, unsigned nRegToneHigh, unsigned nRegAmplitude, unsigned nMixerOffset)
+  {
+    float fRet = 0.f;
+
+    int nFlags = 0;
+    if ((m_anRegisters[REG_MIXER] & (0x01<<nMixerOffset)) == 0)
+    {
+      nFlags |= GENSAMPLE_TONE_ENABLED;
+    }
+    if ((m_anRegisters[REG_MIXER] & (0x08<<nMixerOffset)) == 0)
+    {
+      nFlags |= GENSAMPLE_NOISE_ENABLED;
+    }
+    if ((m_anRegisters[nRegAmplitude]&0x10) != 0)
+    {
+      nFlags |= GENSAMPLE_USE_ENVELOPE;
+    }
+
+    if ((nFlags & (GENSAMPLE_TONE_ENABLED | GENSAMPLE_NOISE_ENABLED)) != 0)   // If the channel is active...
+    {
+      fRet = GenerateSample( ((m_anRegisters[nRegToneHigh]&0x0F) << 8) | m_anRegisters[nRegToneLow],
+                             m_anRegisters[nRegAmplitude] & 0x0F,
+                             nFlags );
+    }
+
+    return fRet;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
   void CPsg::Run(unsigned nNumCycles)
   {
-    m_fAccumCycles += (float) nNumCycles;
-
-    // Generate sound samples while there are enough accumulated cycles
-    while (m_fAccumCycles >= CYCLES_PER_SAMPLE)
+    if (GetMachine()->GetSoundOutput() != NULL)
     {
-      // Generate a sample for each channel
-      float fSampleA = 0.f;
-      float fSampleB = 0.f;
-      float fSampleC = 0.f;
-      int nFlags;
-      unsigned nNumActiveChannels = 0;
+      m_fAccumCycles += (float) nNumCycles;
 
-      nFlags = ((m_anRegisters[REG_MIXER]&0x01) == 0 ? GENSAMPLE_TONE_ENABLED : 0) |
-               ((m_anRegisters[REG_MIXER]&0x08) == 0 ? GENSAMPLE_NOISE_ENABLED : 0) |
-               ((m_anRegisters[REG_A_AMPLITUDE]&0x08) != 0 ? GENSAMPLE_USE_ENVELOPE : 0);
-      if ((nFlags & (GENSAMPLE_TONE_ENABLED | GENSAMPLE_NOISE_ENABLED)) != 0)   // If the channel is active...
+      // Generate sound samples while there are enough accumulated cycles
+      while (m_fAccumCycles >= CYCLES_PER_SAMPLE)
       {
-        fSampleA = GenerateSample( ((m_anRegisters[REG_A_TONE_PERIOD_HIGH]&0x0F) << 8) | m_anRegisters[REG_A_TONE_PERIOD_LOW],
-                                   m_anRegisters[REG_A_AMPLITUDE] & 0x0F,
-                                   nFlags );
-        nNumActiveChannels++;
-      }
+        // Generate a sample for each channel
+        float fSampleA;
+        float fSampleB;
+        float fSampleC;
+        fSampleA = GenerateChannelSample( REG_A_TONE_PERIOD_LOW, REG_A_TONE_PERIOD_HIGH, REG_A_AMPLITUDE, 0 );
+        fSampleB = GenerateChannelSample( REG_B_TONE_PERIOD_LOW, REG_B_TONE_PERIOD_HIGH, REG_B_AMPLITUDE, 1 );
+        fSampleC = GenerateChannelSample( REG_C_TONE_PERIOD_LOW, REG_C_TONE_PERIOD_HIGH, REG_C_AMPLITUDE, 2 );
 
-      nFlags = ((m_anRegisters[REG_MIXER]&0x02) == 0 ? GENSAMPLE_TONE_ENABLED : 0) |
-               ((m_anRegisters[REG_MIXER]&0x10) == 0 ? GENSAMPLE_NOISE_ENABLED : 0) |
-               ((m_anRegisters[REG_B_AMPLITUDE]&0x08) != 0 ? GENSAMPLE_USE_ENVELOPE : 0);
-      if ((nFlags & (GENSAMPLE_TONE_ENABLED | GENSAMPLE_NOISE_ENABLED)) != 0)   // If the channel is active...
-      {
-        fSampleB = GenerateSample( ((m_anRegisters[REG_B_TONE_PERIOD_HIGH]&0x0F) << 8) | m_anRegisters[REG_B_TONE_PERIOD_LOW],
-                                   m_anRegisters[REG_B_AMPLITUDE] & 0x0F,
-                                   nFlags );
-        nNumActiveChannels++;
-      }
+        // Mix samples from each channel and write the resulting sample to the sound output
+        float fSample;
+        fSample = (fSampleA + fSampleB + fSampleC) / 3/*num channels*/;
 
-      nFlags = ((m_anRegisters[REG_MIXER]&0x04) == 0 ? GENSAMPLE_TONE_ENABLED : 0) |
-               ((m_anRegisters[REG_MIXER]&0x20) == 0 ? GENSAMPLE_NOISE_ENABLED : 0) |
-               ((m_anRegisters[REG_C_AMPLITUDE]&0x08) != 0 ? GENSAMPLE_USE_ENVELOPE : 0);
-      if ((nFlags & (GENSAMPLE_TONE_ENABLED | GENSAMPLE_NOISE_ENABLED)) != 0)   // If the channel is active...
-      {
-        fSampleC = GenerateSample( ((m_anRegisters[REG_C_TONE_PERIOD_HIGH]&0x0F) << 8) | m_anRegisters[REG_C_TONE_PERIOD_LOW],
-                                   m_anRegisters[REG_C_AMPLITUDE] & 0x0F,
-                                   nFlags );
-        nNumActiveChannels++;
-      }
+        GetMachine()->GetSoundOutput()->WriteSample( fSample );
 
-      // Mix samples from each channel and write the resulting sample to the sound output
-      float fSample;
-      if (nNumActiveChannels > 0)
-      {
-        fSample = (fSampleA + fSampleB + fSampleC) / nNumActiveChannels;
-      }
-      else
-      {
-        fSample = 0.f;
-      }
-
-      GetMachine()->GetSoundOutput()->WriteSample( fSample );
-
-      // Update cycle accumulator, angle, etc.
-      m_fAccumCycles -= CYCLES_PER_SAMPLE;
-      m_fAngle += ANGLE_INC_PER_SAMPLE;
-      while (m_fAngle >= 2.f * PI)
-      {
-        m_fAngle -= 2.f * PI;
+        // Update cycle accumulator, angle, etc.
+        m_fAccumCycles -= CYCLES_PER_SAMPLE;
+        m_fAngle += ANGLE_INC_PER_SAMPLE;
+        while (m_fAngle >= 2.f * PI)
+        {
+          m_fAngle -= 2.f * PI;
+        }
       }
     }
   }
