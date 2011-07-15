@@ -40,7 +40,7 @@ private:
   static const unsigned   BYTES_PER_SAMPLE = 1;                         // 8-bit samples
 
   static const unsigned   NUM_BLOCKS = 3;                               // Triple buffer
-  static const unsigned   SAMPLES_PER_BLOCK = SAMPLES_PER_SEC / 10;     // 100 ms of sound data per block
+  static const unsigned   SAMPLES_PER_BLOCK = SAMPLES_PER_SEC / 20;     // 50 ms of sound data per block
 
   struct SSoundBlock
   {
