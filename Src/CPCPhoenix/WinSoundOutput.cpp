@@ -242,7 +242,7 @@ void CWinSoundOutput::DestroySoundBlocks()
   {
     // Convert the sample to the device format
     unsigned char nSample;
-    nSample = (unsigned char) ( (fSample * m_fVolume * 127.5f) + 127.5f );
+    nSample = (unsigned char) ( (fSample * m_fVolume * 128.f) + 128.f );
 
     // Write the sample to the current block
     *(writeBlock.pSamples + (m_nCurrPos * BYTES_PER_SAMPLE)) = nSample;

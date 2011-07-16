@@ -99,7 +99,7 @@ namespace CPC {
     if (nFlags & GENSAMPLE_TONE_ENABLED)
     {
       float fFrequency;
-      fFrequency = 1000000.f / ( float(nTonePeriod + 1) * 8.f * 2.f );     // HACK - Extra division by 2.
+      fFrequency = 1000000.f / ( (float(nTonePeriod<<1) * 8.f) + 1.f );     // nTonePeriod is half the period of the complete wave, that's why it is multiplied by 2.
 
       float fSinParam;
       fSinParam = fmod( m_fAngle * fFrequency, 2.f * PI );
