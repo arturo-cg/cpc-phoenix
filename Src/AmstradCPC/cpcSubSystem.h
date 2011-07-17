@@ -35,17 +35,17 @@ namespace CPC {
   protected:
 
     // Constructor is protected to avoid instantiating this class
-                            CSubSystem                (CMachine *pMachine);
+                            CSubSystem                (CMachine* pMachine);
 
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
     /** Returns the machine this subsystem is part of. */
-    inline CMachine        *GetMachine                ()        { return m_pMachine; }
-    inline const CMachine  *GetMachine                () const  { return m_pMachine; }
+    inline CMachine*        GetMachine                ()        { return m_pMachine; }
+    inline const CMachine*  GetMachine                () const  { return m_pMachine; }
 
 
-    CMachine               *m_pMachine;
+    CMachine*               m_pMachine;
 
 
   private:
