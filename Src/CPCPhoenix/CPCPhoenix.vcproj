@@ -245,6 +245,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\res\resource.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Settings.cpp"
 			>
 		</File>
