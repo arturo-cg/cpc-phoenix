@@ -47,16 +47,16 @@ public:
 private:
 
   static const unsigned   SAMPLES_PER_SEC = 44100;                      // 44.1 kHz sample rate
-  static const unsigned   BYTES_PER_SAMPLE = 1;                         // 8-bit samples
+  static const unsigned   BYTES_PER_SAMPLE = 2;                         // 8-bit samples
 
   static const unsigned   NUM_BLOCKS = 3;                               // Triple buffer
   static const unsigned   SAMPLES_PER_BLOCK = SAMPLES_PER_SEC / 20;     // 50 ms of sound data per block
 
   struct SSoundBlock
   {
-    WAVEHDR        header;               // Header
-    unsigned char* pSamples;             // Samples
-    bool           bIsPlaying;           // True if the block has been sent to the device and is playing or is queued for playback. False if ready for receiving new samples.
+    WAVEHDR  header;                // Header
+    short*   pSamples;              // Samples
+    bool     bIsPlaying;            // True if the block has been sent to the device and is playing or is queued for playback. False if ready for receiving new samples.
   };
 
   struct SWavFileHeader

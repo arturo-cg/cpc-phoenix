@@ -62,7 +62,7 @@ bool CWinSoundOutput::Init()
     waveFormat.wFormatTag = WAVE_FORMAT_PCM;            // Simple PCM format
     waveFormat.nChannels = 1;                           // Mono
     waveFormat.nSamplesPerSec = SAMPLES_PER_SEC;        // 44.1 kHz
-    waveFormat.wBitsPerSample = BYTES_PER_SAMPLE * 8;   // 8 bits per sample
+    waveFormat.wBitsPerSample = BYTES_PER_SAMPLE * 8;   // 16 bits per sample
     waveFormat.nBlockAlign = BYTES_PER_SAMPLE * waveFormat.nChannels;
     waveFormat.nAvgBytesPerSec = waveFormat.nSamplesPerSec * waveFormat.nBlockAlign;
     waveFormat.cbSize = 0;
@@ -178,7 +178,7 @@ void CWinSoundOutput::CreateSoundBlocks()
     SSoundBlock& currBlock = m_soundBlocks[i];
 
     // Reserve memory for the block data
-    currBlock.pSamples = new unsigned char [nBlockLength];
+    currBlock.pSamples = new short [SAMPLES_PER_BLOCK];
 
     // Prepare the block header
     ::memset( &currBlock.header, 0, sizeof(currBlock.header) );
@@ -196,7 +196,7 @@ void CWinSoundOutput::CreateSoundBlocks()
     KMASSERT( result == MMSYSERR_NOERROR );
 
     // Fill the block with silence
-    ::memset( currBlock.pSamples, 128, nBlockLength );
+    ::memset( currBlock.pSamples, 0, nBlockLength );
 
     currBlock.bIsPlaying = false;
   }
@@ -246,23 +246,11 @@ void CWinSoundOutput::DestroySoundBlocks()
   if (!writeBlock.bIsPlaying)    // If the block to be written is not being used by the device...
   {
     // Convert the sample to the device format
-    unsigned char nSample;
-    nSample = (unsigned char) ( (fSample * m_fVolume * 128.f) + 128.f );
+    short nSample;
+    nSample = (short) (fSample * m_fVolume * 32767.f);
 
     // Write the sample to the current block
-    *(writeBlock.pSamples + (m_nCurrPos * BYTES_PER_SAMPLE)) = nSample;
-
-////{
-////  static unsigned char nLastSample = nSample;
-////  if (nSample != nLastSample)
-////  {
-////    static char szBuffer[300];
-////    _snprintf( szBuffer, sizeof(szBuffer), "Sample: %.2f --> %d\n", fSample, nSample );
-////    OutputDebugString( szBuffer );
-////
-////    nLastSample = nSample;
-////  }
-////}
+    *(writeBlock.pSamples + m_nCurrPos) = nSample;
 
     // Advance position
     m_nCurrPos++;
