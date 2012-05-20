@@ -172,7 +172,7 @@ namespace CPC {
 
         // Mix samples from each channel and write the resulting sample to the sound output
         float fSample;
-        fSample = (fSampleA + fSampleB + fSampleC) / 3/*num channels*/;
+        fSample = (fSampleA + fSampleB + fSampleC) / 3.f/*num channels*/;
 
         GetMachine()->GetSoundOutput()->WriteSample( fSample );
 

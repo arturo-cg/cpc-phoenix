@@ -58,6 +58,8 @@ public:
 
   /** Returns true if the last read operation has attempted to read past the end of the file. */
   bool                      IsAtEof                   () const;
+  /** Moves the current position pointer relative to the beginning of the file. */
+  bool                      Seek                      (int nPos);
 
   /** Reads a variable. The file must be open in binary mode. The variable size must
   *** be known at compile time; i.e., sizeof(pVar) must return the correct size

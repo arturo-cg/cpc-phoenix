@@ -24,7 +24,6 @@ bool kmbFile::ReadBytes(T* pVar)
 template <typename T>
 bool kmbFile::WriteBytes(const T& Var)
 {
-  KMASSERT( pVar != NULL );
   KMASSERTM( IsOpen(), ("File must be open before reading from it.") );
   KMASSERTM( CanWrite(), ("File was not open with write access.") );
   KMASSERTM( GetFileMode()==kmbFile::FILEMODE_BINARY, ("Don't call this method when the file is open in text mode.") );

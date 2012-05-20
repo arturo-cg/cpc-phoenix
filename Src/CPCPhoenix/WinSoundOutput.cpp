@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "WinSoundOutput.h"
+#include "File/kmbFile.h"
 
 
 
@@ -102,6 +103,9 @@ bool CWinSoundOutput::Init()
 */
 void CWinSoundOutput::End()
 {
+  // Stop recording to a file
+  StopRecording();
+
   // Force the device to finish with current playing blocks
   if (m_hDevice != 0)
   {
@@ -147,6 +151,7 @@ void CWinSoundOutput::ResetVars()
 
   m_nCurrBlock = 0;
   m_nCurrPos = 0;
+  m_pRecordFile = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -271,6 +276,16 @@ void CWinSoundOutput::DestroySoundBlocks()
       m_nCurrPos = 0;
     }
   }
+
+  // If recording is active, write the sample to the file
+  if ( IsRecording() )
+  {
+    short nWavSample;
+    nWavSample = short( fSample * 32767.f );
+
+    m_pRecordFile->WriteBytes( nWavSample );
+    m_nRecordedSampleCount++;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -288,4 +303,75 @@ void CWinSoundOutput::SendSoundBlockToDevice(SSoundBlock* pBlock)
 
   // Mark the block as being played
   pBlock->bIsPlaying = true;
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+bool CWinSoundOutput::StartRecording(const string& sFileName)
+{
+  bool bRet = true;
+
+  // Stop current recording, if any
+  StopRecording();
+
+  // Open the file with write permissions
+  m_pRecordFile = new kmbFile;
+  m_pRecordFile->Init( sFileName );
+
+  if ( m_pRecordFile->Open(kmbFile::ACCESS_WRITE, kmbFile::FILEMODE_BINARY) )
+  {
+    // Write the WAV header with garbage. We will write it again with correct data at the end, once we know the final length.
+    SWavFileHeader header;
+    memset( &header, 0, sizeof(header) );
+    m_pRecordFile->WriteBytes( header );
+
+    // The file pointer is now at the beginning of the data block ready for writing sound samples.
+    m_nRecordedSampleCount = 0;
+  }
+  else
+  {
+    // Error opening the file for writing
+    bRet = false;
+  }
+
+  return bRet;
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+void CWinSoundOutput::StopRecording()
+{
+  if (m_pRecordFile != NULL)
+  {
+    // Write the file header with correct information
+    SWavFileHeader header;
+    header.nNumChannels = 1;
+    header.nBitsPerSample = 16;
+    header.nSubChunk2Size = m_nRecordedSampleCount * header.nNumChannels * (header.nBitsPerSample / 8);
+
+    header.nChunkId = 'R' | ('I' << 8) | ('F' << 16) | ('F' << 24);
+    header.nChunkSize = 36 + header.nSubChunk2Size;
+    header.nFormat = 'W' | ('A' << 8) | ('V' << 16) | ('E' << 24);
+
+    header.nSubChunk1Id = 'f' | ('m' << 8) | ('t' << 16) | (' ' << 24);
+    header.nSubChunk1Size = 16;
+    header.nAudioFormat = 1;
+    header.nSampleRate = SAMPLES_PER_SEC;
+    header.nByteRate = header.nSampleRate * header.nNumChannels * (header.nBitsPerSample / 8);
+    header.nBlockAlign = header.nNumChannels * (header.nBitsPerSample / 8);
+
+    header.nSubChunk2Id = 'd' | ('a' << 8) | ('t' << 16) | ('a' << 24);
+
+    m_pRecordFile->Seek( 0 );
+    m_pRecordFile->WriteBytes( header );
+
+    // Close the file
+    m_pRecordFile->Close();
+    delete m_pRecordFile;
+    m_pRecordFile = NULL;
+  }
 }

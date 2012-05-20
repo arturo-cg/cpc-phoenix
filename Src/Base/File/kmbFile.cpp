@@ -184,6 +184,15 @@ bool kmbFile::IsAtEof() const
 /**
 ** 
 */
+bool kmbFile::Seek(int nPos)
+{
+  return ( fseek( m_pFile, nPos, SEEK_SET ) == 0 );
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
 bool kmbFile::ReadBytes(void* pBuffer, unsigned uNumBytes)
 {
   KMASSERT( pBuffer != NULL );
