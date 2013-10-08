@@ -68,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Winmm.lib"
+				AdditionalDependencies="Winmm.lib Comctl32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_d.exe"
 				LinkIncremental="2"
 				GenerateManifest="false"
@@ -152,7 +152,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Winmm.lib"
+				AdditionalDependencies="Winmm.lib Comctl32.lib"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"

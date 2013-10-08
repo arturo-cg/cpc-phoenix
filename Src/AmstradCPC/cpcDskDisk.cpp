@@ -50,7 +50,7 @@ namespace CPC {
   /**
   ** FreeVars
   */
-  bool CDskDisk::LoadImage(kmbInputStream* pStream)
+  bool CDskDisk::LoadImageFromStream(kmbInputStream* pStream)
   {
     bool bRet = false;
 
@@ -62,7 +62,7 @@ namespace CPC {
       {
         unsigned nTotalLength = 0;
 
-        if (_mbsnbcmp((const unsigned char*)m_diskInfo.szTag, (const unsigned char*)"EXTENDED CPC DSK", 16/*char_count*/) == 0)
+        if (strncmp(m_diskInfo.szTag, "EXTENDED CPC DSK", 16/*char_count*/) == 0)
         {
           m_eFormat = FORMAT_EXTENDED_DSK;
 
@@ -73,7 +73,7 @@ namespace CPC {
             nTotalLength += unsigned(m_diskInfo.anTrackSizes[i]) << 8;
           }
         }
-        else if (_mbsnbcmp((const unsigned char*)m_diskInfo.szTag, (const unsigned char*)"MV - CPC", 8/*char_count*/) == 0)
+        else if (strncmp(m_diskInfo.szTag, "MV - CPC", 8/*char_count*/) == 0)
         {
           m_eFormat    = FORMAT_STANDARD_DSK;
           nTotalLength = m_diskInfo.nTrackCount * m_diskInfo.nSideCount * m_diskInfo.nTrackSize;

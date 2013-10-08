@@ -259,9 +259,9 @@ void Application::SetDisk(unsigned nDrive, const std::string& sDiskImageFileName
       {
         CPC::CDskDisk* pDisk;
         pDisk = new CPC::CDskDisk;
-        if ( pDisk->LoadImage(&stream) )
+        if ( pDisk->LoadImageFromStream(&stream) )
         {
-          m_pMachine->GetDiskDrive(0)->SetDisk( pDisk );
+          m_pMachine->GetDiskDrive(0)->SetDisk( pDisk );   // REVIEW: Shouldn't this be using nDrive instead of 0??
           GetSettings()->SetDiskImage( nDrive, sDiskImageFileName );
         }
         else
@@ -308,7 +308,7 @@ void Application::ProcessWindowsMessages()
     if (bGotMsg)
     {
       // Translate keystrokes to accelerator commands
-      if (::TranslateAccelerator(m_pAppWindow->GetHWnd(), m_pAppWindow->GetAccelerators(), &Msg) == 0)  // If this message doesn't translates to any accelerator...
+      if (::TranslateAccelerator(m_pAppWindow->GetHWnd(), m_pAppWindow->GetAccelerators(), &Msg) == 0)  // If this message doesn't translate to any accelerator...
       {
         // Translate virtual-key messages into character messages
         ::TranslateMessage( &Msg );

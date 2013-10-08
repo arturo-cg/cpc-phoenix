@@ -51,7 +51,7 @@ namespace CPC {
     virtual                ~CDskDisk                  ()  { FreeVars(); }
 
     /** Loads data from the given disk image. */
-    bool                    LoadImage                 (kmbInputStream* pStream);
+    bool                    LoadImageFromStream       (kmbInputStream* pStream);
 
     /** Returns the format of this disk image. */
     virtual EFormat         GetFormat                 () const  { return m_eFormat; }
