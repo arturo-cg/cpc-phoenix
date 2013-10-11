@@ -58,7 +58,6 @@
 #include <algorithm>
 
 using namespace std;    // No need to specify std:: for STL symbols
-using namespace stdext; // No need to specify stdext:: for STL symbols (hash_map, hash_set)
 
 // Standard C includes
 #include <stdio.h>
