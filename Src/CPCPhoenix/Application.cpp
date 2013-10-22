@@ -261,7 +261,7 @@ void Application::SetDisk(unsigned nDrive, const std::string& sDiskImageFileName
         pDisk = new CPC::CDskDisk;
         if ( pDisk->LoadImageFromStream(&stream) )
         {
-          m_pMachine->GetDiskDrive(0)->SetDisk( pDisk );   // REVIEW: Shouldn't this be using nDrive instead of 0??
+          m_pMachine->GetDiskDrive(nDrive)->SetDisk( pDisk );
           GetSettings()->SetDiskImage( nDrive, sDiskImageFileName );
         }
         else
