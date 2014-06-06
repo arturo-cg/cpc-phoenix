@@ -157,8 +157,8 @@ namespace CPC {
     }
 
     // Update HSYNC and VSYNC signals
-    const unsigned nHorizontalDisplayed = (unsigned) m_anRegisters[HORIZONTAL_DISPLAYED] + 1;
-    const unsigned nVerticalDisplayed   = (unsigned) m_anRegisters[VERTICAL_DISPLAYED] + 1;
+    const unsigned nHorizontalDisplayed = (unsigned) m_anRegisters[HORIZONTAL_DISPLAYED];
+    const unsigned nVerticalDisplayed   = (unsigned) m_anRegisters[VERTICAL_DISPLAYED];
 
     bool bOldHSyncState;
     bOldHSyncState = m_bHSyncState;
