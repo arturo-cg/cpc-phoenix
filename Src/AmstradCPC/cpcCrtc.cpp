@@ -19,9 +19,7 @@ namespace CPC {
   */
   CCrtc::CCrtc(CMachine *pMachine) : inherited( pMachine )
   {
-    m_uFrameCount = 0;
-
-    // Simulate a system reset
+    m_uMonitorFrameCount = 0;
     Reset();
   }
 
@@ -33,11 +31,12 @@ namespace CPC {
   {
     m_eSelectedRegister  = HORIZONTAL_TOTAL;
     m_nCurrentHCharacter = 0;
+    m_nCurrentVCharacter = 0;
     m_nCurrentScanLine   = 0;
+    m_bDisplayEnabled    = true;
     m_bHSyncState        = false;
     m_bVSyncState        = false;
-    m_uCycleCount        = 0;
-    //m_uFrameCount       = 0;
+    //m_uMonitorFrameCount = 0;
     m_bGeneratedAddressTableUpToDate = false;
   }
 
@@ -70,10 +69,6 @@ namespace CPC {
     {
       m_eSelectedRegister = eRegister;
       m_bGeneratedAddressTableUpToDate = false;      // TODO - Invalid cached table only when writing to a register that it depends on.
-    }
-    else
-    {
-      // TODO - What to do when the index is invalid?
     }
   }
 
@@ -137,40 +132,96 @@ namespace CPC {
   */
   void CCrtc::Run(unsigned nNumCycles)
   {
-    const unsigned nHorizontalTotal      = (unsigned) m_anRegisters[HORIZONTAL_TOTAL] + 1;
-    const unsigned nVerticalTotal        = (unsigned) m_anRegisters[VERTICAL_TOTAL] + 1;
-    const unsigned nMaximumRasterAddress = (unsigned) m_anRegisters[MAXIMUM_RASTER_ADDRESS] + 1;
-
-    // Update horizontal position (in terms of characters) and vertical position (in terms of scan lines)
-    m_nCurrentHCharacter += nNumCycles;
-    while (m_nCurrentHCharacter >= nHorizontalTotal)
+    for (unsigned i = 0; i < nNumCycles; i++)
     {
-      // New scan line
-      m_nCurrentHCharacter -= nHorizontalTotal;
-      m_nCurrentScanLine++;
-      if (m_nCurrentScanLine >= (nVerticalTotal * nMaximumRasterAddress))
-      {
-        // New frame
-        m_nCurrentScanLine = 0;
-        m_uFrameCount++;
-      }
+      // Advance 1 character per 1us cycle.
+      UpdateHorizontal();
     }
+  }
 
-    // Update HSYNC and VSYNC signals
-    const unsigned nHorizontalDisplayed = (unsigned) m_anRegisters[HORIZONTAL_DISPLAYED];
-    const unsigned nVerticalDisplayed   = (unsigned) m_anRegisters[VERTICAL_DISPLAYED];
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CCrtc::UpdateHorizontal()
+  {
+    cpcByte nHorizontalTotal   = m_anRegisters[HORIZONTAL_TOTAL] + 1;
+    cpcByte nHorizontalSyncOff = m_anRegisters[HORIZONTAL_SYNC_POSITION] + (m_anRegisters[SYNC_WIDTHS] & 0x0F);
 
-    bool bOldHSyncState;
-    bOldHSyncState = m_bHSyncState;
+    // Advance 1 character.
+    m_nCurrentHCharacter = (m_nCurrentHCharacter + 1) % nHorizontalTotal;
 
-    m_bHSyncState = (m_nCurrentHCharacter >= nHorizontalDisplayed);                        // TODO - Use HORIZONTAL_SYNC_POSITION and SYNC_WIDTHS registers.
-    m_bVSyncState = (m_nCurrentScanLine >= (nVerticalDisplayed * nMaximumRasterAddress));  // TODO - Use VERTICAL_SYNC_POSITION and SYNC_WIDTHS registers.
-
-    if (bOldHSyncState && !m_bHSyncState)   // If HSYNC has changed from high to low...
-    {                                       // TODO - Detect high->low or low->high?
+    // Update signals depending on where we are in the scan line.
+    if (m_nCurrentHCharacter == 0)    // At start of new CRTC scan line?
+    {
+      // At this point, monitor raster is right past the left border.
+      // Gate-Array starts reading bytes from RAM to generate video signal (if vertical position is in visible area too).
+      // Move to next scan line.
+      UpdateVertical();
+    }
+    else if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_DISPLAYED])    // At start of right border area?
+    {
+      // Gate-Array starts using border color to generate video signal.
+      m_bDisplayEnabled = false;
+    }
+    else if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_SYNC_POSITION])    // At start of HSYNC high?
+    {
+      // Monitor starts moving its beam to the beginning of next raster line.
+      m_bHSyncState = true;
+    }
+    else if (m_nCurrentHCharacter == nHorizontalSyncOff)    // At start of HSYNC back to low?
+    {
+      // Monitor starts rasterizing next raster line (note that the CRTC remains on the current scan line for a few more characters).
+      // Also, DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
+      m_bHSyncState = false;
       // Notify the Gate Array that HSYNC went from high to low. The Gate Array uses this to generate interrupts.
       GetMachine()->GetGateArray()->OnHSyncCycle();
     }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CCrtc::UpdateVertical()
+  {
+    // Advance 1 scan line.
+    cpcByte nMaximumRasterAddress = m_anRegisters[MAXIMUM_RASTER_ADDRESS] + 1;
+    m_nCurrentScanLine = (m_nCurrentScanLine + 1) % nMaximumRasterAddress;
+
+    // Is it time to advance to the next character row?
+    if (m_nCurrentScanLine == 0)
+    {
+      cpcByte nVerticalTotal   = m_anRegisters[VERTICAL_TOTAL] + 1;
+      cpcByte nVerticalSyncOff = m_anRegisters[VERTICAL_SYNC_POSITION] + ( (m_anRegisters[SYNC_WIDTHS] & 0xF0) >> 4 );
+
+      // Advance 1 character row.
+      m_nCurrentVCharacter = (m_nCurrentVCharacter + 1) % nVerticalTotal;
+
+      // Update signals depending on where we are in the frame.
+      if (m_nCurrentVCharacter == 0)    // At start of new CRTC frame?
+      {
+        // At this point, monitor raster is right past the top border.
+        // DISPLAY_ENABLED signal is enabled again (see below).
+      }
+      else if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION])    // At start of VSYNC high?
+      {
+        // Monitor starts moving its beam to the beginning of top raster line.
+        m_bVSyncState = true;
+        m_uMonitorFrameCount++;
+      }
+      else if (m_nCurrentVCharacter == nVerticalSyncOff)    // At start of VSYNC back to low?
+      {
+        // Monitor starts rasterizing top raster line (note that CRTC doesn't reset character row count yet).
+        // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
+        m_bVSyncState = false;
+      }
+    }
+
+    // Display is re-enabled if character row is in the range [0, VERTICAL_DISPLAYED).
+    // When enabled, Gate-Array reads bytes from RAM to generate video signal.
+    // When disabled, Gate-Array uses border color to generate video signal.
+    m_bDisplayEnabled = m_nCurrentVCharacter < m_anRegisters[VERTICAL_DISPLAYED];
   }
 
   //----------------------------------------------------------------------------

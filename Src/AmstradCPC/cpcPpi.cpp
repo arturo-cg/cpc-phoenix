@@ -181,7 +181,7 @@ namespace CPC {
              (0 << 5) |     // Bit 5 --> Expansion device connected signal. No expansion device emulation.
              (1 << 4) |     // Bit 4 --> Screen refresh frequency ("1" = 50Hz, "0" = 60Hz).
              (7 << 1) |     // Bits 3-1 --> Manufacturer name ("7" = Amstrad).
-             (nVSyncState); // Bit 0 --> VSYNC state of VSYNC signal from 6845 ("1" = VSYNC active, "0" = VSYNC inactive).
+             (nVSyncState); // Bit 0 --> VSYNC state of VSYNC signal from the CRTC ("1" = VSYNC active, "0" = VSYNC inactive).
     }
 
     return nRet;
