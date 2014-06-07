@@ -168,6 +168,7 @@ namespace CPC {
     m_bUpperRomVisible  = false;
     m_nSelectedUpperRom = 0;
     m_nHSyncCounter     = 0;
+    m_nHSyncCountSinceVSync = 0;
     m_bRequestingInterrupt = false;
   }
 
@@ -197,18 +198,40 @@ namespace CPC {
   /**
   ** 
   */
-  void CGateArray::OnHSyncCycle()
+  void CGateArray::OnHSync()
   {
     // Increment the 6-bit counter
     m_nHSyncCounter = (m_nHSyncCounter + 1) & 0x3F;
+    m_nHSyncCountSinceVSync++;
 
     // Is it time to generate an interrupt?
-    if (m_nHSyncCounter >= 52)
+    if (m_nHSyncCountSinceVSync == 2)   // If it is the 2nd HSYNC after the last VSYNC...
     {
+      if (m_nHSyncCounter < 32)
+      {
+        // Request interrupt.
+        m_bRequestingInterrupt = true;
+      }
+      // Reset counter.
       m_nHSyncCounter = 0;
-      m_bRequestingInterrupt = true;
-      RequestInterruptIfApplicable();
     }
+    else
+    {
+      if (m_nHSyncCounter >= 51)
+      {
+        m_nHSyncCounter = 0;
+        m_bRequestingInterrupt = true;
+      }
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::OnVSync()
+  {
+    m_nHSyncCountSinceVSync = 0;
   }
 
   //----------------------------------------------------------------------------
@@ -239,7 +262,8 @@ namespace CPC {
   */
   void CGateArray::Run(unsigned nMinNumCycles)
   {
-    //...
+    // Request interrupt, if needed.
+    RequestInterruptIfApplicable();
   }
 
   //----------------------------------------------------------------------------

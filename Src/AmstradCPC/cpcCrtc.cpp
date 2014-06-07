@@ -174,8 +174,8 @@ namespace CPC {
       // Monitor starts rasterizing next raster line (note that the CRTC remains on the current scan line for a few more characters).
       // Also, DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
       m_bHSyncState = false;
-      // Notify the Gate Array that HSYNC went from high to low. The Gate Array uses this to generate interrupts.
-      GetMachine()->GetGateArray()->OnHSyncCycle();
+      // Notify the Gate Array that HSYNC went from high to low. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+      GetMachine()->GetGateArray()->OnHSync();
     }
   }
 
@@ -215,6 +215,8 @@ namespace CPC {
         // Monitor starts rasterizing top raster line (note that CRTC doesn't reset character row count yet).
         // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
         m_bVSyncState = false;
+        // Notify the Gate Array that VSYNC went from high to low. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+        GetMachine()->GetGateArray()->OnVSync();
       }
     }
 

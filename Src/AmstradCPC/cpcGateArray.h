@@ -73,7 +73,9 @@ namespace CPC {
     void                    WriteByteToMemory         (cpcWord nAddress, cpcByte nValue);
 
     /** Notification from the CRTC that the HSYNC signal has changed from high to low. */
-    void                    OnHSyncCycle              ();
+    void                    OnHSync                   ();
+    /** Notification from the CRTC that the VSYNC signal has changed from high to low. */
+    void                    OnVSync                   ();
 
     /** We are notified that another subsytem is trying to write a byte to us.
     *** Usually it's the CPU through an OUT instruction. */
@@ -149,6 +151,7 @@ namespace CPC {
 
     /** 6-bit counter related to the HSYNC signal from the CRTC, used to generate interrupts. */
     unsigned                m_nHSyncCounter;
+    unsigned                m_nHSyncCountSinceVSync;
     bool                    m_bRequestingInterrupt;
 
   };
