@@ -207,7 +207,7 @@ namespace CPC {
     // Is it time to generate an interrupt?
     if (m_nHSyncCountSinceVSync == 2)   // If it is the 2nd HSYNC after the last VSYNC...
     {
-      if (m_nHSyncCounter < 32)
+      if (m_nHSyncCounter >= 32)
       {
         // Request interrupt.
         m_bRequestingInterrupt = true;
@@ -217,7 +217,7 @@ namespace CPC {
     }
     else
     {
-      if (m_nHSyncCounter >= 51)
+      if (m_nHSyncCounter >= 52)
       {
         m_nHSyncCounter = 0;
         m_bRequestingInterrupt = true;
