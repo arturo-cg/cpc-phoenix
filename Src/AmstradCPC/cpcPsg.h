@@ -16,8 +16,6 @@ namespace CPC {
   ** In addition, the CPC uses the PSG to scan the keyboard matrix to read the state of the keyboard and joysticks.
   **
   ** In the Amstrad CPC, The AY-3-8912 PSG is accessed through the 8255 PPI.
-  **
-  ** For now, the emulation provided by this class is limited to keyboard-related features; no sound-related features are emulated in any way.
   */
   class CPsg : public CSubSystem
   {
