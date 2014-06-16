@@ -33,11 +33,17 @@ namespace CPC {
     m_nCurrentHCharacter = 0;
     m_nCurrentVCharacter = 0;
     m_nCurrentScanLine   = 0;
+    m_nScanLinesForVSyncOff = 0;
     m_bDisplayEnabled    = true;
     m_bHSyncState        = false;
     m_bVSyncState        = false;
     //m_uMonitorFrameCount = 0;
     m_bGeneratedAddressTableUpToDate = false;
+
+    for (int i = 0; i < NUM_REGISTERS; i++)
+    {
+      m_anRegisters[i] = 0;
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -185,15 +191,30 @@ namespace CPC {
   */
   void CCrtc::UpdateVertical()
   {
+    KMASSERTM( m_anRegisters[VERTICAL_TOTAL_ADJUST] == 0, ("TODO - CRTC's register 5 (VERTICAL_TOTAL_ADJUST) is not 0. We are ignoring it for now.") );
+
     // Advance 1 scan line.
     cpcByte nMaximumRasterAddress = m_anRegisters[MAXIMUM_RASTER_ADDRESS] + 1;
     m_nCurrentScanLine = (m_nCurrentScanLine + 1) % nMaximumRasterAddress;
 
+    // If VSYNC is active, check whether it is time for it to go inactive.
+    if (m_bVSyncState)
+    {
+      m_nScanLinesForVSyncOff--;
+      if (m_nScanLinesForVSyncOff == 0)
+      {
+        // Monitor starts rasterizing top raster line (note that CRTC doesn't reset character row count yet).
+        // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
+        m_bVSyncState = false;
+        // Notify the Gate Array that VSYNC went from high to low. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+        GetMachine()->GetGateArray()->OnVSync();
+      }
+    }
+
     // Is it time to advance to the next character row?
     if (m_nCurrentScanLine == 0)
     {
-      cpcByte nVerticalTotal   = m_anRegisters[VERTICAL_TOTAL] + 1;
-      cpcByte nVerticalSyncOff = m_anRegisters[VERTICAL_SYNC_POSITION] + ( (m_anRegisters[SYNC_WIDTHS] & 0xF0) >> 4 );
+      cpcByte nVerticalTotal = m_anRegisters[VERTICAL_TOTAL] + 1;
 
       // Advance 1 character row.
       m_nCurrentVCharacter = (m_nCurrentVCharacter + 1) % nVerticalTotal;
@@ -208,15 +229,13 @@ namespace CPC {
       {
         // Monitor starts moving its beam to the beginning of top raster line.
         m_bVSyncState = true;
+        m_nScanLinesForVSyncOff = (m_anRegisters[SYNC_WIDTHS] & 0xF0) >> 4;
+        if (m_nScanLinesForVSyncOff == 0)
+        {
+          m_nScanLinesForVSyncOff = 16;
+        }
+
         m_uMonitorFrameCount++;
-      }
-      else if (m_nCurrentVCharacter == nVerticalSyncOff)    // At start of VSYNC back to low?
-      {
-        // Monitor starts rasterizing top raster line (note that CRTC doesn't reset character row count yet).
-        // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
-        m_bVSyncState = false;
-        // Notify the Gate Array that VSYNC went from high to low. The Gate Array uses HSYNC and VSYNC to generate interrupts.
-        GetMachine()->GetGateArray()->OnVSync();
       }
     }
 

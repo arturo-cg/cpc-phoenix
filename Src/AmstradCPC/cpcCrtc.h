@@ -119,6 +119,8 @@ namespace CPC {
     cpcByte                 m_nCurrentVCharacter;
     cpcByte                 m_nCurrentScanLine;
 
+    cpcByte                 m_nScanLinesForVSyncOff;
+
     bool                    m_bDisplayEnabled;
     bool                    m_bHSyncState;
     bool                    m_bVSyncState;
