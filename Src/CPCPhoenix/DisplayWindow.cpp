@@ -38,26 +38,33 @@ bool DisplayWindow::Init(const RECT& placement, kmbWindow* pParent)
     //...
   }
 
-  // Back-buffer
+  // Buffers
   if (bRet)
   {
-    // Create the back-buffer
-    unsigned nBackBufferLength;
-    nBackBufferLength = CPC::CDisplay::IMAGEBUFFER_WIDTH * CPC::CDisplay::IMAGEBUFFER_HEIGHT * 4/*bytes-per-pixel*/;
+    for (unsigned i = 0; i < BUFFER_COUNT; i++)
+    {
+      // Create buffer
+      unsigned nBackBufferLength;
+      nBackBufferLength = CPC::CDisplay::IMAGEBUFFER_WIDTH * CPC::CDisplay::IMAGEBUFFER_HEIGHT * 4/*bytes-per-pixel*/;
 
-    m_pBackBufferDibBits = new unsigned char [nBackBufferLength];
+      m_pBufferDibBits[i] = new unsigned char [nBackBufferLength];
 
-    // Fill back-buffer DIB info
-    memset( &m_backBufferDibInfo, 0, sizeof(m_backBufferDibInfo) );
-    m_backBufferDibInfo.bmiHeader.biSize = sizeof(m_backBufferDibInfo);
-    m_backBufferDibInfo.bmiHeader.biWidth = (LONG) CPC::CDisplay::IMAGEBUFFER_WIDTH;
-    m_backBufferDibInfo.bmiHeader.biHeight = -(LONG) CPC::CDisplay::IMAGEBUFFER_HEIGHT;    // Note: Negative height for a top-down DIB, with its origin at the upper-left corner.
-    m_backBufferDibInfo.bmiHeader.biPlanes = 1;
-    m_backBufferDibInfo.bmiHeader.biBitCount = 32;
-    m_backBufferDibInfo.bmiHeader.biCompression = BI_RGB;
-    m_backBufferDibInfo.bmiHeader.biSizeImage = 0;
-    m_backBufferDibInfo.bmiHeader.biClrUsed = 0;
-    m_backBufferDibInfo.bmiHeader.biClrImportant = 0;
+      // Fill buffer DIB infos
+      memset( &m_bufferDibInfo[i], 0, sizeof(m_bufferDibInfo[i]) );
+      m_bufferDibInfo[i].bmiHeader.biSize = sizeof(m_bufferDibInfo[i]);
+      m_bufferDibInfo[i].bmiHeader.biWidth = (LONG) CPC::CDisplay::IMAGEBUFFER_WIDTH;
+      m_bufferDibInfo[i].bmiHeader.biHeight = -(LONG) CPC::CDisplay::IMAGEBUFFER_HEIGHT;    // Note: Negative height for a top-down DIB, with its origin at the upper-left corner.
+      m_bufferDibInfo[i].bmiHeader.biPlanes = 1;
+      m_bufferDibInfo[i].bmiHeader.biBitCount = 32;
+      m_bufferDibInfo[i].bmiHeader.biCompression = BI_RGB;
+      m_bufferDibInfo[i].bmiHeader.biSizeImage = 0;
+      m_bufferDibInfo[i].bmiHeader.biClrUsed = 0;
+      m_bufferDibInfo[i].bmiHeader.biClrImportant = 0;
+    }
+
+    m_nBackBuffer = 0;
+    m_nFrontBuffer = m_nBackBuffer;
+    m_nBackBuffer = (m_nBackBuffer + 1) % BUFFER_COUNT;
   }
 
 
@@ -93,8 +100,11 @@ bool DisplayWindow::Init(const RECT& placement, kmbWindow* pParent)
 */
 void DisplayWindow::ResetVars()
 {
-  memset( &m_backBufferDibInfo, 0, sizeof(m_backBufferDibInfo) );
-  m_pBackBufferDibBits = NULL;
+  for (unsigned i = 0; i < BUFFER_COUNT; i++)
+  {
+    memset( &m_bufferDibInfo[i], 0, sizeof(m_bufferDibInfo[i]) );
+    m_pBufferDibBits[i] = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -103,7 +113,11 @@ void DisplayWindow::ResetVars()
 */
 void DisplayWindow::FreeVars()
 {
-  delete m_pBackBufferDibBits;
+  for (unsigned i = 0; i < BUFFER_COUNT; i++)
+  {
+    delete m_pBufferDibBits[i];
+    m_pBufferDibBits[i] = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -112,8 +126,12 @@ void DisplayWindow::FreeVars()
 */
 void DisplayWindow::UpdateDisplayImage()
 {
-  // Tell the emulated machine to decode the current frame
-  Application::Singleton()->GetEmulatedMachine()->GetDisplay()->DecodeImage_B8G8R8X8( m_pBackBufferDibBits );
+  // Decode current frame on the back-buffer.
+  Application::Singleton()->GetEmulatedMachine()->GetDisplay()->DecodeImage_B8G8R8X8( m_pBufferDibBits[m_nBackBuffer] );
+
+  // Move to next buffer.
+  m_nFrontBuffer = m_nBackBuffer;
+  m_nBackBuffer = (m_nBackBuffer + 1) % BUFFER_COUNT;
 }
 
 //----------------------------------------------------------------------------
@@ -128,7 +146,7 @@ void DisplayWindow::UpdateDisplayImage()
 
   ::StretchDIBits( hDc, 0, 0, rClientArea.right - rClientArea.left, rClientArea.bottom - rClientArea.top,
                    0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH, CPC::CDisplay::IMAGEBUFFER_HEIGHT,
-                   m_pBackBufferDibBits, &m_backBufferDibInfo, DIB_RGB_COLORS, SRCCOPY );
+                   m_pBufferDibBits[m_nFrontBuffer], &m_bufferDibInfo[m_nFrontBuffer], DIB_RGB_COLORS, SRCCOPY );
 
   return 0;
 }

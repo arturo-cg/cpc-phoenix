@@ -36,6 +36,8 @@ public:
 
 private:
 
+  static const unsigned     BUFFER_COUNT = 1;
+
   typedef                   kmbWindow                 Super;
 
 
@@ -43,8 +45,10 @@ private:
   void                      FreeVars                  ();
 
 
-  BITMAPINFO                m_backBufferDibInfo;
-  unsigned char*            m_pBackBufferDibBits;
+  BITMAPINFO                m_bufferDibInfo[BUFFER_COUNT];
+  unsigned char*            m_pBufferDibBits[BUFFER_COUNT];
+  unsigned                  m_nBackBuffer;
+  unsigned                  m_nFrontBuffer;
 
 };
 
