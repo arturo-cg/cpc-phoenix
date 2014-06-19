@@ -209,9 +209,6 @@ namespace CPC {
   {
     cpcByte nRet = 0;
 
-    KMASSERTM( (m_aePortDirections[PORT_C_UPPER] == DIRECTION_INPUT) && (m_aePortDirections[PORT_C_LOWER] == DIRECTION_INPUT),
-               ("Trying to read from PPI port C when it is currently configured as OUTPUT.") );
-
     if ( (m_aePortDirections[PORT_C_UPPER] == DIRECTION_OUTPUT) && (m_aePortDirections[PORT_C_LOWER] == DIRECTION_OUTPUT) )
     {
       // The port is configured as output, so when a read operation gives the value of the port internal output register
