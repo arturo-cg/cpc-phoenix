@@ -15,10 +15,10 @@ namespace CPC {
   class CPpi;
   class CPsg;
   class CFdc;
-  class CDisplay;
   class CKeyboard;
   class CKeyStateProvider;
   class CDiskDrive;
+  class CVideoOutput;
   class CSoundOutput;
 
 
@@ -50,9 +50,6 @@ namespace CPC {
     /** Returns the model of the emulated machine. */
     EModel                  GetModel                  () const  { return m_eModel; }
 
-    /** Returns the current frame count. */
-    unsigned                GetFrameCount             () const;
-
     /** Returns the CPU subsystem. */
     CCpu*                   GetCpu                    ()        { return m_pCpu; }
     const CCpu*             GetCpu                    () const  { return m_pCpu; }
@@ -74,15 +71,17 @@ namespace CPC {
     /** Returns the 765 FDC (Floppy Disk Controller) subsystem. */
     CFdc*                   GetFdc                    ()        { return m_pFdc; }
     const CFdc*             GetFdc                    () const  { return m_pFdc; }
-    /** Returns the display subsystem. */
-    CDisplay*               GetDisplay                ()        { return m_pDisplay; }
-    const CDisplay*         GetDisplay                () const  { return m_pDisplay; }
-    /** Returns the display subsystem. */
+    /** Returns the keyboard subsystem. */
     CKeyboard*              GetKeyboard               ()        { return m_pKeyboard; }
     const CKeyboard*        GetKeyboard               () const  { return m_pKeyboard; }
     /** Returns the specified disk drive. */
     CDiskDrive*             GetDiskDrive              (unsigned nDrive)        { return ( nDrive<DRIVE_COUNT ? m_pDiskDrives[nDrive] : NULL ); }
     const CDiskDrive*       GetDiskDrive              (unsigned nDrive) const  { return ( nDrive<DRIVE_COUNT ? m_pDiskDrives[nDrive] : NULL ); }
+    /** Sets the video output subsystem, or removes it if NULL is specified. This object is created and destroyed by the front-end. */
+    void                    SetVideoOutput            (CVideoOutput* pVideoOutput)  { m_pVideoOutput = pVideoOutput; }
+    /** Returns the video output subsystem. */
+    CVideoOutput*           GetVideoOutput            ()                            { return m_pVideoOutput; }
+    const CVideoOutput*     GetVideoOutput            () const                      { return m_pVideoOutput; }
     /** Sets the sound output subsystem, or removes it if NULL is specified. This object is created and destroyed by the front-end. */
     void                    SetSoundOutput            (CSoundOutput* pSoundOutput)  { m_pSoundOutput = pSoundOutput; }
     /** Returns the sound output subsystem. */
@@ -98,7 +97,7 @@ namespace CPC {
     void                    Reset                     ();
 
     /** Runs the emulated machine for the specified period of time.
-    *** Time must be in microseconds (1.000.000 usec = 1 sec) */
+    *** Time is in microseconds. */
     void                    Run                       (unsigned nMicroSecs);
 
 
@@ -117,9 +116,9 @@ namespace CPC {
     CPpi*                   m_pPpi;
     CPsg*                   m_pPsg;
     CFdc*                   m_pFdc;
-    CDisplay*               m_pDisplay;
     CKeyboard*              m_pKeyboard;
     CDiskDrive*             m_pDiskDrives[DRIVE_COUNT];
+    CVideoOutput*           m_pVideoOutput;
     CSoundOutput*           m_pSoundOutput;
 
   };

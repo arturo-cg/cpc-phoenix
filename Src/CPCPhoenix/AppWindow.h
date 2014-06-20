@@ -33,8 +33,8 @@ public:
   /** The application notifies that the settings have changed. */
   void                      OnApplicationSettingsChanged ();
 
-  /** Updates the window with the current content of the emulated display. */
-  void                      UpdateDisplayImage        ();
+  /** Updates the display window with the current content of the emulated video output. */
+  void                      DrawVideoOutput           ();
 
   /** Returns the accelerators used by this window. */
   HACCEL                    GetAccelerators           () const  { return m_hAccelerators; }

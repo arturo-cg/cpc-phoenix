@@ -76,7 +76,6 @@
     <ClCompile Include="cpcCrtc.cpp" />
     <ClCompile Include="cpcDisk.cpp" />
     <ClCompile Include="cpcDiskDrive.cpp" />
-    <ClCompile Include="cpcDisplay.cpp" />
     <ClCompile Include="cpcDskDisk.cpp" />
     <ClCompile Include="cpcFdc.cpp" />
     <ClCompile Include="cpcGateArray.cpp" />
@@ -99,7 +98,6 @@
     <ClInclude Include="cpcCrtc.h" />
     <ClInclude Include="cpcDisk.h" />
     <ClInclude Include="cpcDiskDrive.h" />
-    <ClInclude Include="cpcDisplay.h" />
     <ClInclude Include="cpcDskDisk.h" />
     <ClInclude Include="cpcFdc.h" />
     <ClInclude Include="cpcGateArray.h" />

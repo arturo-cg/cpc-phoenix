@@ -6,6 +6,7 @@
 #include "cpcMachine.h"
 #include "cpcMemoryBlock.h"
 #include "cpcCpu.h"
+#include "cpcVideoOutput.h"
 
 
 #define GET_MEMORY_BLOCK_FROM_ADDRESS(addr)   ((addr & 0xC000) >> 14)
@@ -200,6 +201,10 @@ namespace CPC {
   */
   void CGateArray::OnHSync()
   {
+    // Pass it on to the video output.
+    // Do this before requesting interrupts so that the image is decoded using current CRTC and Gate Array's values.
+    GetMachine()->GetVideoOutput()->OnHSync();
+
     // Increment the 6-bit counter
     m_nHSyncCounter = (m_nHSyncCounter + 1) & 0x3F;
     m_nHSyncCountSinceVSync++;
@@ -231,6 +236,10 @@ namespace CPC {
   */
   void CGateArray::OnVSync()
   {
+    // Pass it on to the video output.
+    // Do this before requesting interrupts so that the image is decoded using current CRTC and Gate Array's values.
+    GetMachine()->GetVideoOutput()->OnVSync();
+
     m_nHSyncCountSinceVSync = 0;
   }
 

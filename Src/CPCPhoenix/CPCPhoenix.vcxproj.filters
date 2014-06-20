@@ -35,6 +35,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="WindowsKeyStateProvider.h" />
     <ClInclude Include="WinSoundOutput.h" />
+    <ClInclude Include="WinVideoOutput.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -46,5 +47,6 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="WindowsKeyStateProvider.cpp" />
     <ClCompile Include="WinSoundOutput.cpp" />
+    <ClCompile Include="WinVideoOutput.cpp" />
   </ItemGroup>
 </Project>

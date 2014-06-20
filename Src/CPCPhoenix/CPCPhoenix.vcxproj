@@ -148,6 +148,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="WindowsKeyStateProvider.h" />
     <ClInclude Include="WinSoundOutput.h" />
+    <ClInclude Include="WinVideoOutput.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -162,6 +163,7 @@
     </ClCompile>
     <ClCompile Include="WindowsKeyStateProvider.cpp" />
     <ClCompile Include="WinSoundOutput.cpp" />
+    <ClCompile Include="WinVideoOutput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AmstradCPC\AmstradCPC.vcxproj">

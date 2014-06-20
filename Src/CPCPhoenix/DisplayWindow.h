@@ -22,8 +22,8 @@ public:
   virtual void              End                       (bool bIncludedSuper = true);
 
 
-  /** Updates the window with the current content of the emulated display. */
-  void                      UpdateDisplayImage        ();
+  /** Updates the window with the current content of the emulated video output. */
+  void                      DrawVideoOutput           ();
 
 
   //
@@ -36,19 +36,11 @@ public:
 
 private:
 
-  static const unsigned     BUFFER_COUNT = 1;
-
   typedef                   kmbWindow                 Super;
 
 
   void                      ResetVars                 ();
   void                      FreeVars                  ();
-
-
-  BITMAPINFO                m_bufferDibInfo[BUFFER_COUNT];
-  unsigned char*            m_pBufferDibBits[BUFFER_COUNT];
-  unsigned                  m_nBackBuffer;
-  unsigned                  m_nFrontBuffer;
 
 };
 

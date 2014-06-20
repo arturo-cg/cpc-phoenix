@@ -4,13 +4,13 @@
 #include "stdafx.h"
 #include "Application.h"
 #include "cpcMachine.h"
-#include "cpcDisplay.h"
 #include "cpcGateArray.h"
 #include "cpcDiskDrive.h"
 #include "cpcDskDisk.h"
 #include "AppWindow.h"
 #include "StatusBar.h"
 #include "WindowsKeyStateProvider.h"
+#include "WinVideoOutput.h"
 #include "WinSoundOutput.h"
 #include "Window/kmbWindow.h"
 #include "Stream/kmbFileInputStream.h"
@@ -45,7 +45,7 @@ bool Application::Init(HINSTANCE hInstance)
     m_settings.Init();
   }
 
-  // Key state provider and sound output
+  // Key state provider, video and sound output
   if (bRet)
   {
     m_pKeyStateProvider = new WindowsKeyStateProvider();
@@ -105,6 +105,7 @@ void Application::ResetVars()
   m_pMachine    = NULL;
   m_uFrameCount = 0;
   m_pKeyStateProvider = NULL;
+  m_pVideoOutput = NULL;
   m_pSoundOutput = NULL;
 }
 
@@ -136,9 +137,17 @@ void Application::CreateMachine()
   // Destroy current machine, if any
   DestroyMachine();
 
-  // Create the new one
+  // Create new machine.
   m_pMachine = new CPC::CMachine( GetSettings()->GetCpcModel(), m_pKeyStateProvider );
+
+  // Add video output.
+  m_pVideoOutput = new CWinVideoOutput( m_pMachine );
+  m_pVideoOutput->Init();
+  m_pMachine->SetVideoOutput( m_pVideoOutput );
+
+  // Add sound output.
   m_pMachine->SetSoundOutput( m_pSoundOutput );
+
   m_pMachine->Reset();
 }
 
@@ -152,6 +161,12 @@ void Application::DestroyMachine()
   {
     delete m_pMachine;
     m_pMachine = NULL;
+  }
+
+  if (m_pVideoOutput != NULL)
+  {
+    delete m_pVideoOutput;
+    m_pVideoOutput = NULL;
   }
 }
 
@@ -210,7 +225,7 @@ void Application::ChangeDrawScanLinesSetting(bool bDrawScanLines)
   GetSettings()->SetDrawScanLines( bDrawScanLines );
 
   // Apply/remove the effect
-  m_pMachine->GetDisplay()->SetScanLineEffectActivated( bDrawScanLines );
+  m_pMachine->GetVideoOutput()->SetScanLineEffectActivated( bDrawScanLines );
 
   // Notify the application window
   m_pAppWindow->OnApplicationSettingsChanged();
@@ -344,12 +359,11 @@ void Application::Run()
     m_pMachine->Run( TIME_STEP_USECS );
 
     // Has the emulated machine completed a new video frame?
-    if (m_uFrameCount < m_pMachine->GetFrameCount())
+    if (m_uFrameCount < m_pVideoOutput->GetFrameCount())
     {
-      // Grab the new display image
-      m_pAppWindow->UpdateDisplayImage();
-
-      m_uFrameCount = m_pMachine->GetFrameCount();
+      // Draw new video output.
+      m_pAppWindow->DrawVideoOutput();
+      m_uFrameCount = m_pVideoOutput->GetFrameCount();
 
       // Limit the emulation speed
       double dDeltaTimeSecs;

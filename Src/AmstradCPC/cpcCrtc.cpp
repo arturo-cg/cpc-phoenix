@@ -19,7 +19,6 @@ namespace CPC {
   */
   CCrtc::CCrtc(CMachine *pMachine) : inherited( pMachine )
   {
-    m_uMonitorFrameCount = 0;
     Reset();
   }
 
@@ -37,7 +36,6 @@ namespace CPC {
     m_bDisplayEnabled    = true;
     m_bHSyncState        = false;
     m_bVSyncState        = false;
-    //m_uMonitorFrameCount = 0;
     m_bGeneratedAddressTableUpToDate = false;
 
     for (int i = 0; i < NUM_REGISTERS; i++)
@@ -234,8 +232,6 @@ namespace CPC {
         {
           m_nScanLinesForVSyncOff = 16;
         }
-
-        m_uMonitorFrameCount++;
       }
     }
 

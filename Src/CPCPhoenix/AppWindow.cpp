@@ -6,8 +6,8 @@
 #include "Application.h"
 #include "DisplayWindow.h"
 #include "StatusBar.h"
+#include "WinVideoOutput.h"
 #include "cpcMachine.h"
-#include "cpcDisplay.h"
 #include "cpcKeyboard.h"
 
 #include <Windows.h>
@@ -56,7 +56,7 @@ bool AppWindow::Init()
   if (bRet)
   {
     RECT rWndRect;
-    ::SetRect( &rWndRect, 0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH * 2, CPC::CDisplay::IMAGEBUFFER_HEIGHT * 2 );
+    ::SetRect( &rWndRect, 0, 0, CPC::CVideoOutput::BUFFER_WIDTH * 2, CPC::CVideoOutput::BUFFER_HEIGHT * 2 );
 
     m_pDisplayWindow = new DisplayWindow;
     m_pDisplayWindow->Init( rWndRect, this );
@@ -77,7 +77,7 @@ bool AppWindow::Init()
     dwStyles = (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
     RECT rWndRect;
-    ::SetRect( &rWndRect, 0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH * 2, (CPC::CDisplay::IMAGEBUFFER_HEIGHT * 2) + m_pStatusBar->GetHeight() );
+    ::SetRect( &rWndRect, 0, 0, CPC::CVideoOutput::BUFFER_WIDTH * 2, (CPC::CVideoOutput::BUFFER_HEIGHT * 2) + m_pStatusBar->GetHeight() );
     ::AdjustWindowRect( &rWndRect, dwStyles, TRUE/*bMenu*/ );
     ::OffsetRect( &rWndRect, -rWndRect.left, -rWndRect.top );
 
@@ -210,9 +210,8 @@ void AppWindow::OnApplicationSettingsChanged()
 /**
 ** 
 */
-void AppWindow::UpdateDisplayImage()
+void AppWindow::DrawVideoOutput()
 {
-  m_pDisplayWindow->UpdateDisplayImage();
   m_pDisplayWindow->InvalidateAll( false );
 }
 

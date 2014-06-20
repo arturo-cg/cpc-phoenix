@@ -10,9 +10,9 @@
 #include "cpcPpi.h"
 #include "cpcPsg.h"
 #include "cpcFdc.h"
-#include "cpcDisplay.h"
 #include "cpcKeyboard.h"
 #include "cpcDiskDrive.h"
+#include "cpcVideoOutput.h"
 #include "cpcSoundOutput.h"
 
 
@@ -39,10 +39,10 @@ namespace CPC {
     m_pPpi        = new CPpi( this );
     m_pPsg        = new CPsg( this );
     m_pFdc        = new CFdc( this );
-    m_pDisplay    = new CDisplay( this );
     m_pKeyboard   = new CKeyboard( this, pKeyStateProvider );
     m_pDiskDrives[0] = new CDiskDrive( this );
     m_pDiskDrives[1] = new CDiskDrive( this );
+    m_pVideoOutput = NULL;       // This object is provided by the front-end
     m_pSoundOutput = NULL;       // This object is provided by the front-end
   }
 
@@ -60,10 +60,10 @@ namespace CPC {
     m_pPpi       = NULL;
     m_pPsg       = NULL;
     m_pFdc       = NULL;
-    m_pDisplay   = NULL;
     m_pKeyboard  = NULL;
     m_pDiskDrives[0] = NULL;
     m_pDiskDrives[1] = NULL;
+    m_pVideoOutput = NULL;
     m_pSoundOutput = NULL;
   }
 
@@ -76,7 +76,6 @@ namespace CPC {
     delete m_pDiskDrives[1]; m_pDiskDrives[1] = NULL;
     delete m_pDiskDrives[0]; m_pDiskDrives[0] = NULL;
     delete m_pKeyboard; m_pKeyboard = NULL;
-    delete m_pDisplay; m_pDisplay = NULL;
     delete m_pFdc; m_pFdc = NULL;
     delete m_pPsg; m_pPsg = NULL;
     delete m_pPpi; m_pPpi = NULL;
@@ -84,15 +83,6 @@ namespace CPC {
     delete m_pGateArray; m_pGateArray = NULL;
     delete m_pMemory; m_pMemory = NULL;
     delete m_pCpu; m_pCpu = NULL;
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  unsigned CMachine::GetFrameCount() const
-  {
-    return m_pCrtc->GetFrameCount();
   }
 
   //----------------------------------------------------------------------------

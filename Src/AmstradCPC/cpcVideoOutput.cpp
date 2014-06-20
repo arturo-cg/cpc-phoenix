@@ -2,7 +2,7 @@
 //-------------------------------------------------------------------------------------------
 
 #include "stdafx.h"
-#include "cpcDisplay.h"
+#include "cpcVideoOutput.h"
 #include "cpcMachine.h"
 #include "cpcMemory.h"
 #include "cpcMemoryBlock.h"
@@ -37,30 +37,31 @@
 
 namespace CPC {
 
-
   //----------------------------------------------------------------------------
   /**
   ** 
   */
-  CDisplay::CDisplay(CMachine *pMachine) : inherited( pMachine )
+  CVideoOutput::CVideoOutput(CMachine *pMachine) : inherited( pMachine )
   {
-    m_bScanLineEffectActivated = false;
+    ResetVars();
   }
 
   //----------------------------------------------------------------------------
   /**
   ** ResetVars
   */
-  void CDisplay::ResetVars()
+  void CVideoOutput::ResetVars()
   {
-    //...
+    m_bScanLineEffectActivated = false;
+    m_nScanLineCount = 0;
+    m_nFrameCount = 0;
   }
 
   //----------------------------------------------------------------------------
   /**
   ** FreeVars
   */
-  void CDisplay::FreeVars()
+  void CVideoOutput::FreeVars()
   {
     //...
   }
@@ -69,7 +70,7 @@ namespace CPC {
   /**
   ** 
   */
-  /*virtual*/ void CDisplay::Reset()
+  /*virtual*/ void CVideoOutput::Reset()
   {
     //...
   }
@@ -78,7 +79,34 @@ namespace CPC {
   /**
   ** 
   */
-  void CDisplay::DecodeImage_B8G8R8X8(unsigned char* pImageBuffer)
+  void CVideoOutput::OnHSync()
+  {
+    // TODO: Decode scan line here.
+    m_nScanLineCount++;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CVideoOutput::OnVSync()
+  {
+    // Decode image.
+    DecodeImage_B8G8R8X8( GetBuffer() );
+
+    // Back to first scan line.
+    m_nScanLineCount = 0;
+    m_nFrameCount++;
+
+    // Let client know.
+    OnBufferComplete();
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CVideoOutput::DecodeImage_B8G8R8X8(unsigned char* pImageBuffer)
   {
     if (pImageBuffer != NULL)
     {
@@ -108,7 +136,7 @@ namespace CPC {
 
       unsigned nScanLineCount;    // Vertical resolution, in pixels
       nScanLineCount = pCrtc->GetRegisterValue(CCrtc::VERTICAL_DISPLAYED) * (pCrtc->GetRegisterValue(CCrtc::MAXIMUM_RASTER_ADDRESS) + 1);
-      nScanLineCount = ( nScanLineCount<=(IMAGEBUFFER_HEIGHT/2) ? nScanLineCount : IMAGEBUFFER_HEIGHT/2 );  // Limit to 200 scan lines
+      nScanLineCount = ( nScanLineCount<=(BUFFER_HEIGHT/2) ? nScanLineCount : BUFFER_HEIGHT/2 );  // Limit to 200 scan lines
 
       unsigned nCurrScanLine;
       for (nCurrScanLine = 0; nCurrScanLine < nScanLineCount; nCurrScanLine++)
@@ -148,7 +176,7 @@ namespace CPC {
         nPixelsWritten = pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_DISPLAYED) * 16;  // 16 pixels are always written per character to destination image
 
         unsigned x;
-        for (x = nPixelsWritten; x < IMAGEBUFFER_WIDTH; x++)
+        for (x = nPixelsWritten; x < BUFFER_WIDTH; x++)
         {
           *pDestPixel++ = 0;
         }
@@ -158,7 +186,7 @@ namespace CPC {
           // Scan line effect
           unsigned x;
           static const unsigned SCAN_LINE_EFFECT_COLOR = 0xFF000000;
-          for (x = 0; x < IMAGEBUFFER_WIDTH; x++)
+          for (x = 0; x < BUFFER_WIDTH; x++)
           {
             *pDestPixel = SCAN_LINE_EFFECT_COLOR;
             pDestPixel++;
@@ -169,9 +197,9 @@ namespace CPC {
           // Duplicate previous scan line
           unsigned* pSrcPixel;
           unsigned  x;
-          pSrcPixel = pDestPixel - IMAGEBUFFER_WIDTH;
+          pSrcPixel = pDestPixel - BUFFER_WIDTH;
 
-          for (x = 0; x < IMAGEBUFFER_WIDTH; x++)
+          for (x = 0; x < BUFFER_WIDTH; x++)
           {
             *pDestPixel = *pSrcPixel;
             pSrcPixel++;
@@ -186,7 +214,7 @@ namespace CPC {
   /**
   ** 
   */
-  unsigned* CDisplay::DecodeScanLine_B8G8R8X8_Mode0(unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress)
+  unsigned* CVideoOutput::DecodeScanLine_B8G8R8X8_Mode0(unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress)
   {
     CMemory* pMemory;
     pMemory = GetMachine()->GetMemory();
@@ -238,7 +266,7 @@ namespace CPC {
   /**
   ** 
   */
-  unsigned* CDisplay::DecodeScanLine_B8G8R8X8_Mode1(unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress)
+  unsigned* CVideoOutput::DecodeScanLine_B8G8R8X8_Mode1(unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress)
   {
     CMemory* pMemory;
     pMemory = GetMachine()->GetMemory();
@@ -306,7 +334,7 @@ namespace CPC {
   /**
   ** 
   */
-  unsigned* CDisplay::DecodeScanLine_B8G8R8X8_Mode2(unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress)
+  unsigned* CVideoOutput::DecodeScanLine_B8G8R8X8_Mode2(unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress)
   {
     CMemory* pMemory;
     pMemory = GetMachine()->GetMemory();

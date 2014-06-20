@@ -4,8 +4,8 @@
 #include "stdafx.h"
 #include "DisplayWindow.h"
 #include "Application.h"
+#include "WinVideoOutput.h"
 #include "cpcMachine.h"
-#include "cpcDisplay.h"
 
 #include <Windows.h>
 #include "resource.h"
@@ -36,35 +36,6 @@ bool DisplayWindow::Init(const RECT& placement, kmbWindow* pParent)
   if (bRet)
   {
     //...
-  }
-
-  // Buffers
-  if (bRet)
-  {
-    for (unsigned i = 0; i < BUFFER_COUNT; i++)
-    {
-      // Create buffer
-      unsigned nBackBufferLength;
-      nBackBufferLength = CPC::CDisplay::IMAGEBUFFER_WIDTH * CPC::CDisplay::IMAGEBUFFER_HEIGHT * 4/*bytes-per-pixel*/;
-
-      m_pBufferDibBits[i] = new unsigned char [nBackBufferLength];
-
-      // Fill buffer DIB infos
-      memset( &m_bufferDibInfo[i], 0, sizeof(m_bufferDibInfo[i]) );
-      m_bufferDibInfo[i].bmiHeader.biSize = sizeof(m_bufferDibInfo[i]);
-      m_bufferDibInfo[i].bmiHeader.biWidth = (LONG) CPC::CDisplay::IMAGEBUFFER_WIDTH;
-      m_bufferDibInfo[i].bmiHeader.biHeight = -(LONG) CPC::CDisplay::IMAGEBUFFER_HEIGHT;    // Note: Negative height for a top-down DIB, with its origin at the upper-left corner.
-      m_bufferDibInfo[i].bmiHeader.biPlanes = 1;
-      m_bufferDibInfo[i].bmiHeader.biBitCount = 32;
-      m_bufferDibInfo[i].bmiHeader.biCompression = BI_RGB;
-      m_bufferDibInfo[i].bmiHeader.biSizeImage = 0;
-      m_bufferDibInfo[i].bmiHeader.biClrUsed = 0;
-      m_bufferDibInfo[i].bmiHeader.biClrImportant = 0;
-    }
-
-    m_nBackBuffer = 0;
-    m_nFrontBuffer = m_nBackBuffer;
-    m_nBackBuffer = (m_nBackBuffer + 1) % BUFFER_COUNT;
   }
 
 
@@ -100,11 +71,7 @@ bool DisplayWindow::Init(const RECT& placement, kmbWindow* pParent)
 */
 void DisplayWindow::ResetVars()
 {
-  for (unsigned i = 0; i < BUFFER_COUNT; i++)
-  {
-    memset( &m_bufferDibInfo[i], 0, sizeof(m_bufferDibInfo[i]) );
-    m_pBufferDibBits[i] = NULL;
-  }
+  //...
 }
 
 //----------------------------------------------------------------------------
@@ -113,25 +80,7 @@ void DisplayWindow::ResetVars()
 */
 void DisplayWindow::FreeVars()
 {
-  for (unsigned i = 0; i < BUFFER_COUNT; i++)
-  {
-    delete m_pBufferDibBits[i];
-    m_pBufferDibBits[i] = NULL;
-  }
-}
-
-//----------------------------------------------------------------------------
-/**
-** 
-*/
-void DisplayWindow::UpdateDisplayImage()
-{
-  // Decode current frame on the back-buffer.
-  Application::Singleton()->GetEmulatedMachine()->GetDisplay()->DecodeImage_B8G8R8X8( m_pBufferDibBits[m_nBackBuffer] );
-
-  // Move to next buffer.
-  m_nFrontBuffer = m_nBackBuffer;
-  m_nBackBuffer = (m_nBackBuffer + 1) % BUFFER_COUNT;
+  //...
 }
 
 //----------------------------------------------------------------------------
@@ -140,13 +89,17 @@ void DisplayWindow::UpdateDisplayImage()
 */
 /*virtual*/ LRESULT DisplayWindow::_OnPaint(HDC hDc)
 {
+  // Get current video output.
+  CWinVideoOutput* pVideoOutput = Application::Singleton()->GetWinVideoOutput();
+  CWinVideoOutput::SOutput output;
+  pVideoOutput->GetOutput( &output );
+
   // Copy the back-buffer DIB to the window DC
   RECT rClientArea;
   GetClientRect( &rClientArea );
 
   ::StretchDIBits( hDc, 0, 0, rClientArea.right - rClientArea.left, rClientArea.bottom - rClientArea.top,
-                   0, 0, CPC::CDisplay::IMAGEBUFFER_WIDTH, CPC::CDisplay::IMAGEBUFFER_HEIGHT,
-                   m_pBufferDibBits[m_nFrontBuffer], &m_bufferDibInfo[m_nFrontBuffer], DIB_RGB_COLORS, SRCCOPY );
+                   0, 0, output.nWidth, output.nHeight, output.pDibBits, output.pDibInfo, DIB_RGB_COLORS, SRCCOPY );
 
   return 0;
 }

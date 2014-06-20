@@ -11,6 +11,7 @@
 
 class AppWindow;
 class WindowsKeyStateProvider;
+class CWinVideoOutput;
 class CWinSoundOutput;
 
 namespace CPC
@@ -52,6 +53,9 @@ public:
   /** Returns the machine being emulated (const version). */
   const CPC::CMachine*      GetEmulatedMachine        () const  { return m_pMachine; }
 
+  /** Returns the CWinVideoOutput currently in use. */
+  CWinVideoOutput*          GetWinVideoOutput         ()  { return m_pVideoOutput; }
+
   /** Returns the application window. */
   AppWindow*                GetAppWindow              ()  { return m_pAppWindow; }
 
@@ -87,6 +91,7 @@ private:
   CPC::CMachine*            m_pMachine;
   unsigned                  m_uFrameCount;
   WindowsKeyStateProvider*  m_pKeyStateProvider;
+  CWinVideoOutput*          m_pVideoOutput;
   CWinSoundOutput*          m_pSoundOutput;
 
   kmbPrecisionTimer         m_executionTimer;
