@@ -199,11 +199,11 @@ namespace CPC {
   /**
   ** 
   */
-  void CGateArray::OnHSync()
+  void CGateArray::OnHSyncBegin()
   {
     // Pass it on to the video output.
     // Do this before requesting interrupts so that the image is decoded using current CRTC and Gate Array's values.
-    GetMachine()->GetVideoOutput()->OnHSync();
+    GetMachine()->GetVideoOutput()->OnHSyncBegin();
 
     // Increment the 6-bit counter
     m_nHSyncCounter = (m_nHSyncCounter + 1) & 0x3F;
@@ -234,11 +234,11 @@ namespace CPC {
   /**
   ** 
   */
-  void CGateArray::OnVSync()
+  void CGateArray::OnVSyncBegin()
   {
     // Pass it on to the video output.
     // Do this before requesting interrupts so that the image is decoded using current CRTC and Gate Array's values.
-    GetMachine()->GetVideoOutput()->OnVSync();
+    GetMachine()->GetVideoOutput()->OnVSyncBegin();
 
     m_nHSyncCountSinceVSync = 0;
   }

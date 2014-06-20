@@ -79,7 +79,7 @@ namespace CPC {
   /**
   ** 
   */
-  void CVideoOutput::OnHSync()
+  void CVideoOutput::OnHSyncBegin()
   {
     // TODO: Decode scan line here.
     m_nScanLineCount++;
@@ -89,7 +89,7 @@ namespace CPC {
   /**
   ** 
   */
-  void CVideoOutput::OnVSync()
+  void CVideoOutput::OnVSyncBegin()
   {
     // Decode image.
     DecodeImage_B8G8R8X8( GetBuffer() );

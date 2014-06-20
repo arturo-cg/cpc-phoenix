@@ -61,10 +61,10 @@ namespace CPC {
     /** Returns true if the scan line effect is activated, or false otherwise. */
     bool                    IsScanLineEffectActivated () const           { return m_bScanLineEffectActivated; }
 
-    /** Notification from the Gate Array that the HSYNC signal has changed from high to low. */
-    void                    OnHSync                   ();
-    /** Notification from the Gate Array that the VSYNC signal has changed from high to low. */
-    void                    OnVSync                   ();
+    /** Notification from the Gate Array that the HSYNC signal just started. */
+    void                    OnHSyncBegin              ();
+    /** Notification from the Gate Array that the VSYNC signal just started. */
+    void                    OnVSyncBegin              ();
 
 
   protected:
