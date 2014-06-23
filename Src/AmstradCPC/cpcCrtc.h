@@ -79,6 +79,8 @@ namespace CPC {
     bool                    GetHSyncState             () const  { return m_bHSyncState; }
     /** Returns the current state of the VSYNC signal. */
     bool                    GetVSyncState             () const  { return m_bVSyncState; }
+    /** Returns the current state of the VSYNC signal. */
+    cpcByte                 GetCurrentVCharacter      () const  { return m_nCurrentVCharacter; }
 
     /** We are notified that another subsytem is trying to write a byte to us.
     *** Usually it's the CPU through an OUT instruction. */

@@ -89,7 +89,7 @@ namespace CPC {
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
-    void                    DecodeImage_B8G8R8X8      (unsigned char* pImageBuffer);
+    void                    DecodeVisibleScanLine_B8G8R8X8();
     unsigned*               DecodeScanLine_B8G8R8X8_Mode0 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);
     unsigned*               DecodeScanLine_B8G8R8X8_Mode1 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);
     unsigned*               DecodeScanLine_B8G8R8X8_Mode2 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);

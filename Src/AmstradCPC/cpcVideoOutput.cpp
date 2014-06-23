@@ -81,8 +81,30 @@ namespace CPC {
   */
   void CVideoOutput::OnHSyncBegin()
   {
-    // TODO: Decode scan line here.
-    m_nScanLineCount++;
+    if (m_nScanLineCount < 200)
+    {
+      // Determine whether this was a visible or border scan line.
+      // It is a visible scan line if CRTC's current vertical character is in the range [0, CRTC::VERTICAL_DISPLAYED).
+      // For now, we just ignore border scan lines.
+      // TODO - Decode border scan lines as well.
+      CCrtc* pCrtc;
+      pCrtc = GetMachine()->GetCrtc();
+      if (pCrtc->GetCurrentVCharacter() < pCrtc->GetRegisterValue(CCrtc::VERTICAL_DISPLAYED))
+      {
+        // Decode visible scan line.
+        DecodeVisibleScanLine_B8G8R8X8();
+
+        // Advance monitor scan line.
+        m_nScanLineCount++;
+      }
+      else
+      {
+        //
+        // TODO: Decode border scan line.
+        // 
+        //m_nScanLineCount++;
+      }
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -91,9 +113,6 @@ namespace CPC {
   */
   void CVideoOutput::OnVSyncBegin()
   {
-    // Decode image.
-    DecodeImage_B8G8R8X8( GetBuffer() );
-
     // Back to first scan line.
     m_nScanLineCount = 0;
     m_nFrameCount++;
@@ -106,106 +125,75 @@ namespace CPC {
   /**
   ** 
   */
-  void CVideoOutput::DecodeImage_B8G8R8X8(unsigned char* pImageBuffer)
+  void CVideoOutput::DecodeVisibleScanLine_B8G8R8X8()
   {
-    if (pImageBuffer != NULL)
+    // Where to start written pixels in the destination buffer.
+    const SBufferProperties& bufferProps = GetBufferProperties();
+    unsigned nBufferRowBytes = (bufferProps.nWidth * 4/*bytes per pixel*/) + bufferProps.nStride;
+    unsigned* pDestPixel = (unsigned*) ( GetBuffer() + (m_nScanLineCount * 2/*We write each CPC scan line twice*/ * nBufferRowBytes) );
+
+    // Where to start reading pixels from in the CPC memory.
+    CCrtc* pCrtc;
+    pCrtc = GetMachine()->GetCrtc();
+
+    const CCrtc::SGeneratedAddress* pCrtcAddressTable;
+    pCrtcAddressTable = pCrtc->GetGeneratedAddressTable();
+    const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress = pCrtcAddressTable[m_nScanLineCount];
+
+    // Decode scan line taking CRTC screen mode into account.
+    CGateArray* pGateArray;
+    pGateArray = GetMachine()->GetGateArray();
+    switch (pGateArray->GetScreenMode())
     {
-      CCrtc* pCrtc;
-      pCrtc = GetMachine()->GetCrtc();
-
-      CGateArray* pGateArray;
-      pGateArray = GetMachine()->GetGateArray();
-
-      const CCrtc::SGeneratedAddress* pCrtcAddressTable;
-      pCrtcAddressTable = pCrtc->GetGeneratedAddressTable();
-
-      unsigned* pDestPixel;
-      pDestPixel = (unsigned*) pImageBuffer;
-
-      //
-      // Notes:
-      //
-      // - There are CCrtc::VERTICAL_DISPLAYED * (CCrtc::MAXIMUM_RASTER_ADDRESS + 1) scan lines, i.e. vertical resolution.
-      // - For each scan line, there are CCrtc::HORIZONTAL_DISPLAYED characters.
-      // - For each character, two bytes are read from memory:
-      //        - Mode 0 --> Two bytes contain 4 source pixels (as each pixel is written four times, 16 pixels are written in destination buffer)
-      //        - Mode 1 --> Two bytes contain 8 source pixels (as each pixel is written twice, 16 pixels are written in destination buffer)
-      //        - Mode 2 --> Two bytes contain 16 source pixels (as each pixel is written just once, 16 pixels are written in destination buffer)
-      // - Native horizontal resolution is equal to CCrtc::HORIZONTAL_DISPLAYED * 4/8/16 (depending on whether current mode is 0, 1 or 2 respectively).
-      //
-
-      unsigned nScanLineCount;    // Vertical resolution, in pixels
-      nScanLineCount = pCrtc->GetRegisterValue(CCrtc::VERTICAL_DISPLAYED) * (pCrtc->GetRegisterValue(CCrtc::MAXIMUM_RASTER_ADDRESS) + 1);
-      nScanLineCount = ( nScanLineCount<=(BUFFER_HEIGHT/2) ? nScanLineCount : BUFFER_HEIGHT/2 );  // Limit to 200 scan lines
-
-      unsigned nCurrScanLine;
-      for (nCurrScanLine = 0; nCurrScanLine < nScanLineCount; nCurrScanLine++)
+      case CGateArray::SCREEN_MODE_0:   // 160x200 resolution, 16 colors (4bpp)
       {
-        const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress = pCrtcAddressTable[nCurrScanLine];
+        pDestPixel = DecodeScanLine_B8G8R8X8_Mode0( pDestPixel, scanLineStartCrtcAddress );
+      }
+      break;
 
-        // Draw each scan line pixel, taking screen mode into account
-        switch (pGateArray->GetScreenMode())
-        {
-          case CGateArray::SCREEN_MODE_0:   // 160x200 resolution, 16 colors (4bpp)
-          {
-            pDestPixel = DecodeScanLine_B8G8R8X8_Mode0( pDestPixel, scanLineStartCrtcAddress );
-          }
-          break;
+      case CGateArray::SCREEN_MODE_1:   // 320x200 resolution, 4 colors (2bpp)
+      {
+        pDestPixel = DecodeScanLine_B8G8R8X8_Mode1( pDestPixel, scanLineStartCrtcAddress );
+      }
+      break;
 
-          case CGateArray::SCREEN_MODE_1:   // 320x200 resolution, 4 colors (2bpp)
-          {
-            pDestPixel = DecodeScanLine_B8G8R8X8_Mode1( pDestPixel, scanLineStartCrtcAddress );
-          }
-          break;
+      case CGateArray::SCREEN_MODE_2:   // 640x200 resolution, 2 colors (1bpp)
+      {
+        pDestPixel = DecodeScanLine_B8G8R8X8_Mode2( pDestPixel, scanLineStartCrtcAddress );
+      }
+      break;
 
-          case CGateArray::SCREEN_MODE_2:   // 640x200 resolution, 2 colors (1bpp)
-          {
-            pDestPixel = DecodeScanLine_B8G8R8X8_Mode2( pDestPixel, scanLineStartCrtcAddress );
-          }
-          break;
+      case CGateArray::SCREEN_MODE_3:   // 160x200 resolution, 4 colors (2bpp) (unofficial)  --  TODO
+      {
+        KMASSERTM( false, ("Unofficial video mode 3 not implemented.") );
+      }
+      break;
+    }
 
-          case CGateArray::SCREEN_MODE_3:   // 160x200 resolution, 4 colors (2bpp) (unofficial)  --  TODO
-          {
-            KMASSERTM( false, ("Unofficial video mode 3 not implemented.") );
-          }
-          break;
-        }
-
-        // Complete the destination image scan line with black pixels
-        unsigned nPixelsWritten;
-        nPixelsWritten = pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_DISPLAYED) * 16;  // 16 pixels are always written per character to destination image
-
-        unsigned x;
-        for (x = nPixelsWritten; x < BUFFER_WIDTH; x++)
-        {
-          *pDestPixel++ = 0;
-        }
-
-        if (m_bScanLineEffectActivated)
-        {
-          // Scan line effect
-          unsigned x;
-          static const unsigned SCAN_LINE_EFFECT_COLOR = 0xFF000000;
-          for (x = 0; x < BUFFER_WIDTH; x++)
-          {
-            *pDestPixel = SCAN_LINE_EFFECT_COLOR;
-            pDestPixel++;
-          }
-        }
-        else
-        {
-          // Duplicate previous scan line
-          unsigned* pSrcPixel;
-          unsigned  x;
-          pSrcPixel = pDestPixel - BUFFER_WIDTH;
-
-          for (x = 0; x < BUFFER_WIDTH; x++)
-          {
-            *pDestPixel = *pSrcPixel;
-            pSrcPixel++;
-            pDestPixel++;
-          }
-        }
+    // Scan line effect:
+    //   - Enabled -> Write black scan line.
+    //   - Disabled -> Duplicate scan line.
+    if (m_bScanLineEffectActivated)
+    {
+      // Scan line effect
+      unsigned x;
+      static const unsigned SCAN_LINE_EFFECT_COLOR = 0xFF000000;
+      for (x = 0; x < BUFFER_WIDTH; x++)
+      {
+        *pDestPixel = SCAN_LINE_EFFECT_COLOR;
+        pDestPixel++;
+      }
+    }
+    else
+    {
+      // Duplicate previous scan line
+      unsigned char* pSrcPixel = GetBuffer() + (m_nScanLineCount * 2/*We write each CPC scan line twice*/ * nBufferRowBytes);
+      unsigned char* pDestPixel = pSrcPixel + nBufferRowBytes;
+      for (unsigned i = 0; i < nBufferRowBytes; i++)
+      {
+        *pDestPixel = *pSrcPixel;
+        pSrcPixel++;
+        pDestPixel++;
       }
     }
   }
