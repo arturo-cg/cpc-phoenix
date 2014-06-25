@@ -45,10 +45,13 @@ private:
 
   typedef                 CPC::CVideoOutput         inherited;
 
-  static const unsigned   BUFFER_COUNT = 1;
+  static const unsigned   BUFFER_COUNT = 2;
+  static const unsigned   DEBUG_COLOR_ARGB = 0x00FF00FF/*Magenta*/;
 
   void                    ResetVars                 ();
   void                    FreeVars                  ();
+
+  void                    ClearBackBuffer           (unsigned nRgb);
 
 
   SBufferProperties       m_bufferProperties;
