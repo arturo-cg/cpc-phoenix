@@ -56,7 +56,7 @@ bool AppWindow::Init()
   if (bRet)
   {
     RECT rWndRect;
-    ::SetRect( &rWndRect, 0, 0, CPC::CVideoOutput::BUFFER_WIDTH * 2, CPC::CVideoOutput::BUFFER_HEIGHT * 2 );
+    ::SetRect( &rWndRect, 0, 0, CPC::CVideoOutput::BUFFER_WIDTH, CPC::CVideoOutput::BUFFER_HEIGHT );
 
     m_pDisplayWindow = new DisplayWindow;
     m_pDisplayWindow->Init( rWndRect, this );
@@ -77,7 +77,11 @@ bool AppWindow::Init()
     dwStyles = (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
     RECT rWndRect;
-    ::SetRect( &rWndRect, 0, 0, CPC::CVideoOutput::BUFFER_WIDTH * 2, (CPC::CVideoOutput::BUFFER_HEIGHT * 2) + m_pStatusBar->GetHeight() );
+    static const float SCALE = 1.5f;
+    int nNewWidth = int( CPC::CVideoOutput::BUFFER_WIDTH * SCALE );
+    int nNewHeight = int( CPC::CVideoOutput::BUFFER_HEIGHT * 2 * SCALE ) + m_pStatusBar->GetHeight();
+
+    ::SetRect( &rWndRect, 0, 0, nNewWidth, nNewHeight );
     ::AdjustWindowRect( &rWndRect, dwStyles, TRUE/*bMenu*/ );
     ::OffsetRect( &rWndRect, -rWndRect.left, -rWndRect.top );
 
