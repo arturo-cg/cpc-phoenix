@@ -27,8 +27,14 @@ namespace CPC {
   {
   public:
 
-    static const unsigned   BUFFER_WIDTH  = 640;
-    static const unsigned   BUFFER_HEIGHT = 400;
+    // Minimum buffer dimensions.
+    // Given by the *theoretical* maximum resolution that the Amstrad CPC monitor could display, including borders and ignoring HSYNC & VSYNC active times.
+    // The CRTC can be programmed to give other timings (i.e. resolutions) but in practice they are almost never changed as it would cause (some) Amstrad CPC monitors
+    // to go out of sync.
+    // Horizontal: 64 (CRTC::HORIZONTAL_TOTAL) * 16 (# of mode 2 pixels per CRTC character).
+    // Vertical: 39 (CRTC::VERTICAL_TOTAL) * 8 (CRTC::MAXIMUM_RASTER_ADDRESS+1)
+    static const unsigned   BUFFER_WIDTH  = 1024;
+    static const unsigned   BUFFER_HEIGHT = 312;
 
     enum EPixelFormat
     {
@@ -89,6 +95,7 @@ namespace CPC {
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
+    void                    DecodeBorderScanLine_B8G8R8X8 ();
     void                    DecodeVisibleScanLine_B8G8R8X8();
     unsigned*               DecodeScanLine_B8G8R8X8_Mode0 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);
     unsigned*               DecodeScanLine_B8G8R8X8_Mode1 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);
@@ -96,7 +103,7 @@ namespace CPC {
 
 
     bool                    m_bScanLineEffectActivated;
-    unsigned                m_nScanLineCount;
+    unsigned                m_nRasterLineCount;
     unsigned                m_nFrameCount;
 
   };

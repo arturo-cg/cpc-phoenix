@@ -53,7 +53,7 @@ namespace CPC {
   void CVideoOutput::ResetVars()
   {
     m_bScanLineEffectActivated = false;
-    m_nScanLineCount = 0;
+    m_nRasterLineCount = 0;
     m_nFrameCount = 0;
   }
 
@@ -81,29 +81,33 @@ namespace CPC {
   */
   void CVideoOutput::OnHSyncBegin()
   {
-    if (m_nScanLineCount < 200)
+    CCrtc* pCrtc;
+    pCrtc = GetMachine()->GetCrtc();
+    // The monitor holds the beam at the top left corner while VSYNC is active, i.e. nothing is drawn while VSYNC is active.
+    // TODO: Would be nice to emulate the monitor's V-HOLD; The monitor only waits a maximum period of time (called V-HOLD) for VSYNC to go back to low.
+    //       If V-HOLD is surpassed, the monitor ignores VSYNC and releases the beam.
+    if ( !pCrtc->GetVSyncState() )
     {
-      // Determine whether this was a visible or border scan line.
-      // It is a visible scan line if CRTC's current vertical character is in the range [0, CRTC::VERTICAL_DISPLAYED).
-      // For now, we just ignore border scan lines.
-      // TODO - Decode border scan lines as well.
-      CCrtc* pCrtc;
-      pCrtc = GetMachine()->GetCrtc();
-      if (pCrtc->GetCurrentVCharacter() < pCrtc->GetRegisterValue(CCrtc::VERTICAL_DISPLAYED))
+      KMASSERTM( m_nRasterLineCount < BUFFER_HEIGHT, ("Video output buffer height too short.") );
+      if (m_nRasterLineCount < BUFFER_HEIGHT)
       {
-        // Decode visible scan line.
-        DecodeVisibleScanLine_B8G8R8X8();
+        // Determine whether this was a visible or border raster line.
+        // It is a visible raster line if CRTC's current vertical character is in the range [0, CRTC::VERTICAL_DISPLAYED).
+        if (pCrtc->GetCurrentVCharacter() < pCrtc->GetRegisterValue(CCrtc::VERTICAL_DISPLAYED))
+        {
+          // Decode visible raster line.
+          DecodeVisibleScanLine_B8G8R8X8();
+        }
+        else
+        {
+          // Decode border raster line.
+          DecodeBorderScanLine_B8G8R8X8();
+        }
+      }
 
-        // Advance monitor scan line.
-        m_nScanLineCount++;
-      }
-      else
-      {
-        //
-        // TODO: Decode border scan line.
-        // 
-        //m_nScanLineCount++;
-      }
+      // Advance monitor raster line.
+      // TODO: What to do 
+      m_nRasterLineCount++;
     }
   }
 
@@ -113,12 +117,40 @@ namespace CPC {
   */
   void CVideoOutput::OnVSyncBegin()
   {
-    // Back to first scan line.
-    m_nScanLineCount = 0;
+    // Back to first raster line.
+    m_nRasterLineCount = 0;
     m_nFrameCount++;
 
     // Let client know.
     OnBufferComplete();
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CVideoOutput::DecodeBorderScanLine_B8G8R8X8()
+  {
+    // Where to start written pixels in the destination buffer.
+    const SBufferProperties& bufferProps = GetBufferProperties();
+    unsigned nBufferRowBytes = (bufferProps.nWidth * 4/*bytes per pixel*/) + bufferProps.nStride;
+    unsigned* pDestPixel = (unsigned*) ( GetBuffer() + m_nRasterLineCount * nBufferRowBytes );
+
+    // Fill raster line with the border color.
+    CCrtc* pCrtc;
+    pCrtc = GetMachine()->GetCrtc();
+
+    CGateArray* pGateArray;
+    pGateArray = GetMachine()->GetGateArray();
+
+    unsigned nBorderRgb = pGateArray->GetBorderRgb();
+    unsigned nWidthInCharacters = pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_TOTAL) + 1 - pCrtc->GetFirstCharacterAfterLastHSyncEnd() +    // Left border
+                                  pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_SYNC_POSITION);                                               // Visible chars + right border
+    unsigned nNumPixels = nWidthInCharacters * 16;  // For each CRTC character, 16 pixels (each one equivalent to one mode 2 pixel) are written.
+    for (unsigned i = 0; i < nNumPixels; i++)
+    {
+      *pDestPixel++ = nBorderRgb;
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -130,17 +162,15 @@ namespace CPC {
     // Where to start written pixels in the destination buffer.
     const SBufferProperties& bufferProps = GetBufferProperties();
     unsigned nBufferRowBytes = (bufferProps.nWidth * 4/*bytes per pixel*/) + bufferProps.nStride;
-    unsigned* pDestPixel = (unsigned*) ( GetBuffer() + (m_nScanLineCount * 2/*We write each CPC scan line twice*/ * nBufferRowBytes) );
+    unsigned* pDestPixel = (unsigned*) ( GetBuffer() + m_nRasterLineCount * nBufferRowBytes );
 
     // Where to start reading pixels from in the CPC memory.
     CCrtc* pCrtc;
     pCrtc = GetMachine()->GetCrtc();
 
-    const CCrtc::SGeneratedAddress* pCrtcAddressTable;
-    pCrtcAddressTable = pCrtc->GetGeneratedAddressTable();
-    const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress = pCrtcAddressTable[m_nScanLineCount];
+    const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress = pCrtc->GetCurrentAddress();
 
-    // Decode scan line taking CRTC screen mode into account.
+    // Decode raster line taking CRTC screen mode into account.
     CGateArray* pGateArray;
     pGateArray = GetMachine()->GetGateArray();
     switch (pGateArray->GetScreenMode())
@@ -170,32 +200,32 @@ namespace CPC {
       break;
     }
 
-    // Scan line effect:
-    //   - Enabled -> Write black scan line.
-    //   - Disabled -> Duplicate scan line.
-    if (m_bScanLineEffectActivated)
-    {
-      // Scan line effect
-      unsigned x;
-      static const unsigned SCAN_LINE_EFFECT_COLOR = 0xFF000000;
-      for (x = 0; x < BUFFER_WIDTH; x++)
-      {
-        *pDestPixel = SCAN_LINE_EFFECT_COLOR;
-        pDestPixel++;
-      }
-    }
-    else
-    {
-      // Duplicate previous scan line
-      unsigned char* pSrcPixel = GetBuffer() + (m_nScanLineCount * 2/*We write each CPC scan line twice*/ * nBufferRowBytes);
-      unsigned char* pDestPixel = pSrcPixel + nBufferRowBytes;
-      for (unsigned i = 0; i < nBufferRowBytes; i++)
-      {
-        *pDestPixel = *pSrcPixel;
-        pSrcPixel++;
-        pDestPixel++;
-      }
-    }
+    //// Scan line effect:
+    ////   - Enabled -> Write black scan line.
+    ////   - Disabled -> Duplicate scan line.
+    //if (m_bScanLineEffectActivated)
+    //{
+    //  // Scan line effect
+    //  unsigned x;
+    //  static const unsigned SCAN_LINE_EFFECT_COLOR = 0xFF000000;
+    //  for (x = 0; x < BUFFER_WIDTH; x++)
+    //  {
+    //    *pDestPixel = SCAN_LINE_EFFECT_COLOR;
+    //    pDestPixel++;
+    //  }
+    //}
+    //else
+    //{
+    //  // Duplicate previous scan line
+    //  unsigned char* pSrcPixel = GetBuffer() + (m_nRasterLineCount * nBufferRowBytes);
+    //  unsigned char* pDestPixel = pSrcPixel + nBufferRowBytes;
+    //  for (unsigned i = 0; i < nBufferRowBytes; i++)
+    //  {
+    //    *pDestPixel = *pSrcPixel;
+    //    pSrcPixel++;
+    //    pDestPixel++;
+    //  }
+    //}
   }
 
   //----------------------------------------------------------------------------

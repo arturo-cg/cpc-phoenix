@@ -32,11 +32,11 @@ namespace CPC {
     m_nCurrentHCharacter = 0;
     m_nCurrentVCharacter = 0;
     m_nCurrentScanLine   = 0;
+    m_nFirstCharacterAfterLastHSyncEnd = 0;
     m_nScanLinesForVSyncOff = 0;
     m_bDisplayEnabled    = true;
     m_bHSyncState        = false;
     m_bVSyncState        = false;
-    m_bGeneratedAddressTableUpToDate = false;
 
     for (int i = 0; i < NUM_REGISTERS; i++)
     {
@@ -72,7 +72,6 @@ namespace CPC {
     if (eRegister != INVALID_REGISTER)
     {
       m_eSelectedRegister = eRegister;
-      m_bGeneratedAddressTableUpToDate = false;      // TODO - Invalid cached table only when writing to a register that it depends on.
     }
   }
 
@@ -84,50 +83,6 @@ namespace CPC {
   {
     KMASSERT( m_eSelectedRegister < NUM_REGISTERS );
     m_anRegisters[m_eSelectedRegister] = nValue;
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  void CCrtc::ComputeGeneratedAddressTable()
-  {
-    unsigned nScanLine = 0;
-
-    cpcWord currentMA;
-    currentMA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
-
-    unsigned nCharacterLine;
-    for (nCharacterLine = 0; nCharacterLine < m_anRegisters[VERTICAL_DISPLAYED]; nCharacterLine++)
-    {
-      cpcByte RA;
-      for (RA = 0; RA < (m_anRegisters[MAXIMUM_RASTER_ADDRESS] + 1); RA++)
-      {
-        m_aGeneratedAddressTable[nScanLine].MA = currentMA;
-        m_aGeneratedAddressTable[nScanLine].RA = RA;
-        nScanLine++;
-      }
-
-      currentMA += m_anRegisters[HORIZONTAL_DISPLAYED];
-    }
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  const CCrtc::SGeneratedAddress* CCrtc::GetGeneratedAddressTable() const
-  {
-    if (!m_bGeneratedAddressTableUpToDate)
-    {
-      CCrtc* pNonConstThis;
-      pNonConstThis = const_cast<CCrtc*>( this );   // To be able to call/change non-const members (i.e. CCrtc::ComputeGeneratedAddressTable).
-
-      pNonConstThis->ComputeGeneratedAddressTable();
-      pNonConstThis->m_bGeneratedAddressTableUpToDate = true;
-    }
-
-    return m_aGeneratedAddressTable;
   }
 
   //----------------------------------------------------------------------------
@@ -180,6 +135,7 @@ namespace CPC {
       // Monitor starts rasterizing next raster line (note that the CRTC remains on the current scan line for a few more characters).
       // Also, DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
       m_bHSyncState = false;
+      m_nFirstCharacterAfterLastHSyncEnd = m_nCurrentHCharacter;
     }
   }
 
@@ -194,6 +150,7 @@ namespace CPC {
     // Advance 1 scan line.
     cpcByte nMaximumRasterAddress = m_anRegisters[MAXIMUM_RASTER_ADDRESS] + 1;
     m_nCurrentScanLine = (m_nCurrentScanLine + 1) % nMaximumRasterAddress;
+    m_currentAddress.RA++;
 
     // If VSYNC is active, check whether it is time for it to go inactive.
     if (m_bVSyncState)
@@ -214,12 +171,16 @@ namespace CPC {
 
       // Advance 1 character row.
       m_nCurrentVCharacter = (m_nCurrentVCharacter + 1) % nVerticalTotal;
+      m_currentAddress.MA += m_anRegisters[HORIZONTAL_DISPLAYED];       // TODO: Does it read R12 and R13 again rather than just increasing address?
+      m_currentAddress.RA = 0;
 
       // Update signals depending on where we are in the frame.
       if (m_nCurrentVCharacter == 0)    // At start of new CRTC frame?
       {
         // At this point, monitor raster is right past the top border.
         // DISPLAY_ENABLED signal is enabled again (see below).
+        m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
+        m_currentAddress.RA = 0;
       }
       else if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION])    // At start of VSYNC high?
       {

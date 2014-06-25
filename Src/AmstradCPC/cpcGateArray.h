@@ -64,6 +64,8 @@ namespace CPC {
 
     /** Returns the current RGB of the specified pen. */
     unsigned                GetPenRgb                 (cpcByte nPen) const  { return m_paCurrentRgbConversionTable[ m_anPenColors[nPen] ]; }
+    /** Returns the current RGB of the border. */
+    unsigned                GetBorderRgb              () const  { return m_paCurrentRgbConversionTable[m_nBorderColor]; }
 
     /** Reads a byte from memory at the specified address.
     *** The CPU doesn't access memory directly. Instead, it goes through the Gate Array which provides RAM paging. */
