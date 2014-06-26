@@ -97,6 +97,7 @@ namespace CPC {
 
     void                    DecodeBorderScanLine_B8G8R8X8 ();
     void                    DecodeVisibleScanLine_B8G8R8X8();
+    unsigned*               DrawBorder                    (unsigned* pDestPixel, cpcByte nWidthInCrtcChars);
     unsigned*               DecodeScanLine_B8G8R8X8_Mode0 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);
     unsigned*               DecodeScanLine_B8G8R8X8_Mode1 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);
     unsigned*               DecodeScanLine_B8G8R8X8_Mode2 (unsigned* pDestPixel, const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress);

@@ -140,17 +140,9 @@ namespace CPC {
     CCrtc* pCrtc;
     pCrtc = GetMachine()->GetCrtc();
 
-    CGateArray* pGateArray;
-    pGateArray = GetMachine()->GetGateArray();
-
-    unsigned nBorderRgb = pGateArray->GetBorderRgb();
     unsigned nWidthInCharacters = pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_TOTAL) + 1 - pCrtc->GetFirstCharacterAfterLastHSyncEnd() +    // Left border
                                   pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_SYNC_POSITION);                                               // Visible chars + right border
-    unsigned nNumPixels = nWidthInCharacters * 16;  // For each CRTC character, 16 pixels (each one equivalent to one mode 2 pixel) are written.
-    for (unsigned i = 0; i < nNumPixels; i++)
-    {
-      *pDestPixel++ = nBorderRgb;
-    }
+    DrawBorder( pDestPixel, nWidthInCharacters );
   }
 
   //----------------------------------------------------------------------------
@@ -164,10 +156,21 @@ namespace CPC {
     unsigned nBufferRowBytes = (bufferProps.nWidth * 4/*bytes per pixel*/) + bufferProps.nStride;
     unsigned* pDestPixel = (unsigned*) ( GetBuffer() + m_nRasterLineCount * nBufferRowBytes );
 
-    // Where to start reading pixels from in the CPC memory.
+    //
+    // Left border
+    //
+
     CCrtc* pCrtc;
     pCrtc = GetMachine()->GetCrtc();
 
+    unsigned nWidthInCharacters = pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_TOTAL) + 1 - pCrtc->GetFirstCharacterAfterLastHSyncEnd();
+    pDestPixel = DrawBorder( pDestPixel, nWidthInCharacters );
+
+    //
+    // Visible pixels
+    // 
+
+    // Where to start reading pixels from in the CPC memory.
     const CCrtc::SGeneratedAddress& scanLineStartCrtcAddress = pCrtc->GetCurrentAddress();
 
     // Decode raster line taking CRTC screen mode into account.
@@ -200,6 +203,13 @@ namespace CPC {
       break;
     }
 
+    //
+    // Right border
+    // 
+
+    nWidthInCharacters = pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_SYNC_POSITION) - pCrtc->GetRegisterValue(CCrtc::HORIZONTAL_DISPLAYED);
+    pDestPixel = DrawBorder( pDestPixel, nWidthInCharacters );
+
     //// Scan line effect:
     ////   - Enabled -> Write black scan line.
     ////   - Disabled -> Duplicate scan line.
@@ -226,6 +236,23 @@ namespace CPC {
     //    pDestPixel++;
     //  }
     //}
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  unsigned* CVideoOutput::DrawBorder(unsigned* pDestPixel, cpcByte nWidthInCrtcChars)
+  {
+    CGateArray* pGateArray;
+    pGateArray = GetMachine()->GetGateArray();
+    unsigned nBorderRgb = pGateArray->GetBorderRgb();
+    unsigned nNumPixels = nWidthInCrtcChars * 16;  // 16 pixels (each one equivalent to one mode 2 pixel) are written per CRTC character.
+    for (unsigned i = 0; i < nNumPixels; i++)
+    {
+      *pDestPixel++ = nBorderRgb;
+    }
+    return pDestPixel;
   }
 
   //----------------------------------------------------------------------------
