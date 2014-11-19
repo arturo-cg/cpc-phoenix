@@ -23,19 +23,18 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Resource.h">
-      <Filter>Resource Files</Filter>
-    </ClInclude>
     <ClInclude Include="Application.h" />
     <ClInclude Include="AppWindow.h" />
     <ClInclude Include="DisplayWindow.h" />
-    <ClInclude Include="res\resource.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="StatusBar.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="WindowsKeyStateProvider.h" />
     <ClInclude Include="WinSoundOutput.h" />
     <ClInclude Include="WinVideoOutput.h" />
+    <ClInclude Include="res\Resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />

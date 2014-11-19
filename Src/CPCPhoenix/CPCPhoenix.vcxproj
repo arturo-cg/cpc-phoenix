@@ -140,11 +140,10 @@
     <ResourceCompile Include="res\CPCPhoenix.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Resource.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="AppWindow.h" />
     <ClInclude Include="DisplayWindow.h" />
-    <ClInclude Include="res\resource.h" />
+    <ClInclude Include="res\Resource.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="StatusBar.h" />
     <ClInclude Include="stdafx.h" />
