@@ -16,6 +16,8 @@ namespace CPC {
   ** In addition, the CPC uses the PSG to scan the keyboard matrix to read the state of the keyboard and joysticks.
   **
   ** In the Amstrad CPC, The AY-3-8912 PSG is accessed through the 8255 PPI.
+  **
+  ** Datasheet: http://www.cpcwiki.eu/imgs/d/dc/Ay3-891x.pdf
   */
   class CPsg : public CSubSystem
   {
@@ -40,8 +42,8 @@ namespace CPC {
       REG_B_TONE_PERIOD_HIGH   = 0x03,         // [Channel B] Highest 4 bits of the period of the generated square wave.
       REG_C_TONE_PERIOD_LOW    = 0x04,         // [Channel C] Lowest 8 bits of the period of the generated square wave.
       REG_C_TONE_PERIOD_HIGH   = 0x05,         // [Channel C] Highest 4 bits of the period of the generated square wave.
-      REG_NOISE_PERIOD         = 0x06,         // Period of the noise. The generated noise can be mixed into any of the three channels.
-      REG_MIXER                = 0x07,         // Enables or disables the tone and the noise for each of the three channels.
+      REG_NOISE_PERIOD         = 0x06,         // Period of the noise (lower 5 bits). The generated noise can be mixed into any of the three channels.
+      REG_MIXER                = 0x07,         // Enables or disables tone and noise generation on each channel.
       REG_A_AMPLITUDE          = 0x08,         // [Channel A] If bit 4 is set, amplitude is controlled by the envelope. If bit 4 is clear, bits 3-0 determine a constant amplitude.
       REG_B_AMPLITUDE          = 0x09,         // [Channel B] If bit 4 is set, amplitude is controlled by the envelope. If bit 4 is clear, bits 3-0 determine a constant amplitude.
       REG_C_AMPLITUDE          = 0x0A,         // [Channel C] If bit 4 is set, amplitude is controlled by the envelope. If bit 4 is clear, bits 3-0 determine a constant amplitude.
@@ -93,8 +95,9 @@ namespace CPC {
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
-    float                   GenerateChannelSample     (unsigned nRegToneLow, unsigned nRegToneHigh, unsigned nRegAmplitude, unsigned nMixerOffset);
-    float                   GenerateSample            (unsigned nTonePeriod, unsigned nFixedAmplitude, int/*EGenerateSampleFlags*/ nFlags);
+    float                   GenerateNoiseSample       ();
+    float                   GenerateChannelSample     (unsigned nRegToneLow, unsigned nRegToneHigh, unsigned nRegAmplitude, unsigned nMixerOffset, float fNoiseSample);
+    float                   GenerateSample            (unsigned nTonePeriod, unsigned nFixedAmplitude, float fNoiseSample, int/*EGenerateSampleFlags*/ nFlags);
 
 
     ERegister               m_eSelectedRegister;

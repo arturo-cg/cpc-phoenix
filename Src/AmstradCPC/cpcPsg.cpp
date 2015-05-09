@@ -91,28 +91,67 @@ namespace CPC {
   /**
   ** 
   */
-  float CPsg::GenerateSample(unsigned nTonePeriod, unsigned nFixedAmplitude, int/*EGenerateSampleFlags*/ nFlags)
+  float CPsg::GenerateNoiseSample()
+  {
+    // 1. Generate white noise (i.e. random number that is either -1 or 1, both with same probability to be picked).
+    // 2. Modulate it with the programmed frequency.
+    float fNoise = ( rand()<(RAND_MAX/2) ? -1.f : 1.f ) * 0.2f/*noise amplitude*/;
+
+    //////unsigned nNoisePeriod = m_anRegisters[REG_NOISE_PERIOD] & 0x1F;
+    //////float fNoisePeriod = float( nNoisePeriod!=0 ? nNoisePeriod : 1 );
+    //////float fFrequency = 1000000.f / (16.f * fNoisePeriod);                          // Formula from manufacturer's chip datasheet.
+    //////float fRet = ::sinf( (fFrequency + fNoise) * m_fAngle );
+    //////return fRet;
+    return fNoise;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  float CPsg::GenerateSample(unsigned nTonePeriod, unsigned nFixedAmplitude, float fNoiseSample, int/*EGenerateSampleFlags*/ nFlags)
   {
     float fRet = 0.f;
 
     // Tone
     if (nFlags & GENSAMPLE_TONE_ENABLED)
     {
-      float fFrequency;
-      fFrequency = 1000000.f / ( (float(nTonePeriod<<1) * 8.f) + 1.f );     // nTonePeriod is half the period of the complete wave, that's why it is multiplied by 2.
+      float fTonePeriod = float( nTonePeriod!=0 ? nTonePeriod : 1 );
+      float fFrequency = 1000000.f / (16.f * fTonePeriod);                          // Formula from manufacturer's chip datasheet.
 
-      float fSinParam;
-      fSinParam = fmod( m_fAngle * fFrequency, 2.f * PI );
-
-      fRet = ::sinf( fSinParam );
+      fRet = ::sinf( fFrequency * m_fAngle );
       fRet = ( fRet<0.f ? -1.f : 1.f );     // Convert to square wave
-
-      // Apply amplitude
-      float fAmplitude;
-      fAmplitude = ( (nFlags&GENSAMPLE_USE_ENVELOPE) ? 1.f :                                //***** TODO - TODO - TODO *****
-                                                       float(nFixedAmplitude) / 15.f );     // nFixedAmplitude is in the range [0,15].
-      fRet *= fAmplitude;
     }
+
+    // Mix tone and noise
+    if ( (nFlags & GENSAMPLE_TONE_ENABLED) &&
+         (nFlags & GENSAMPLE_NOISE_ENABLED) )
+    {
+      // Tone + noise
+      fRet = (fRet + fNoiseSample) * 0.5f;
+    }
+    else if (nFlags & GENSAMPLE_TONE_ENABLED)
+    {
+      // Tone only
+      // Nothing to do, fRet already contains the tone sample
+    }
+    else if (nFlags & GENSAMPLE_NOISE_ENABLED)
+    {
+      // Noise only
+      fRet = fNoiseSample;
+    }
+    else
+    {
+      // None of them enabled. The PSG outputs 1.f in this case.
+      // This, in combination with amplitude control, is used by some software to play raw PCM data (e.g. digitized voice, sampled music, etc.).
+      fRet = 1.f;
+    }
+
+    // Amplitude
+    // TODO: Envelopes
+    float fAmplitude = ( (nFlags&GENSAMPLE_USE_ENVELOPE) ? 1.f :                                //***** TODO - TODO - TODO *****
+                                                           float(nFixedAmplitude) / 15.f );     // nFixedAmplitude is in the range [0,15].
+    fRet *= fAmplitude;
 
     return fRet;
   }
@@ -121,7 +160,7 @@ namespace CPC {
   /**
   ** 
   */
-  float CPsg::GenerateChannelSample(unsigned nRegToneLow, unsigned nRegToneHigh, unsigned nRegAmplitude, unsigned nMixerOffset)
+  float CPsg::GenerateChannelSample(unsigned nRegToneLow, unsigned nRegToneHigh, unsigned nRegAmplitude, unsigned nMixerOffset, float fNoiseSample)
   {
     float fRet = 0.f;
 
@@ -143,6 +182,7 @@ namespace CPC {
     {
       fRet = GenerateSample( ((m_anRegisters[nRegToneHigh]&0x0F) << 8) | m_anRegisters[nRegToneLow],
                              m_anRegisters[nRegAmplitude] & 0x0F,
+                             fNoiseSample,
                              nFlags );
     }
 
@@ -162,17 +202,27 @@ namespace CPC {
       // Generate sound samples while there are enough accumulated cycles
       while (m_fAccumCycles >= CYCLES_PER_SAMPLE)
       {
+        // Noise generation
+        float fNoiseSample = GenerateNoiseSample();
+
         // Generate a sample for each channel
         float fSampleA;
         float fSampleB;
         float fSampleC;
-        fSampleA = GenerateChannelSample( REG_A_TONE_PERIOD_LOW, REG_A_TONE_PERIOD_HIGH, REG_A_AMPLITUDE, 0 );
-        fSampleB = GenerateChannelSample( REG_B_TONE_PERIOD_LOW, REG_B_TONE_PERIOD_HIGH, REG_B_AMPLITUDE, 1 );
-        fSampleC = GenerateChannelSample( REG_C_TONE_PERIOD_LOW, REG_C_TONE_PERIOD_HIGH, REG_C_AMPLITUDE, 2 );
+        fSampleA = GenerateChannelSample( REG_A_TONE_PERIOD_LOW, REG_A_TONE_PERIOD_HIGH, REG_A_AMPLITUDE, 0, fNoiseSample );
+        fSampleB = GenerateChannelSample( REG_B_TONE_PERIOD_LOW, REG_B_TONE_PERIOD_HIGH, REG_B_AMPLITUDE, 1, fNoiseSample );
+        fSampleC = GenerateChannelSample( REG_C_TONE_PERIOD_LOW, REG_C_TONE_PERIOD_HIGH, REG_C_AMPLITUDE, 2, fNoiseSample );
 
         // Mix samples from each channel and write the resulting sample to the sound output
         float fSample;
         fSample = (fSampleA + fSampleB + fSampleC) / 3.f/*num channels*/;
+
+        //////float fNoiseOffset = float(rand()) / float(RAND_MAX) * 10.f/*noise factor*/;
+
+        //////float fSinParam;
+        //////fSinParam = fmod( m_fAngle * (500.f + fNoiseOffset), 2.f * PI );
+
+        //////float fSample = ::sinf( fSinParam );
 
         GetMachine()->GetSoundOutput()->WriteSample( fSample );
 
