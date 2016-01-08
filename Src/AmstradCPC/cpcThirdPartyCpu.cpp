@@ -5,7 +5,7 @@
 //-------------------------------------------------------------------------------------------
 
 #include "stdafx.h"
-#include "cpcCpu.h"
+#include "cpcThirdPartyCpu.h"
 #include "cpcMachine.h"
 #include "cpcGateArray.h"
 

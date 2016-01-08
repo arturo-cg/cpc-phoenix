@@ -74,7 +74,6 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="cpcCpu.cpp" />
     <ClCompile Include="cpcCrtc.cpp" />
     <ClCompile Include="cpcDisk.cpp" />
     <ClCompile Include="cpcDiskDrive.cpp" />
@@ -89,6 +88,7 @@
     <ClCompile Include="cpcPsg.cpp" />
     <ClCompile Include="cpcSoundOutput.cpp" />
     <ClCompile Include="cpcSubSystem.cpp" />
+    <ClCompile Include="cpcThirdPartyCpu.cpp" />
     <ClCompile Include="cpcVideoOutput.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -96,7 +96,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cpcCpu.h" />
     <ClInclude Include="cpcCrtc.h" />
     <ClInclude Include="cpcDisk.h" />
     <ClInclude Include="cpcDiskDrive.h" />
@@ -113,6 +112,7 @@
     <ClInclude Include="cpcPsg.h" />
     <ClInclude Include="cpcSoundOutput.h" />
     <ClInclude Include="cpcSubSystem.h" />
+    <ClInclude Include="cpcThirdPartyCpu.h" />
     <ClInclude Include="cpcTypes.h" />
     <ClInclude Include="cpcVideoOutput.h" />
     <ClInclude Include="stdafx.h" />

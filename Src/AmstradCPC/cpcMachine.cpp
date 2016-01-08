@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "cpcMachine.h"
-#include "cpcCpu.h"
+#include "cpcThirdPartyCpu.h"
 #include "cpcMemory.h"
 #include "cpcGateArray.h"
 #include "cpcCrtc.h"
