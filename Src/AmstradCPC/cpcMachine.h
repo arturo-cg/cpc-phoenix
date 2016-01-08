@@ -8,7 +8,7 @@
 namespace CPC {
 
 
-  class CCpu;
+  class CThirdPartyCpu;
   class CMemory;
   class CGateArray;
   class CCrtc;
@@ -51,8 +51,8 @@ namespace CPC {
     EModel                  GetModel                  () const  { return m_eModel; }
 
     /** Returns the CPU subsystem. */
-    CCpu*                   GetCpu                    ()        { return m_pCpu; }
-    const CCpu*             GetCpu                    () const  { return m_pCpu; }
+    CThirdPartyCpu*         GetCpu                    ()        { return m_pCpu; }
+    const CThirdPartyCpu*   GetCpu                    () const  { return m_pCpu; }
     /** Returns the memory subsystem. */
     CMemory*                GetMemory                 ()        { return m_pMemory; }
     const CMemory*          GetMemory                 () const  { return m_pMemory; }
@@ -109,7 +109,7 @@ namespace CPC {
 
     EModel                  m_eModel;
 
-    CCpu*                   m_pCpu;
+    CThirdPartyCpu*                   m_pCpu;
     CMemory*                m_pMemory;
     CGateArray*             m_pGateArray;
     CCrtc*                  m_pCrtc;

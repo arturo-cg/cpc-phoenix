@@ -32,7 +32,7 @@ namespace CPC {
     m_eModel = eType;
 
     // Create the sub-systems
-    m_pCpu        = new CCpu( this );
+    m_pCpu        = new CThirdPartyCpu( this );
     m_pMemory     = new CMemory( this );
     m_pGateArray  = new CGateArray( this );
     m_pCrtc       = new CCrtc( this );

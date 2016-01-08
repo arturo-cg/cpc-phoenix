@@ -22,31 +22,31 @@ namespace CPC {
   m1_state will be 1 if M1 signal is active*/
   Z80EX_BYTE CB_ReadByteFromMemory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, int m1_state, void *user_data)
   {
-    return ((CCpu*)user_data)->ReadByteFromMemory( addr );
+    return ((CThirdPartyCpu*)user_data)->ReadByteFromMemory( addr );
   }
 
   /*write <value> to memory <addr> -- called when WR & MREQ goes active*/
   void CB_WriteByteToMemory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, Z80EX_BYTE value, void *user_data)
   {
-    ((CCpu*)user_data)->WriteByteToMemory( addr, value );
+    ((CThirdPartyCpu*)user_data)->WriteByteToMemory( addr, value );
   }
 
   /*read byte from <port> -- called when RD & IORQ goes active*/
   Z80EX_BYTE CB_ReadByteFromPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, void *user_data)
   {
-    return ((CCpu*)user_data)->ReadByteFromPort( port );
+    return ((CThirdPartyCpu*)user_data)->ReadByteFromPort( port );
   }
 
   /*write <value> to <port> -- called when WR & IORQ goes active*/
   void CB_WriteByteToPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, Z80EX_BYTE value, void *user_data)
   {
-    ((CCpu*)user_data)->WriteByteToPort( port, value );
+    ((CThirdPartyCpu*)user_data)->WriteByteToPort( port, value );
   }
 
   /*read byte of interrupt vector -- called when M1 and IORQ goes active*/
   Z80EX_BYTE CB_ReadByteFromInterruptVector(Z80EX_CONTEXT *cpu, void *user_data)
   {
-    return ((CCpu*)user_data)->ReadByteFromInterruptVector();
+    return ((CThirdPartyCpu*)user_data)->ReadByteFromInterruptVector();
   }
 
   //--------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ namespace CPC {
   /**
   ** 
   */
-  CCpu::CCpu(CMachine *pMachine) : inherited( pMachine )
+  CThirdPartyCpu::CThirdPartyCpu(CMachine *pMachine) : inherited( pMachine )
   {
     ResetVars();
 
@@ -74,7 +74,7 @@ namespace CPC {
   /**
   ** ResetVars
   */
-  void CCpu::ResetVars()
+  void CThirdPartyCpu::ResetVars()
   {
     m_pZ80State                    = NULL;
     m_bCompleteInstructionLastStep = true;
@@ -85,7 +85,7 @@ namespace CPC {
   /**
   ** FreeVars
   */
-  void CCpu::FreeVars()
+  void CThirdPartyCpu::FreeVars()
   {
     if (m_pZ80State != NULL)
     {
@@ -98,7 +98,7 @@ namespace CPC {
   /**
   ** 
   */
-  void CCpu::Reset()
+  void CThirdPartyCpu::Reset()
   {
     KMASSERT( m_pZ80State != NULL );
     z80ex_reset( m_pZ80State );
@@ -111,7 +111,7 @@ namespace CPC {
   /**
   ** 
   */
-  bool CCpu::RequestInterrupt()
+  bool CThirdPartyCpu::RequestInterrupt()
   {
     return (z80ex_int(m_pZ80State) > 0);
   }
@@ -120,13 +120,13 @@ namespace CPC {
   /**
   ** 
   */
-  void CCpu::Run(unsigned nMinNumCycles)
+  void CThirdPartyCpu::Run(unsigned nMinNumCycles)
   {
     unsigned nCurrNumCycles;
 
     KMASSERT( m_pZ80State != NULL );
 
-    // Was there any spare cycle from the last call to CCpu::Run?
+    // Was there any spare cycle from the last call to CThirdPartyCpu::Run?
     nCurrNumCycles = m_nNumSpareCycles;
 
     while (nCurrNumCycles < nMinNumCycles)
@@ -134,7 +134,7 @@ namespace CPC {
       nCurrNumCycles += z80ex_step( m_pZ80State );
     }
 
-    // Spare cycles (will be taken into account next time CCpu::Run is called)
+    // Spare cycles (will be taken into account next time CThirdPartyCpu::Run is called)
     m_nNumSpareCycles = nCurrNumCycles - nMinNumCycles;
 
     // Has last instruction been executed completely?
@@ -145,7 +145,7 @@ namespace CPC {
   /**
   ** 
   */
-  cpcByte CCpu::ReadByteFromMemory(cpcWord nAddr) const
+  cpcByte CThirdPartyCpu::ReadByteFromMemory(cpcWord nAddr) const
   {
     // The CPU accesses memory through the Gate Array, which provides RAM paging.
     return GetMachine()->GetGateArray()->ReadByteFromMemory( nAddr );
@@ -155,7 +155,7 @@ namespace CPC {
   /**
   ** 
   */
-  void CCpu::WriteByteToMemory(cpcWord nAddr, cpcByte nValue)
+  void CThirdPartyCpu::WriteByteToMemory(cpcWord nAddr, cpcByte nValue)
   {
     // The CPU accesses memory through the Gate Array, which provides RAM paging.
     GetMachine()->GetGateArray()->WriteByteToMemory( nAddr, nValue );
@@ -165,7 +165,7 @@ namespace CPC {
   /**
   ** 
   */
-  cpcByte CCpu::ReadByteFromPort(cpcWord nPort)
+  cpcByte CThirdPartyCpu::ReadByteFromPort(cpcWord nPort)
   {
     // Tell the machine to read from the specified port (it is the machine's responsability
     // to determine which device is mapped to this port)
@@ -176,7 +176,7 @@ namespace CPC {
   /**
   ** 
   */
-  void CCpu::WriteByteToPort(cpcWord nPort, cpcByte nValue)
+  void CThirdPartyCpu::WriteByteToPort(cpcWord nPort, cpcByte nValue)
   {
     // Tell the machine to read from the specified port (it is the machine's responsability
     // to determine which device is mapped to this port)
@@ -187,7 +187,7 @@ namespace CPC {
   /**
   ** 
   */
-  cpcByte CCpu::ReadByteFromInterruptVector () const
+  cpcByte CThirdPartyCpu::ReadByteFromInterruptVector () const
   {
     //***************************** TODO - TODO - TODO ************************************
     //***************************** TODO - TODO - TODO ************************************
