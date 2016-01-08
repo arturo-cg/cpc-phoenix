@@ -1,8 +1,8 @@
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
-#ifndef _CPCCPU_H_
-#define _CPCCPU_H_
+#ifndef _CPCTHIRDPARTYCPU_H_
+#define _CPCTHIRDPARTYCPU_H_
 
 
 #include "cpcSubSystem.h"
@@ -68,4 +68,4 @@ namespace CPC {
 
 } //namespace CPC
 
-#endif // _CPCCPU_H_
+#endif // _CPCTHIRDPARTYCPU_H_
