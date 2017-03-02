@@ -74,10 +74,14 @@ namespace CPC {
     *** The CPU doesn't access memory directly. Instead, it goes through the Gate Array which provides RAM paging. */
     void                    WriteByteToMemory         (cpcWord nAddress, cpcByte nValue);
 
-    /** Notification from the CRTC that the HSYNC signal just started. */
+    /** HSYNC signal's rising edge notification. */
     void                    OnHSyncBegin              ();
-    /** Notification from the CRTC that the VSYNC signal just started. */
+    /** HSYNC signal's falling edge notification. */
+    void                    OnHSyncEnd                ();
+    /** VSYNC signal's rising edge notification. */
     void                    OnVSyncBegin              ();
+    /** VSYNC signal's falling edge notification. */
+    void                    OnVSyncEnd                ();
 
     /** We are notified that another subsytem is trying to write a byte to us.
     *** Usually it's the CPU through an OUT instruction. */

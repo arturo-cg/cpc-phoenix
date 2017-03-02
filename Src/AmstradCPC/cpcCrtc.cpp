@@ -123,19 +123,21 @@ namespace CPC {
       // Gate-Array starts using border color to generate video signal.
       m_bDisplayEnabled = false;
     }
-    else if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_SYNC_POSITION])    // At start of HSYNC high?
+    else if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_SYNC_POSITION])    // At HSYNC's rising edge?
     {
       // Monitor starts moving its beam to the beginning of next raster line.
       m_bHSyncState = true;
-      // Notify the Gate Array that HSYNC just started. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+      // Notify the Gate Array that HSYNC's rising edge just occured.
       GetMachine()->GetGateArray()->OnHSyncBegin();
     }
-    else if (m_nCurrentHCharacter == nHorizontalSyncOff)    // At start of HSYNC back to low?
+    else if (m_nCurrentHCharacter == nHorizontalSyncOff)    // At HSYNC's falling edge?
     {
       // Monitor starts rasterizing next raster line (note that the CRTC remains on the current scan line for a few more characters).
       // Also, DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
       m_bHSyncState = false;
       m_nFirstCharacterAfterLastHSyncEnd = m_nCurrentHCharacter;
+      // Notify the Gate Array that HSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+      GetMachine()->GetGateArray()->OnHSyncEnd();
     }
   }
 
@@ -161,6 +163,8 @@ namespace CPC {
         // Monitor starts rasterizing top raster line (note that CRTC doesn't reset character row count yet).
         // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
         m_bVSyncState = false;
+        // Notify the Gate Array that VSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+        GetMachine()->GetGateArray()->OnVSyncEnd();
       }
     }
 
@@ -171,7 +175,7 @@ namespace CPC {
 
       // Advance 1 character row.
       m_nCurrentVCharacter = (m_nCurrentVCharacter + 1) % nVerticalTotal;
-      m_currentAddress.MA += m_anRegisters[HORIZONTAL_DISPLAYED];       // TODO: Does it read R12 and R13 again rather than just increasing address?
+      m_currentAddress.MA += m_anRegisters[HORIZONTAL_DISPLAYED];       // TODO: Does it read R12 and R13 again rather than just increasing address? It probably does, otherwise the rupture/splitscreen effect would not be possible.
       m_currentAddress.RA = 0;
 
       // Update signals depending on where we are in the frame.
@@ -182,7 +186,7 @@ namespace CPC {
         m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
         m_currentAddress.RA = 0;
       }
-      else if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION])    // At start of VSYNC high?
+      else if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION])    // At VSYNC rising edge?
       {
         // Monitor starts moving its beam to the beginning of top raster line.
         m_bVSyncState = true;
@@ -191,7 +195,7 @@ namespace CPC {
         {
           m_nScanLinesForVSyncOff = 16;
         }
-        // Notify the Gate Array that VSYNC just started. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+        // Notify the Gate Array that VSYNC's rising edge just occured.
         GetMachine()->GetGateArray()->OnVSyncBegin();
       }
     }

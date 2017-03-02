@@ -84,8 +84,10 @@ namespace CPC {
     CCrtc* pCrtc;
     pCrtc = GetMachine()->GetCrtc();
     // The monitor holds the beam at the top left corner while VSYNC is active, i.e. nothing is drawn while VSYNC is active.
-    // TODO: Would be nice to emulate the monitor's V-HOLD; The monitor only waits a maximum period of time (called V-HOLD) for VSYNC to go back to low.
-    //       If V-HOLD is surpassed, the monitor ignores VSYNC and releases the beam.
+    // TODO: It would be nice to emulate the monitor's V-HOLD; The monitor only waits for a maximum period of time (called V-HOLD) for VSYNC to go back to low.
+    //       If V-HOLD is surpassed, the monitor releases the beam ignoring the fact that VSYNC is still active. This causes the monitor beam and the CRTC
+    //       to go out of sync and therefore the image 'scrolls' vertically.
+    // TODO: Verify that what I just said is true as it is just a guess :)
     if ( !pCrtc->GetVSyncState() )
     {
       KMASSERTM( m_nRasterLineCount < BUFFER_HEIGHT, ("Video output buffer height too short.") );

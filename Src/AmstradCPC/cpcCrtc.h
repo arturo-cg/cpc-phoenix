@@ -12,11 +12,11 @@ namespace CPC {
 
 
   /**
-  ** Emulates the 6845 CRTC chip. It was built by several manufacturers (UMC, Hitachi, Motorola and Amstrad) with slight
+  ** It emulates the 6845 CRTC chip. It was built by several manufacturers (UMC, Hitachi, Motorola and Amstrad) with slight
   ** differences between them.
   ** This chip along with the Gate-Array are responsible for generating the correct video signal that is sent to the Amstrad monitor.
   ** @par
-  ** The CRTC was a commercial chip that was used in several machines including the Amstrad.
+  ** The CRTC was a commercial chip that was used in several machines including the Amstrad CPC.
   ** Its goal is 'simply' to generate memory addresses and HSYNC/VSYNC signals. The Gate-Array
   ** then reads the memory at these addresses and generates the video signal.
   ** @par

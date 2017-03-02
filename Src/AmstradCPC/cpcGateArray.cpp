@@ -197,19 +197,25 @@ namespace CPC {
 
   //----------------------------------------------------------------------------
   /**
-  ** 
+  **
   */
   void CGateArray::OnHSyncBegin()
   {
     // Pass it on to the video output.
-    // Do this before requesting interrupts so that the image is decoded using current CRTC and Gate Array's values.
     GetMachine()->GetVideoOutput()->OnHSyncBegin();
+  }
 
-    // Increment the 6-bit counter
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::OnHSyncEnd()
+  {
+    // Interrupt generation logic.
+    // +- Increment the 6-bit counter
     m_nHSyncCounter = (m_nHSyncCounter + 1) & 0x3F;
     m_nHSyncCountSinceVSync++;
-
-    // Is it time to generate an interrupt?
+    // +- Is it time to generate an interrupt?
     if (m_nHSyncCountSinceVSync == 2)   // If it is the 2nd HSYNC after the last VSYNC...
     {
       if (m_nHSyncCounter >= 32)
@@ -220,7 +226,7 @@ namespace CPC {
       // Reset counter.
       m_nHSyncCounter = 0;
     }
-    else
+    else if (m_nHSyncCountSinceVSync > 2)
     {
       if (m_nHSyncCounter >= 52)
       {
@@ -237,10 +243,16 @@ namespace CPC {
   void CGateArray::OnVSyncBegin()
   {
     // Pass it on to the video output.
-    // Do this before requesting interrupts so that the image is decoded using current CRTC and Gate Array's values.
     GetMachine()->GetVideoOutput()->OnVSyncBegin();
-
     m_nHSyncCountSinceVSync = 0;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  **
+  */
+  void CGateArray::OnVSyncEnd()
+  {
   }
 
   //----------------------------------------------------------------------------
@@ -253,8 +265,8 @@ namespace CPC {
     {
       if ( GetMachine()->GetCpu()->RequestInterrupt() )     // If the interrupt has been accepted...
       {
-        // Clear the interrupt request
-        // Clear top bit (bit 5) of the internal HSYNC counter
+        // Clear the interrupt request.
+        // Clear top bit (bit 5) of the internal HSYNC counter - This prevents the next interrupt from occuring sooner than 32 HSYNCs.
         m_bRequestingInterrupt = false;
         m_nHSyncCounter = (m_nHSyncCounter & 0x1F);
       }
