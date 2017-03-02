@@ -41,15 +41,10 @@ namespace CPC {
       cpcWord word;
       struct
       {
-        union
-        {
-          cpcByte A;
-          cpcByte B;
-          cpcByte D;
-          cpcByte H;
-          cpcByte I;
-        };
+        // Note: This is correct if the host is a low-endian machine.
+        //       If the host is big-endian, the order of the low and high bytes should be reversed.
 
+        // Low byte.
         union
         {
           cpcByte F;
@@ -59,6 +54,15 @@ namespace CPC {
           cpcByte X;
           cpcByte Y;
           cpcByte R;
+        };
+        // High byte.
+        union
+        {
+          cpcByte A;
+          cpcByte B;
+          cpcByte D;
+          cpcByte H;
+          cpcByte I;
         };
       } byte;
     };
