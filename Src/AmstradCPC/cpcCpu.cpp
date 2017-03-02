@@ -28,6 +28,13 @@ namespace CPC {
   */
   void CCpu::ResetVars()
   {
+      // Power-on defaults.
+      m_activeGprSet = 0;
+      memset(&m_registers, 0xFF, sizeof(m_registers));
+      m_registers.PC.word = 0;
+      m_registers.IFF1 = 0;
+      m_registers.IFF2 = 0;
+      m_registers.IM = 0;
   }
 
   //----------------------------------------------------------------------------
