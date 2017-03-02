@@ -109,7 +109,7 @@ namespace CPC {
 
     EModel                  m_eModel;
 
-    CThirdPartyCpu*                   m_pCpu;
+    CThirdPartyCpu*         m_pCpu;
     CMemory*                m_pMemory;
     CGateArray*             m_pGateArray;
     CCrtc*                  m_pCrtc;
@@ -121,6 +121,7 @@ namespace CPC {
     CVideoOutput*           m_pVideoOutput;
     CSoundOutput*           m_pSoundOutput;
 
+    float                   m_fAccumulatedCpuCycles;
   };
 
 

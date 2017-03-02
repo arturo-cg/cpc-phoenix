@@ -65,6 +65,7 @@ namespace CPC {
     m_pDiskDrives[1] = NULL;
     m_pVideoOutput = NULL;
     m_pSoundOutput = NULL;
+    m_fAccumulatedCpuCycles = 0.f;
   }
 
   //----------------------------------------------------------------------------
@@ -98,7 +99,7 @@ namespace CPC {
       {
         //if ( !GetDEVICE3()->RespondToReadPortRequest(nPort, &nRet) )
         {
-          // No device has served the request - Return default value
+          // No device has responded to the request - Return default value
           // TODO - What value does the real CPC return in this case?
           nRet = 0xFF;
         }
@@ -147,32 +148,27 @@ namespace CPC {
   /**
   ** 
   */
-  void CMachine::Run(unsigned nMicroSecs)
+  void CMachine::Run(unsigned nNum1MhzCycles)
   {
-    unsigned nNumCycles;
-
-    // CPU (3.3Mhz clock)
-    //
-    // NOTE: The Z80 clock input in the real CPC runs at 4Mhz, although its effective frequency is 3.3Mhz.
-    //   The reason is that both the Gate-Array and the CPU need to access the memory (the Gate-Array reads
-    //   it to generate the video signal). The Gate-Array has priority over the CPU to ensure video signal
-    //   is correctly generated, so it periodically forces the CPU to enter in a wait state while it is
-    //   reading the memory. Because of this, we simply think of the CPU clock input as running at 3.3Mhz.
-    KMASSERT( nMicroSecs >= 10 );  // To ensure a minimum precision in the integer division in the next line
-    nNumCycles = (nMicroSecs * 33) / 10;
-    GetCpu()->Run( nNumCycles );
+    // CPU (4Mhz clock)
+    // Note: The Z80 on the Amstrad CPC is clocked at 4Mhz but the Gate-Array forces it to enter
+    //       into a wait state every 1ms (i.e. every 4 Z80 clock ticks) to make sure the Gate-Array
+    //       gets exclusive access to the RAM while it is reading pixel data for video generation.
+    //       Because of this, the effective clock frequency of the Z80 on the CPC ends up being about 3.3Mhz.
+    m_fAccumulatedCpuCycles += nNum1MhzCycles * 3.3f;
+    unsigned nNumCpuCycles = (unsigned) m_fAccumulatedCpuCycles;
+    GetCpu()->Run(nNumCpuCycles);
+    m_fAccumulatedCpuCycles -= (float) nNumCpuCycles;
+    ///////////////////////////////////////////GetCpu()->Run(nNum1MhzCycles * 4 );
 
     // CRTC (1Mhz clock)
-    nNumCycles = nMicroSecs;
-    GetCrtc()->Run( nNumCycles );
+    GetCrtc()->Run(nNum1MhzCycles);
 
     // Gate-Array (1Mhz clock)
-    nNumCycles = nMicroSecs;
-    GetGateArray()->Run( nNumCycles );
+    GetGateArray()->Run(nNum1MhzCycles);
 
     // PSG (1Mhz clock)
-    nNumCycles = nMicroSecs;
-    GetPsg()->Run( nNumCycles );
+    GetPsg()->Run(nNum1MhzCycles);
   }
 
 } //namespace CPC

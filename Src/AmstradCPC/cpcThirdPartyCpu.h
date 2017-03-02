@@ -22,6 +22,7 @@ namespace CPC {
     friend Z80EX_BYTE CB_ReadByteFromPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, void *user_data);
     friend void CB_WriteByteToPort(Z80EX_CONTEXT *cpu, Z80EX_WORD port, Z80EX_BYTE value, void *user_data);
     friend Z80EX_BYTE CB_ReadByteFromInterruptVector(Z80EX_CONTEXT *cpu, void *user_data);
+    friend void CB_TState(Z80EX_CONTEXT *cpu, void *user_data);
 
   public:
 
@@ -50,16 +51,10 @@ namespace CPC {
     *** or false if only its prefix was executed. */
     bool                    WasCompleteInstructionLastStep () const  { return m_bCompleteInstructionLastStep; }
 
-    cpcByte                 ReadByteFromMemory        (cpcWord nAddr) const;
-    void                    WriteByteToMemory         (cpcWord nAddr, cpcByte nValue);
-    cpcByte                 ReadByteFromPort          (cpcWord nPort);
-    void                    WriteByteToPort           (cpcWord nPort, cpcByte nValue);
-    cpcByte                 ReadByteFromInterruptVector () const;
-
 
     /** Internal CPU state (registers, interrupt mode, etc.). */
     Z80EX_CONTEXT          *m_pZ80State;
-
+    unsigned                m_nNumTStatesSinceLastWait;
     bool                    m_bCompleteInstructionLastStep;
     unsigned                m_nNumSpareCycles;
 

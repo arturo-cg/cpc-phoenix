@@ -354,7 +354,7 @@ void Application::Run()
     ProcessWindowsMessages();
 
     // Run the emulated machine
-    static const unsigned TIME_STEP_USECS = 10;
+    static const unsigned TIME_STEP_USECS = 1;
 
     m_pMachine->Run( TIME_STEP_USECS );
 
