@@ -9,10 +9,10 @@
 // Basic types
 //
 
-typedef unsigned char  cpcByte;
-typedef signed char    cpcSByte;
-typedef unsigned short cpcWord;
-typedef signed short   cpcSWord;
+using cpcByte = uint8_t;
+using cpcWord = uint16_t;
+using cpcSByte = int8_t;
+using cpcSWord = int16_t;
 
 
 namespace CPC {
