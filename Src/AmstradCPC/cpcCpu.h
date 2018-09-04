@@ -54,35 +54,19 @@ namespace CPC {
 
     typedef                 CSubSystem                inherited;
 
-    // Type for 16-bit registers whose 8-bit components can be accessed as well.
+    // Type for 16-bit registers whose 8-bit components can be accessed individually as well.
     union Reg16
     {
       cpcWord word;
       struct
       {
-        // Note: This is correct if the host is a low-endian machine.
-        //       If the host is big-endian, the order of the low and high bytes should be reversed.
-
-        // Low byte.
-        union
-        {
-          cpcByte F;
-          cpcByte C;
-          cpcByte E;
-          cpcByte L;
-          cpcByte X;
-          cpcByte Y;
-          cpcByte R;
-        };
-        // High byte.
-        union
-        {
-          cpcByte A;
-          cpcByte B;
-          cpcByte D;
-          cpcByte H;
-          cpcByte I;
-        };
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        cpcByte l;
+        cpcByte h;
+#else
+        cpcByte h;
+        cpcByte l;
+#endif
       } byte;
     };
 
@@ -118,8 +102,8 @@ namespace CPC {
     Registers m_registers;
     int m_activeGprSet;             // Index into the 'm_regs.gpr' array. Either 0 or 1.
     unsigned m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
-                                    // Instructions are fetched and executed at once, and this counter is incremented by the number of cycles the instruction should actually take.
-                                    // Then the Z80 emulation sits idle until the emulator catches up with it.
+                                    // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.
+                                    // If that number of cycles is higher than the number of cycles the Z80 emulation was asked to execute, it will sit idle until the emulator catches up with it.
 
   };
 

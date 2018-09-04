@@ -28,15 +28,7 @@ namespace CPC {
   */
   void CCpu::ResetVars()
   {
-      // Power-on defaults.
-      m_activeGprSet = 0;
-      memset(&m_registers, 0xFF, sizeof(m_registers));
-      m_registers.PC.word = 0;
-      m_registers.IFF1 = 0;
-      m_registers.IFF2 = 0;
-      m_registers.IM = 0;
-
-      m_numCyclesAhead = 0;
+    Reset();
   }
 
   //----------------------------------------------------------------------------
@@ -53,6 +45,16 @@ namespace CPC {
   */
   void CCpu::Reset()
   {
+    // Power-on defaults.
+    m_activeGprSet = 0;
+    memset(&m_registers, 0xFF, sizeof(m_registers));
+    m_registers.IFF1 = 0;
+    m_registers.IFF2 = 0;
+    m_registers.PC.word = 0;
+    m_registers.IR.word = 0;
+    m_registers.IM = 0;
+
+    m_numCyclesAhead = 0;
   }
 
   //----------------------------------------------------------------------------
@@ -90,12 +92,12 @@ namespace CPC {
   */
   unsigned CCpu::FetchAndExecuteInstruction()
   {
-    unsigned ret = xxx;
-    FetchOpcode();
+    //////unsigned ret = xxx;
+    //////FetchOpcode();
 
-    // TODO - Check interrupts.
+    //////// TODO - Check interrupts.
 
-    return ret;
+    //////return ret;
   }
 
   //----------------------------------------------------------------------------
