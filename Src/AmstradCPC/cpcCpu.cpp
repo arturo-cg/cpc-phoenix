@@ -72,17 +72,14 @@ namespace CPC {
   */
   void CCpu::Run(unsigned nNumCycles)
   {
-    for (unsigned i = 0; i < nNumCycles; i++)
-    {
-      // Check whether the CPU emulation is still ahead of the rest of the emulator or not.
-      if (m_numCyclesAhead == 0)
-      {
-        // Time to fetch and execute the next instruction.
-        m_numCyclesAhead += FetchAndExecuteInstruction();
-      }
+    KMASSERTM(m_cpuInterface != NULL, ("Unassigned CPU interface. Please assign one by calling the method CCpu::SetCpuInterface. The program will crash if you continue."));
 
-      // Consume one clock cycle.
-      m_numCyclesAhead--;
+    // Accumulate cycles.
+    m_numCyclesAhead -= nNumCycles;
+    while (m_numCyclesAhead < 0)     // As long as we are behind the emulation clock...
+    {
+      // Fetch and execute next instruction.
+      m_numCyclesAhead += FetchAndExecuteInstruction();
     }
   }
 

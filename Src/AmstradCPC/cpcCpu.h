@@ -8,6 +8,9 @@
 #include "cpcSubSystem.h"
 
 
+class CCpuInterface;
+
+
 namespace CPC {
 
 
@@ -39,6 +42,10 @@ namespace CPC {
 
                             CCpu                      (CMachine *pMachine);
     virtual                ~CCpu                      ()  { FreeVars(); }
+
+    void                    SetCpuInterface           (CCpuInterface* cpuInterface)  { m_cpuInterface = cpuInterface; }
+    CCpuInterface*          GetCpuInterface           ()        { return m_cpuInterface; }
+    const CCpuInterface*    GetCpuInterface           () const  { return m_cpuInterface; }
 
     /** Resets the subsystem. */
     virtual void            Reset                     ();
@@ -104,6 +111,7 @@ namespace CPC {
     unsigned m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
                                     // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.
                                     // If that number of cycles is higher than the number of cycles the Z80 emulation was asked to execute, it will sit idle until the emulator catches up with it.
+    CCpuInterface* m_cpuInterface;
 
   };
 
