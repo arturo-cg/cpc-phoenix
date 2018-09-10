@@ -52,6 +52,9 @@ namespace CPC {
 
     /** Requests a maskable interrupt. It returns true if it was accepted, or false otherwise (i.e. interrupts are disabled). */
     bool                    RequestInterrupt          ();
+    /** Sets the active state of the /WAIT signal. */
+    void                    SetWaitSignalActive       (bool active)  { m_waitActive = active; }
+    bool                    IsWaitSignalActive        () const       { return m_waitActive; }
 
     /** Runs the CPU for the given number of cycles (or T-states, in Z80 terminology). */
     void                    Run                       (unsigned nNumCycles);
@@ -100,17 +103,36 @@ namespace CPC {
         int IM;         // Interrupt Mode.
     };
 
+    // Opcode prefixes.
+    enum OpcodePrefix
+    {
+      None = 0,         // No prefix: main instructions.
+      ED,               // Extended instructions.
+      CB,               // Bit instructions.
+      DD,               // IX instructions.
+      DDCB,             // IX bit instructions.
+      FD,               // IY instructions.
+      FDCB,             // IY bit instructions.
+    };
+
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
-    unsigned                FetchAndExecuteInstruction();
+    void                    Step                      ();
     void                    FetchOpcode               ();
+    //void                    AdvanceTStates            (int numTStates);
+    //void                    SyncToWaitSignal          ();
+
+    cpcByte                 ReadByteFromMemory        (cpcWord address);
+
 
     Registers m_registers;
     int m_activeGprSet;             // Index into the 'm_regs.gpr' array. Either 0 or 1.
+    bool m_waitActive;
     unsigned m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
                                     // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.
                                     // If that number of cycles is higher than the number of cycles the Z80 emulation was asked to execute, it will sit idle until the emulator catches up with it.
+    OpcodePrefix m_opcodePrefix;
     CCpuInterface* m_cpuInterface;
 
   };

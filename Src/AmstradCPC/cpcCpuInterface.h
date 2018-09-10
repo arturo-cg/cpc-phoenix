@@ -23,8 +23,8 @@ namespace CPC {
 
     /** The Z80 is being reset. */
     virtual void OnReset(CCpu* cpu) = 0;
-    /** The Z80 is starting a new T cycle, which happens at the rising edge of the clock. */
-    virtual void OnTCycle(CCpu* cpu) = 0;
+    /** The Z80 is starting a new T state (i.e. clock cycle), which happens at the rising edge of the clock. */
+    virtual void OnTState(CCpu* cpu) = 0;
 
     /** The Z80 requests to read a byte from memory. */
     virtual cpcByte ReadByteFromMemory(CCpu* cpu, cpcWord address) = 0;

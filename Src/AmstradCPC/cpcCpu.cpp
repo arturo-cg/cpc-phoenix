@@ -8,6 +8,7 @@
 #include "cpcCpu.h"
 #include "cpcMachine.h"
 #include "cpcGateArray.h"
+#include "cpcCpuInterface.h"
 
 
 namespace CPC {
@@ -29,6 +30,7 @@ namespace CPC {
   void CCpu::ResetVars()
   {
     Reset();
+    m_waitActive = false;
   }
 
   //----------------------------------------------------------------------------
@@ -55,6 +57,7 @@ namespace CPC {
     m_registers.IM = 0;
 
     m_numCyclesAhead = 0;
+    m_opcodePrefix = OpcodePrefix::None;
   }
 
   //----------------------------------------------------------------------------
@@ -78,8 +81,8 @@ namespace CPC {
     m_numCyclesAhead -= nNumCycles;
     while (m_numCyclesAhead < 0)     // As long as we are behind the emulation clock...
     {
-      // Fetch and execute next instruction.
-      m_numCyclesAhead += FetchAndExecuteInstruction();
+      // Take a step forward: either read prefix or fetch and execute instruction.
+      Step();
     }
   }
 
@@ -87,14 +90,52 @@ namespace CPC {
   /**
   **
   */
-  unsigned CCpu::FetchAndExecuteInstruction()
+  void CCpu::Step()
   {
-    //////unsigned ret = xxx;
-    //////FetchOpcode();
+    // Two things can happen:
+    //  * If it's a prefix, the next byte of the prefix is read and remembered.
+    //  * If it's an opcode, the whole instruction (i.e. opcode plus operands) is fetched and executed.
 
-    //////// TODO - Check interrupts.
+    // Read byte and increment PC.
+    cpcByte byte = ReadByteFromMemory(m_registers.PC.word);
+    m_registers.PC.word++;
+    // Determine whether it's a prefix or an opcode.
+    switch (byte)
+    {
+      case 0xED:
+      {
+        break;
+      }
 
-    //////return ret;
+      case 0xCB:
+      {
+        if (m_opcodePrefix == OpcodePrefix::DD)         // If the previous byte was 0xDD...
+        {
+          m_opcodePrefix = OpcodePrefix::DDCB;
+        }
+        else if (m_opcodePrefix == OpcodePrefix::FD)    // If the previous byte was 0xFD...
+        {
+          m_opcodePrefix = OpcodePrefix::FDCB;
+        }
+        break;
+      }
+
+      case 0xDD:
+      {
+        break;
+      }
+
+      case 0xFD:
+      {
+        break;
+      }
+
+      default:
+      {
+        // We just read a non-prefix byte: assume it's an instruction.
+        break;
+      }
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -104,6 +145,47 @@ namespace CPC {
   void CCpu::FetchOpcode()
   {
 
+  }
+
+  ////----------------------------------------------------------------------------
+  ///**
+  //**
+  //*/
+  //void CCpu::AdvanceTStates(int numTStates)
+  //{
+  //  for (int i = 0; i < numTStates; i++)
+  //  {
+  //    m_numCyclesAhead++;
+  //    m_cpuInterface->OnTState(this);
+  //  }
+  //}
+
+  ////----------------------------------------------------------------------------
+  ///**
+  //**
+  //*/
+  //void CCpu::SyncToWaitSignal()
+  //{
+  //  while (m_waitActive)
+  //  {
+  //    // Wait for one clock cycle.
+  //    m_numCyclesAhead++;
+  //    m_cpuInterface->OnTState(this);
+  //  }
+  //}
+
+  //----------------------------------------------------------------------------
+  /**
+  **
+  */
+  cpcByte CCpu::ReadByteFromMemory(cpcWord address)
+  {
+    cpcByte ret;
+    //// Enter WAIT states while the /WAIT signal is active.
+    //SyncToWaitSignal();
+    // Read byte.
+    ret = m_cpuInterface->ReadByteFromMemory(this, address);
+    return ret;
   }
 
 } //namespace CPC
