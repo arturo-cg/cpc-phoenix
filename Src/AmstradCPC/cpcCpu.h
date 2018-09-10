@@ -8,10 +8,9 @@
 #include "cpcSubSystem.h"
 
 
-class CCpuInterface;
-
-
 namespace CPC {
+
+  class CCpuInterface;
 
 
   /**
@@ -67,7 +66,7 @@ namespace CPC {
     // Type for 16-bit registers whose 8-bit components can be accessed individually as well.
     union Reg16
     {
-      cpcWord word;
+      cpcWord w;
       struct
       {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -77,7 +76,7 @@ namespace CPC {
         cpcByte h;
         cpcByte l;
 #endif
-      } byte;
+      } b;
     };
 
     // General-purpose registers.

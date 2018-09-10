@@ -52,8 +52,8 @@ namespace CPC {
     memset(&m_registers, 0xFF, sizeof(m_registers));
     m_registers.IFF1 = 0;
     m_registers.IFF2 = 0;
-    m_registers.PC.word = 0;
-    m_registers.IR.word = 0;
+    m_registers.PC.w = 0;
+    m_registers.IR.w = 0;
     m_registers.IM = 0;
 
     m_numCyclesAhead = 0;
@@ -97,8 +97,8 @@ namespace CPC {
     //  * If it's an opcode, the whole instruction (i.e. opcode plus operands) is fetched and executed.
 
     // Read byte and increment PC.
-    cpcByte byte = ReadByteFromMemory(m_registers.PC.word);
-    m_registers.PC.word++;
+    cpcByte byte = ReadByteFromMemory(m_registers.PC.w);
+    m_registers.PC.w++;
     // Determine whether it's a prefix or an opcode.
     switch (byte)
     {

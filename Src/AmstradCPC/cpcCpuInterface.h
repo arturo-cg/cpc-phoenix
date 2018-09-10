@@ -5,11 +5,10 @@
 
 #include "cpcTypes.h"
 
-class CCpu;
-
 
 namespace CPC {
 
+  class CCpu;
 
   /**
   ** The CPU interface to the rest of the machine. This allows the CPU emulation to be machine-agnostic and therefore be reusable on other emulators.
