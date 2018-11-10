@@ -24,12 +24,12 @@ namespace CPC {
 
   void CCpu::Execute_01()
   {
-      LD16_reg_nn(&m_registers.BC(m_activeGprSet));
+      LD16_reg_nn(&m_registers.BC);
   }
 
   void CCpu::Execute_02()
   {
-      LD8_addrreg_valuereg(m_registers.BC(m_activeGprSet), m_registers.A(m_activeGprSet));
+      LD8_addrreg_valuereg(m_registers.BC, m_registers.A());
   }
 
   void CCpu::Execute_03()

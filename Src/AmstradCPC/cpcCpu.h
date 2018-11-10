@@ -89,54 +89,43 @@ namespace CPC {
       } b;
     };
 
-    // General-purpose registers.
-    struct GPR
-    {
-        Reg16 AF;
-        Reg16 BC;
-        Reg16 DE;
-        Reg16 HL;
-    };
-
     // All of the Z80 registers.
     struct Registers
     {
-        GPR gpr[2];     // Two sets of general-purpose registers.
-        Reg16 IX;       // Index register IX.
-        Reg16 IY;       // Index register IY.
-        Reg16 PC;       // Program Counter.
-        Reg16 SP;       // Stack Pointer.
-        Reg16 IR;       // Interrupt Vector / Memory Refresh.
-        bool IFF1;      // Interrupt flip-flop 1.
-        bool IFF2;      // Interrupt flip-flop 2.
-        int IM;         // Interrupt Mode.
+        Reg16 AF;               // Active AF register.
+        Reg16 BC;               // Active BC register.
+        Reg16 DE;               // Active DE register.
+        Reg16 HL;               // Active HL register.
+        Reg16 altAF;            // Alternate (hidden) AF register.
+        Reg16 altBC;            // Alternate (hidden) BC register.
+        Reg16 altDE;            // Alternate (hidden) DE register.
+        Reg16 altHL;            // Alternate (hidden) HL register.
+        Reg16 IX;               // Index register IX.
+        Reg16 IY;               // Index register IY.
+        Reg16 PC;               // Program Counter.
+        Reg16 SP;               // Stack Pointer.
+        Reg16 IR;               // Interrupt Vector / Memory Refresh.
+        bool IFF1;              // Interrupt flip-flop 1.
+        bool IFF2;              // Interrupt flip-flop 2.
+        int IM;                 // Interrupt Mode.
 
-        // Handy methods to access general-purpose registers.
-        Reg16& AF(int activeSet) { return gpr[activeSet].AF; }
-        const Reg16& AF(int activeSet) const { return gpr[activeSet].AF; }
-        Reg16& BC(int activeSet) { return gpr[activeSet].BC; }
-        const Reg16& BC(int activeSet) const { return gpr[activeSet].BC; }
-        Reg16& DE(int activeSet) { return gpr[activeSet].DE; }
-        const Reg16& DE(int activeSet) const { return gpr[activeSet].DE; }
-        Reg16& HL(int activeSet) { return gpr[activeSet].HL; }
-        const Reg16& HL(int activeSet) const { return gpr[activeSet].HL; }
-
-        cpcByte& A(int activeSet) { return gpr[activeSet].AF.b.h; }
-        const cpcByte& A(int activeSet) const { return gpr[activeSet].AF.b.h; }
-        cpcByte& F(int activeSet) { return gpr[activeSet].AF.b.l; }
-        const cpcByte& F(int activeSet) const { return gpr[activeSet].AF.b.l; }
-        cpcByte& B(int activeSet) { return gpr[activeSet].BC.b.h; }
-        const cpcByte& B(int activeSet) const { return gpr[activeSet].BC.b.h; }
-        cpcByte& C(int activeSet) { return gpr[activeSet].BC.b.l; }
-        const cpcByte& C(int activeSet) const { return gpr[activeSet].BC.b.l; }
-        cpcByte& D(int activeSet) { return gpr[activeSet].DE.b.h; }
-        const cpcByte& D(int activeSet) const { return gpr[activeSet].DE.b.h; }
-        cpcByte& E(int activeSet) { return gpr[activeSet].DE.b.l; }
-        const cpcByte& E(int activeSet) const { return gpr[activeSet].DE.b.l; }
-        cpcByte& H(int activeSet) { return gpr[activeSet].HL.b.h; }
-        const cpcByte& H(int activeSet) const { return gpr[activeSet].HL.b.h; }
-        cpcByte& L(int activeSet) { return gpr[activeSet].HL.b.l; }
-        const cpcByte& L(int activeSet) const { return gpr[activeSet].HL.b.l; }
+        // Handy methods to access 8-bit registers.
+        cpcByte& A() { return AF.b.h; }
+        const cpcByte& A() const { return AF.b.h; }
+        cpcByte& F() { return AF.b.l; }
+        const cpcByte& F() const { return AF.b.l; }
+        cpcByte& B() { return BC.b.h; }
+        const cpcByte& B() const { return BC.b.h; }
+        cpcByte& C() { return BC.b.l; }
+        const cpcByte& C() const { return BC.b.l; }
+        cpcByte& D() { return DE.b.h; }
+        const cpcByte& D() const { return DE.b.h; }
+        cpcByte& E() { return DE.b.l; }
+        const cpcByte& E() const { return DE.b.l; }
+        cpcByte& H() { return HL.b.h; }
+        const cpcByte& H() const { return HL.b.h; }
+        cpcByte& L() { return HL.b.l; }
+        const cpcByte& L() const { return HL.b.l; }
     };
 
     // Opcode prefixes.
@@ -179,7 +168,6 @@ namespace CPC {
     void                    Execute_09                ();
 
     Registers m_registers;
-    int m_activeGprSet;             // Index into the 'm_regs.gpr' array. Either 0 or 1.
     bool m_waitActive;
     unsigned m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
                                     // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.
