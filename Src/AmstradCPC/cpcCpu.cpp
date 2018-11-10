@@ -21,6 +21,13 @@ namespace CPC {
   {
     ResetVars();
 
+    m_opcodes[Prefix::None] = m_opcodesMain;
+    m_opcodes[Prefix::ED] = m_opcodesED;
+    m_opcodes[Prefix::CB] = m_opcodesCB;
+    m_opcodes[Prefix::DD] = m_opcodesDD;
+    m_opcodes[Prefix::DDCB] = m_opcodesDDCB;
+    m_opcodes[Prefix::FD] = m_opcodesFD;
+    m_opcodes[Prefix::FDCB] = m_opcodesFDCB;
   }
 
   //----------------------------------------------------------------------------
@@ -57,7 +64,7 @@ namespace CPC {
     m_registers.IM = 0;
 
     m_numCyclesAhead = 0;
-    m_opcodePrefix = OpcodePrefix::None;
+    m_prefix = Prefix::None;
   }
 
   //----------------------------------------------------------------------------
@@ -96,55 +103,24 @@ namespace CPC {
     //  * If it's a prefix, the next byte of the prefix is read and remembered.
     //  * If it's an opcode, the whole instruction (i.e. opcode plus operands) is fetched and executed.
 
-    // Read byte and increment PC.
-    cpcByte byte = ReadByteFromMemory(m_registers.PC.w);
-    m_registers.PC.w++;
-    // Determine whether it's a prefix or an opcode.
-    switch (byte)
-    {
-      case 0xED:
-      {
-        break;
-      }
-
-      case 0xCB:
-      {
-        if (m_opcodePrefix == OpcodePrefix::DD)         // If the previous byte was 0xDD...
-        {
-          m_opcodePrefix = OpcodePrefix::DDCB;
-        }
-        else if (m_opcodePrefix == OpcodePrefix::FD)    // If the previous byte was 0xFD...
-        {
-          m_opcodePrefix = OpcodePrefix::FDCB;
-        }
-        break;
-      }
-
-      case 0xDD:
-      {
-        break;
-      }
-
-      case 0xFD:
-      {
-        break;
-      }
-
-      default:
-      {
-        // We just read a non-prefix byte: assume it's an instruction.
-        break;
-      }
-    }
+    // Fetch opcode/prefix.
+    cpcByte opcode = FetchByte();
+    // Execute instruction or remember prefix.
+    OpcodeInfo* table = m_opcodes[m_prefix];
+    OpcodeInfo* opcodeInfo = &table[opcode];
+    std::invoke(opcodeInfo->microcodeFn, this);
   }
 
   //----------------------------------------------------------------------------
   /**
   **
   */
-  void CCpu::FetchOpcode()
+  cpcByte CCpu::FetchByte()
   {
-
+    // Read byte and increment PC.
+    cpcByte ret = ReadByteFromMemory(m_registers.PC.w);
+    m_registers.PC.w++;
+    return ret;
   }
 
   ////----------------------------------------------------------------------------
@@ -186,6 +162,29 @@ namespace CPC {
     // Read byte.
     ret = m_cpuInterface->ReadByteFromMemory(this, address);
     return ret;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  **
+  */
+  void CCpu::WriteByteToMemory(cpcWord address, cpcByte value)
+  {
+    //// Enter WAIT states while the /WAIT signal is active.
+    //SyncToWaitSignal();
+    // Write byte.
+    m_cpuInterface->WriteByteToMemory(this, address, value);
+  }
+
+  void CCpu::LD8_addrreg_valuereg(const Reg16& addressReg, cpcByte valueReg)
+  {
+      WriteByteToMemory(addressReg.w, valueReg);
+  }
+
+  void CCpu::LD16_reg_nn(Reg16* reg)
+  {
+    reg->b.l = FetchByte();
+    reg->b.h = FetchByte();
   }
 
 } //namespace CPC

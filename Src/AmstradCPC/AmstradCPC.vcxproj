@@ -76,6 +76,7 @@
   <ItemGroup>
     <ClCompile Include="cpcCpu.cpp" />
     <ClCompile Include="cpcCpuToCpcInterface.cpp" />
+    <ClCompile Include="cpcCpu_MainOpcodes.cpp" />
     <ClCompile Include="cpcCrtc.cpp" />
     <ClCompile Include="cpcDisk.cpp" />
     <ClCompile Include="cpcDiskDrive.cpp" />
