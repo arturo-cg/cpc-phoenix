@@ -109,23 +109,37 @@ namespace CPC {
         bool IFF2;              // Interrupt flip-flop 2.
         int IM;                 // Interrupt Mode.
 
-        // Handy methods to access 8-bit registers.
+        // 8-bit register accessor functions.
         cpcByte& A() { return AF.b.h; }
-        const cpcByte& A() const { return AF.b.h; }
         cpcByte& F() { return AF.b.l; }
-        const cpcByte& F() const { return AF.b.l; }
         cpcByte& B() { return BC.b.h; }
-        const cpcByte& B() const { return BC.b.h; }
         cpcByte& C() { return BC.b.l; }
-        const cpcByte& C() const { return BC.b.l; }
         cpcByte& D() { return DE.b.h; }
-        const cpcByte& D() const { return DE.b.h; }
         cpcByte& E() { return DE.b.l; }
-        const cpcByte& E() const { return DE.b.l; }
         cpcByte& H() { return HL.b.h; }
-        const cpcByte& H() const { return HL.b.h; }
         cpcByte& L() { return HL.b.l; }
+        const cpcByte& A() const { return AF.b.h; }
+        const cpcByte& F() const { return AF.b.l; }
+        const cpcByte& B() const { return BC.b.h; }
+        const cpcByte& C() const { return BC.b.l; }
+        const cpcByte& D() const { return DE.b.h; }
+        const cpcByte& E() const { return DE.b.l; }
+        const cpcByte& H() const { return HL.b.h; }
         const cpcByte& L() const { return HL.b.l; }
+        // Flag accessor functions.
+        enum Flag
+        {
+            Flag_S = 7,
+            Flag_Z = 6,
+            Flag_5 = 5,
+            Flag_H = 4,
+            Flag_3 = 3,
+            Flag_PV = 2,
+            Flag_N = 1,
+            Flag_C = 0,
+        };
+        void SetFlag(Flag flag, bool state) { AF.b.l = (state ? AF.b.l | (1 << flag) : AF.b.l & ~(1 << flag)); }
+        bool GetFlag(Flag flag) const { return ((AF.b.l & (1 << flag)) != 0); }
     };
 
     // Opcode prefixes.
@@ -153,8 +167,15 @@ namespace CPC {
     cpcByte                 ReadByteFromMemory        (cpcWord address);
     void                    WriteByteToMemory         (cpcWord address, cpcByte value);
 
+    void                    LD8_reg_n                 (cpcByte* byte);
     void                    LD8_addrreg_valuereg      (const Reg16& addressReg, cpcByte value);
     void                    LD16_reg_nn               (Reg16* reg);
+    void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
+    void                    INC8_reg                  (cpcByte* byte);
+    void                    DEC8_reg                  (cpcByte* byte);
+    void                    INC16_reg                 (Reg16* reg);
+    void                    RLC                       (cpcByte* byte);
+    void                    EX_reg_reg                (Reg16* a, Reg16* b);
 
     void                    Execute_00                ();
     void                    Execute_01                ();

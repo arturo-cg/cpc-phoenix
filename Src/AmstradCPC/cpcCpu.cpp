@@ -175,15 +175,86 @@ namespace CPC {
     m_cpuInterface->WriteByteToMemory(this, address, value);
   }
 
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+  // Instructions.
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+
+  void CCpu::LD8_reg_n(cpcByte* byte)
+  {
+    *byte = FetchByte();
+  }
+
   void CCpu::LD8_addrreg_valuereg(const Reg16& addressReg, cpcByte valueReg)
   {
       WriteByteToMemory(addressReg.w, valueReg);
+  }
+
+  void CCpu::INC8_reg(cpcByte* byte)
+  {
+      (*byte)++;
+      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, ((*byte) & 0x0F) == 0);
+      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, (*byte) == 0x80);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      // Registers::Flag_C unaffected.
+  }
+
+  void CCpu::DEC8_reg(cpcByte* byte)
+  {
+      (*byte)--;
+      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, ((*byte) & 0x0F) == 0x0F);
+      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, (*byte) == 0x7F);
+      m_registers.SetFlag(Registers::Flag_N, true);
+      // Registers::Flag_C unaffected.
   }
 
   void CCpu::LD16_reg_nn(Reg16* reg)
   {
     reg->b.l = FetchByte();
     reg->b.h = FetchByte();
+  }
+
+  void CCpu::ADD16_reg_reg(Reg16* a, Reg16 b)
+  {
+      m_registers.SetFlag(Registers::Flag_H, (((a->w & 0x0FFF) + (b.w & 0x0FFF)) & 0x1000) != 0);
+      a->w += b.w;
+      uint32_t longResult = uint32_t(a->w) + uint32_t(b.w);
+      m_registers.SetFlag(Registers::Flag_S, (a->w & 0x8000) != 0);                                     // TODO: Unclear if flag affected.
+      m_registers.SetFlag(Registers::Flag_Z, a->w == 0);                                                // TODO: Unclear if flag affected.
+      m_registers.SetFlag(Registers::Flag_5, (a->w & 0x2000) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (a->w & 0x0800) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, (longResult & 0x10000) != 0);
+  }
+
+  void CCpu::INC16_reg(Reg16* reg)
+  {
+      reg->w++;
+  }
+
+  void CCpu::RLC(cpcByte* byte)
+  {
+      bool msb = ((*byte) & 0x80) != 0;
+      *byte = ((*byte) << 1) | (msb ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, msb);
+  }
+
+  void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
+  {
+      std::swap(a->w, b->w);
   }
 
 } //namespace CPC

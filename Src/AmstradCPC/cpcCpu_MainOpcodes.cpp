@@ -34,30 +34,37 @@ namespace CPC {
 
   void CCpu::Execute_03()
   {
+      INC16_reg(&m_registers.BC);
   }
 
   void CCpu::Execute_04()
   {
+      INC8_reg(&m_registers.B());
   }
 
   void CCpu::Execute_05()
   {
+      DEC8_reg(&m_registers.B());
   }
 
   void CCpu::Execute_06()
   {
+      LD8_reg_n(&m_registers.B());
   }
 
   void CCpu::Execute_07()
   {
+      RLC(&m_registers.A());
   }
 
   void CCpu::Execute_08()
   {
+      EX_reg_reg(&m_registers.AF, &m_registers.altAF);
   }
 
   void CCpu::Execute_09()
   {
+      ADD16_reg_reg(&m_registers.HL, m_registers.BC);
   }
 
 } //namespace CPC
