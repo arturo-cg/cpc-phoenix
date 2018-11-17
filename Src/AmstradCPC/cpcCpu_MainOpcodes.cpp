@@ -15,6 +15,12 @@ namespace CPC {
     { &CCpu::Execute_07, false, "RLCA" },
     { &CCpu::Execute_08, false, "EX AF, AF'" },
     { &CCpu::Execute_09, false, "ADD HL, BC" },
+    { &CCpu::Execute_0A, false, "LD A,(BC)" },
+    { &CCpu::Execute_0B, false, "DEC BC" },
+    { &CCpu::Execute_0C, false, "INC C" },
+    { &CCpu::Execute_0D, false, "DEC C" },
+    { &CCpu::Execute_0E, false, "LD C, %n" },
+    { &CCpu::Execute_0F, false, "RRCA" },
   };
 
   void CCpu::Execute_00()
@@ -65,6 +71,36 @@ namespace CPC {
   void CCpu::Execute_09()
   {
       ADD16_reg_reg(&m_registers.HL, m_registers.BC);
+  }
+
+  void CCpu::Execute_0A()
+  {
+      LD8_reg_mem(&m_registers.A(), m_registers.BC);
+  }
+
+  void CCpu::Execute_0B()
+  {
+      DEC16_reg(&m_registers.BC);
+  }
+
+  void CCpu::Execute_0C()
+  {
+      INC8_reg(&m_registers.C());
+  }
+
+  void CCpu::Execute_0D()
+  {
+      DEC8_reg(&m_registers.C());
+  }
+
+  void CCpu::Execute_0E()
+  {
+      LD8_reg_n(&m_registers.C());
+  }
+
+  void CCpu::Execute_0F()
+  {
+      RRC(&m_registers.A());
   }
 
 } //namespace CPC

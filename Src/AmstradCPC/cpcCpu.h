@@ -168,13 +168,16 @@ namespace CPC {
     void                    WriteByteToMemory         (cpcWord address, cpcByte value);
 
     void                    LD8_reg_n                 (cpcByte* byte);
+    void                    LD8_reg_mem               (cpcByte* byte, const Reg16& addressReg);
     void                    LD8_addrreg_valuereg      (const Reg16& addressReg, cpcByte value);
     void                    LD16_reg_nn               (Reg16* reg);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);
     void                    INC16_reg                 (Reg16* reg);
+    void                    DEC16_reg                 (Reg16* reg);
     void                    RLC                       (cpcByte* byte);
+    void                    RRC                       (cpcByte* byte);
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
 
     void                    Execute_00                ();
@@ -187,6 +190,12 @@ namespace CPC {
     void                    Execute_07                ();
     void                    Execute_08                ();
     void                    Execute_09                ();
+    void                    Execute_0A                ();
+    void                    Execute_0B                ();
+    void                    Execute_0C                ();
+    void                    Execute_0D                ();
+    void                    Execute_0E                ();
+    void                    Execute_0F                ();
 
     Registers m_registers;
     bool m_waitActive;

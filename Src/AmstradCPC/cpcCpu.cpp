@@ -186,6 +186,11 @@ namespace CPC {
     *byte = FetchByte();
   }
 
+  void CCpu::LD8_reg_mem(cpcByte* byte, const Reg16& addressReg)
+  {
+      *byte = ReadByteFromMemory(addressReg.w);
+  }
+
   void CCpu::LD8_addrreg_valuereg(const Reg16& addressReg, cpcByte valueReg)
   {
       WriteByteToMemory(addressReg.w, valueReg);
@@ -217,6 +222,16 @@ namespace CPC {
       // Registers::Flag_C unaffected.
   }
 
+  void CCpu::INC16_reg(Reg16* reg)
+  {
+      reg->w++;
+  }
+
+  void CCpu::DEC16_reg(Reg16* reg)
+  {
+      reg->w--;
+  }
+
   void CCpu::LD16_reg_nn(Reg16* reg)
   {
     reg->b.l = FetchByte();
@@ -236,11 +251,6 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, (longResult & 0x10000) != 0);
   }
 
-  void CCpu::INC16_reg(Reg16* reg)
-  {
-      reg->w++;
-  }
-
   void CCpu::RLC(cpcByte* byte)
   {
       bool msb = ((*byte) & 0x80) != 0;
@@ -250,6 +260,17 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, msb);
+  }
+
+  void CCpu::RRC(cpcByte* byte)
+  {
+      bool lsb = ((*byte) & 0x01) != 0;
+      *byte = ((*byte) >> 1) | (lsb ? 0x80 : 0x00);
+      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, lsb);
   }
 
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
