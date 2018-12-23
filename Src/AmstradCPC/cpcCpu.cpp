@@ -183,7 +183,7 @@ namespace CPC {
 
   void CCpu::LD8_reg_n(cpcByte* byte)
   {
-    *byte = FetchByte();
+      *byte = FetchByte();
   }
 
   void CCpu::LD8_reg_mem(cpcByte* byte, const Reg16& addressReg)
@@ -273,9 +273,36 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, lsb);
   }
 
+  void CCpu::RL(cpcByte * byte)
+  {
+      bool msb = ((*byte) & 0x80) != 0;
+      *byte = ((*byte) << 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, msb);
+  }
+
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
   {
       std::swap(a->w, b->w);
+  }
+
+  void CCpu::JR_n()
+  {
+      cpcByte displacement = FetchByte();
+      m_registers.PC.w += displacement;
+  }
+
+  void CCpu::DJNZ_n()
+  {
+      cpcByte displacement = FetchByte();
+      m_registers.B()--;
+      if (m_registers.B() != 0)
+      {
+          m_registers.PC.w = m_registers.PC.w + displacement;
+      }
   }
 
 } //namespace CPC

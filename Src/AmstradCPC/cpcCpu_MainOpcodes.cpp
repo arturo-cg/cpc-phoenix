@@ -21,6 +21,16 @@ namespace CPC {
     { &CCpu::Execute_0D, false, "DEC C" },
     { &CCpu::Execute_0E, false, "LD C, %n" },
     { &CCpu::Execute_0F, false, "RRCA" },
+    { &CCpu::Execute_10, false, "DJNZ %n" },
+    { &CCpu::Execute_11, false, "LD DE, %nn" },
+    { &CCpu::Execute_12, false, "LD (DE), A" },
+    { &CCpu::Execute_13, false, "INC DE" },
+    { &CCpu::Execute_14, false, "INC D" },
+    { &CCpu::Execute_15, false, "DEC D" },
+    { &CCpu::Execute_16, false, "LD D, %n" },
+    { &CCpu::Execute_17, false, "RLA" },
+    { &CCpu::Execute_18, false, "JR %n" },
+    { &CCpu::Execute_19, false, "ADD HL, DE" },
   };
 
   void CCpu::Execute_00()
@@ -101,6 +111,56 @@ namespace CPC {
   void CCpu::Execute_0F()
   {
       RRC(&m_registers.A());
+  }
+
+  void CCpu::Execute_10()
+  {
+      DJNZ_n();
+  }
+
+  void CCpu::Execute_11()
+  {
+      LD16_reg_nn(&m_registers.DE);
+  }
+
+  void CCpu::Execute_12()
+  {
+      LD8_addrreg_valuereg(m_registers.DE, m_registers.A());
+  }
+
+  void CCpu::Execute_13()
+  {
+      INC16_reg(&m_registers.DE);
+  }
+
+  void CCpu::Execute_14()
+  {
+      INC8_reg(&m_registers.D());
+  }
+
+  void CCpu::Execute_15()
+  {
+      DEC8_reg(&m_registers.D());
+  }
+
+  void CCpu::Execute_16()
+  {
+      LD8_reg_n(&m_registers.D());
+  }
+
+  void CCpu::Execute_17()
+  {
+      RL(&m_registers.A());
+  }
+
+  void CCpu::Execute_18()
+  {
+      JR_n();
+  }
+
+  void CCpu::Execute_19()
+  {
+      ADD16_reg_reg(&m_registers.HL, m_registers.DE);
   }
 
 } //namespace CPC

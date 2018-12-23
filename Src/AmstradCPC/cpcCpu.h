@@ -178,7 +178,10 @@ namespace CPC {
     void                    DEC16_reg                 (Reg16* reg);
     void                    RLC                       (cpcByte* byte);
     void                    RRC                       (cpcByte* byte);
+    void                    RL                        (cpcByte* byte);
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
+    void                    JR_n                      ();
+    void                    DJNZ_n                    ();
 
     void                    Execute_00                ();
     void                    Execute_01                ();
@@ -196,6 +199,16 @@ namespace CPC {
     void                    Execute_0D                ();
     void                    Execute_0E                ();
     void                    Execute_0F                ();
+    void                    Execute_10                ();
+    void                    Execute_11                ();
+    void                    Execute_12                ();
+    void                    Execute_13                ();
+    void                    Execute_14                ();
+    void                    Execute_15                ();
+    void                    Execute_16                ();
+    void                    Execute_17                ();
+    void                    Execute_18                ();
+    void                    Execute_19                ();
 
     Registers m_registers;
     bool m_waitActive;
