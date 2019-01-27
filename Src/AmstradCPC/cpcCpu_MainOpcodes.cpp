@@ -31,6 +31,22 @@ namespace CPC {
     { &CCpu::Execute_17, false, "RLA" },
     { &CCpu::Execute_18, false, "JR %n" },
     { &CCpu::Execute_19, false, "ADD HL, DE" },
+    { &CCpu::Execute_1A, false, "LD A, (DE)" },
+    { &CCpu::Execute_1B, false, "DEC DE" },
+    { &CCpu::Execute_1C, false, "INC E" },
+    { &CCpu::Execute_1D, false, "DEC E" },
+    { &CCpu::Execute_1E, false, "LD E, %n" },
+    { &CCpu::Execute_1F, false, "RRA" },
+    { &CCpu::Execute_20, false, "JR NZ, %n" },
+    { &CCpu::Execute_21, false, "LD HL, %nn" },
+    { &CCpu::Execute_22, false, "LD (%nn), HL" },
+    { &CCpu::Execute_23, false, "INC HL" },
+    { &CCpu::Execute_24, false, "INC H" },
+    { &CCpu::Execute_25, false, "DEC H" },
+    { &CCpu::Execute_26, false, "LD H, %n" },
+    { &CCpu::Execute_27, false, "DAA" },
+    { &CCpu::Execute_28, false, "JR Z, %n" },
+    { &CCpu::Execute_29, false, "ADD HL, HL" },
   };
 
   void CCpu::Execute_00()
@@ -161,6 +177,86 @@ namespace CPC {
   void CCpu::Execute_19()
   {
       ADD16_reg_reg(&m_registers.HL, m_registers.DE);
+  }
+
+  void CCpu::Execute_1A()
+  {
+      LD8_reg_mem(&m_registers.A(), m_registers.DE);
+  }
+
+  void CCpu::Execute_1B()
+  {
+      DEC16_reg(&m_registers.DE);
+  }
+
+  void CCpu::Execute_1C()
+  {
+      INC8_reg(&m_registers.E());
+  }
+
+  void CCpu::Execute_1D()
+  {
+      DEC8_reg(&m_registers.E());
+  }
+
+  void CCpu::Execute_1E()
+  {
+      LD8_reg_n(&m_registers.E());
+  }
+
+  void CCpu::Execute_1F()
+  {
+      RR(&m_registers.A());
+  }
+
+  void CCpu::Execute_20()
+  {
+      JR_condition_n(!m_registers.GetFlag(Registers::Flag_Z));
+  }
+
+  void CCpu::Execute_21()
+  {
+      LD16_reg_nn(&m_registers.HL);
+  }
+
+  void CCpu::Execute_22()
+  {
+      LD16_addrnn_reg(m_registers.HL);
+  }
+
+  void CCpu::Execute_23()
+  {
+      INC16_reg(&m_registers.HL);
+  }
+
+  void CCpu::Execute_24()
+  {
+      INC8_reg(&m_registers.H());
+  }
+
+  void CCpu::Execute_25()
+  {
+      DEC8_reg(&m_registers.H());
+  }
+
+  void CCpu::Execute_26()
+  {
+      LD8_reg_n(&m_registers.H());
+  }
+
+  void CCpu::Execute_27()
+  {
+      DAA();
+  }
+
+  void CCpu::Execute_28()
+  {
+      JR_condition_n(m_registers.GetFlag(Registers::Flag_Z));
+  }
+
+  void CCpu::Execute_29()
+  {
+      ADD16_reg_reg(&m_registers.HL, m_registers.HL);
   }
 
 } //namespace CPC

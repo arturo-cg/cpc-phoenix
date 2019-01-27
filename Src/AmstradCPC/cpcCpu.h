@@ -171,16 +171,20 @@ namespace CPC {
     void                    LD8_reg_mem               (cpcByte* byte, const Reg16& addressReg);
     void                    LD8_addrreg_valuereg      (const Reg16& addressReg, cpcByte value);
     void                    LD16_reg_nn               (Reg16* reg);
+    void                    LD16_addrnn_reg           (const Reg16& value);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);
     void                    INC16_reg                 (Reg16* reg);
     void                    DEC16_reg                 (Reg16* reg);
-    void                    RLC                       (cpcByte* byte);
-    void                    RRC                       (cpcByte* byte);
+    void                    DAA                       ();
     void                    RL                        (cpcByte* byte);
+    void                    RLC                       (cpcByte* byte);
+    void                    RR                        (cpcByte* byte);
+    void                    RRC                       (cpcByte* byte);
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
     void                    JR_n                      ();
+    void                    JR_condition_n            (bool condition);
     void                    DJNZ_n                    ();
 
     void                    Execute_00                ();
@@ -209,6 +213,22 @@ namespace CPC {
     void                    Execute_17                ();
     void                    Execute_18                ();
     void                    Execute_19                ();
+    void                    Execute_1A                ();
+    void                    Execute_1B                ();
+    void                    Execute_1C                ();
+    void                    Execute_1D                ();
+    void                    Execute_1E                ();
+    void                    Execute_1F                ();
+    void                    Execute_20                ();
+    void                    Execute_21                ();
+    void                    Execute_22                ();
+    void                    Execute_23                ();
+    void                    Execute_24                ();
+    void                    Execute_25                ();
+    void                    Execute_26                ();
+    void                    Execute_27                ();
+    void                    Execute_28                ();
+    void                    Execute_29                ();
 
     Registers m_registers;
     bool m_waitActive;

@@ -232,23 +232,82 @@ namespace CPC {
       reg->w--;
   }
 
+  void CCpu::DAA()
+  {
+      int tmp = m_registers.A();
+
+      if (!m_registers.GetFlag(Registers::Flag_N))
+      {
+          if (m_registers.GetFlag(Registers::Flag_H) || (tmp & 0x0F) > 9)
+          {
+              tmp += 6;
+          }
+          if (m_registers.GetFlag(Registers::Flag_C) || tmp > 0x9F)
+          {
+              tmp += 0x60;
+          }
+      }
+      else
+      {
+          if (m_registers.GetFlag(Registers::Flag_H))
+          {
+              tmp -= 6;
+              if (!m_registers.GetFlag(Registers::Flag_C))
+              {
+                  tmp &= 0xFF;
+              }
+          }
+          if (m_registers.GetFlag(Registers::Flag_C))
+          {
+              tmp -= 0x60;
+          }
+      }
+      m_registers.SetFlag(Registers::Flag_H, false);
+      if (tmp & 0x100)
+      {
+          m_registers.SetFlag(Registers::Flag_C, true);
+      }
+      m_registers.A() = tmp & 0xFF;
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+  }
+
   void CCpu::LD16_reg_nn(Reg16* reg)
   {
     reg->b.l = FetchByte();
     reg->b.h = FetchByte();
   }
 
+  void CCpu::LD16_addrnn_reg(const Reg16& value)
+  {
+      Reg16 address;
+      address.b.h = FetchByte();
+      address.b.l = FetchByte();
+      WriteByteToMemory(address.w, value.b.h);
+      WriteByteToMemory(address.w + 1, value.b.l);
+  }
+
   void CCpu::ADD16_reg_reg(Reg16* a, Reg16 b)
   {
       m_registers.SetFlag(Registers::Flag_H, (((a->w & 0x0FFF) + (b.w & 0x0FFF)) & 0x1000) != 0);
-      a->w += b.w;
       uint32_t longResult = uint32_t(a->w) + uint32_t(b.w);
+      a->w += b.w;
       m_registers.SetFlag(Registers::Flag_S, (a->w & 0x8000) != 0);                                     // TODO: Unclear if flag affected.
       m_registers.SetFlag(Registers::Flag_Z, a->w == 0);                                                // TODO: Unclear if flag affected.
       m_registers.SetFlag(Registers::Flag_5, (a->w & 0x2000) != 0);
       m_registers.SetFlag(Registers::Flag_3, (a->w & 0x0800) != 0);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, (longResult & 0x10000) != 0);
+  }
+
+  void CCpu::RL(cpcByte* byte)
+  {
+      bool msb = ((*byte) & 0x80) != 0;
+      *byte = ((*byte) << 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, msb);
   }
 
   void CCpu::RLC(cpcByte* byte)
@@ -262,6 +321,17 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, msb);
   }
 
+  void CCpu::RR(cpcByte* byte)
+  {
+      bool lsb = ((*byte) & 0x01) != 0;
+      *byte = ((*byte) >> 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x80 : 0x00);
+      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, lsb);
+  }
+
   void CCpu::RRC(cpcByte* byte)
   {
       bool lsb = ((*byte) & 0x01) != 0;
@@ -273,17 +343,6 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, lsb);
   }
 
-  void CCpu::RL(cpcByte * byte)
-  {
-      bool msb = ((*byte) & 0x80) != 0;
-      *byte = ((*byte) << 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x01 : 0x00);
-      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
-      m_registers.SetFlag(Registers::Flag_H, false);
-      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
-      m_registers.SetFlag(Registers::Flag_N, false);
-      m_registers.SetFlag(Registers::Flag_C, msb);
-  }
-
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
   {
       std::swap(a->w, b->w);
@@ -293,6 +352,15 @@ namespace CPC {
   {
       cpcByte displacement = FetchByte();
       m_registers.PC.w += displacement;
+  }
+
+  void CCpu::JR_condition_n(bool condition)
+  {
+      cpcByte displacement = FetchByte();
+      if (condition)
+      {
+          m_registers.PC.w = m_registers.PC.w + displacement;
+      }
   }
 
   void CCpu::DJNZ_n()
