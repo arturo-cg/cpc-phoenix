@@ -196,6 +196,11 @@ namespace CPC {
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
 
+  void CCpu::LD8_reg_reg(cpcByte* dest, cpcByte value)
+  {
+      *dest = value;
+  }
+
   void CCpu::LD8_reg_n(cpcByte* byte)
   {
       *byte = FetchByte();
@@ -209,6 +214,25 @@ namespace CPC {
   void CCpu::LD8_addrreg_valuereg(const Reg16& addressReg, cpcByte valueReg)
   {
       WriteByteToMemory(addressReg.w, valueReg);
+  }
+
+  void CCpu::LD8_addrreg_n(const Reg16& addressReg)
+  {
+      cpcByte value = FetchByte();
+      WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::LD8_addrnn_reg(cpcByte value)
+  {
+      Reg16 address;
+      address.b.l = FetchByte();
+      address.b.h = FetchByte();
+      WriteByteToMemory(address.w, value);
+  }
+
+  void CCpu::LD8_reg_addrreg(cpcByte* dest, const Reg16& addressReg)
+  {
+      *dest = ReadByteFromMemory(addressReg.w);
   }
 
   void CCpu::INC8_reg(cpcByte* byte)
@@ -237,6 +261,20 @@ namespace CPC {
       // Registers::Flag_C unaffected.
   }
 
+  void CCpu::INC8_addrreg(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w);
+      INC8_reg(&value);
+      WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::DEC8_addrreg(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w);
+      DEC8_reg(&value);
+      WriteByteToMemory(addressReg.w, value);
+  }
+
   void CCpu::INC16_reg(Reg16* reg)
   {
       reg->w++;
@@ -245,6 +283,15 @@ namespace CPC {
   void CCpu::DEC16_reg(Reg16* reg)
   {
       reg->w--;
+  }
+
+  void CCpu::CPL()
+  {
+      m_registers.A() = ~m_registers.A();
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, true);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, true);
   }
 
   void CCpu::DAA()
@@ -295,10 +342,19 @@ namespace CPC {
   void CCpu::LD16_addrnn_reg(const Reg16& value)
   {
       Reg16 address;
-      address.b.h = FetchByte();
       address.b.l = FetchByte();
-      WriteByteToMemory(address.w, value.b.h);
-      WriteByteToMemory(address.w + 1, value.b.l);
+      address.b.h = FetchByte();
+      WriteByteToMemory(address.w, value.b.l);
+      WriteByteToMemory(address.w + 1, value.b.h);
+  }
+
+  void CCpu::LD16_reg_addrnn(Reg16* reg)
+  {
+      Reg16 address;
+      address.b.l = FetchByte();
+      address.b.h = FetchByte();
+      reg->b.l = ReadByteFromMemory(address.w);
+      reg->b.h = ReadByteFromMemory(address.w + 1);
   }
 
   void CCpu::ADD16_reg_reg(Reg16* a, Reg16 b)
@@ -361,6 +417,15 @@ namespace CPC {
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
   {
       std::swap(a->w, b->w);
+  }
+
+  void CCpu::SCF()
+  {
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, true);
   }
 
   void CCpu::JR_n()
