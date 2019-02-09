@@ -13,6 +13,21 @@
 
 namespace CPC {
 
+  CCpu::OpcodeInfo CCpu::m_opcodesMain[256] = {
+
+    // This yields something similar to this:
+    //
+    // { &CCpu::Execute_00, false, "NOP" },
+    // { &CCpu::Execute_01, false, "LD BC, %nn" },
+    // { &CCpu::Execute_02, false, "LD (BC), A" },
+    // { &CCpu::Execute_03, false, "INC BC" },
+    // ...
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#include "cpcCpu_MainOpcodes.h"
+#undef Z80_OPCODE
+
+  };
+
   //----------------------------------------------------------------------------
   /**
   ** 

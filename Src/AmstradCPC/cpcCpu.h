@@ -187,49 +187,6 @@ namespace CPC {
     void                    JR_condition_n            (bool condition);
     void                    DJNZ_n                    ();
 
-    void                    Execute_00                ();
-    void                    Execute_01                ();
-    void                    Execute_02                ();
-    void                    Execute_03                ();
-    void                    Execute_04                ();
-    void                    Execute_05                ();
-    void                    Execute_06                ();
-    void                    Execute_07                ();
-    void                    Execute_08                ();
-    void                    Execute_09                ();
-    void                    Execute_0A                ();
-    void                    Execute_0B                ();
-    void                    Execute_0C                ();
-    void                    Execute_0D                ();
-    void                    Execute_0E                ();
-    void                    Execute_0F                ();
-    void                    Execute_10                ();
-    void                    Execute_11                ();
-    void                    Execute_12                ();
-    void                    Execute_13                ();
-    void                    Execute_14                ();
-    void                    Execute_15                ();
-    void                    Execute_16                ();
-    void                    Execute_17                ();
-    void                    Execute_18                ();
-    void                    Execute_19                ();
-    void                    Execute_1A                ();
-    void                    Execute_1B                ();
-    void                    Execute_1C                ();
-    void                    Execute_1D                ();
-    void                    Execute_1E                ();
-    void                    Execute_1F                ();
-    void                    Execute_20                ();
-    void                    Execute_21                ();
-    void                    Execute_22                ();
-    void                    Execute_23                ();
-    void                    Execute_24                ();
-    void                    Execute_25                ();
-    void                    Execute_26                ();
-    void                    Execute_27                ();
-    void                    Execute_28                ();
-    void                    Execute_29                ();
-
     Registers m_registers;
     bool m_waitActive;
     unsigned m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
@@ -246,6 +203,14 @@ namespace CPC {
     static OpcodeInfo m_opcodesDDCB[256];
     static OpcodeInfo m_opcodesFD[256];
     static OpcodeInfo m_opcodesFDCB[256];
+
+    // Define all the opcodes' micro-code functions.
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+    void Execute_##_num() \
+        _microCode
+
+#include "cpcCpu_MainOpcodes.h"
+#undef Z80_OPCODE
 
   };
 
