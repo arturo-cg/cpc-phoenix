@@ -190,6 +190,7 @@ namespace CPC {
     void                    RLC                       (cpcByte* byte);
     void                    RR                        (cpcByte* byte);
     void                    RRC                       (cpcByte* byte);
+    void                    HALT                      ();
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
     void                    SCF                       ();
     void                    JR_n                      ();
@@ -197,6 +198,7 @@ namespace CPC {
     void                    DJNZ_n                    ();
 
     Registers m_registers;
+    bool m_inHalt;
     bool m_waitActive;
     unsigned m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
                                     // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.

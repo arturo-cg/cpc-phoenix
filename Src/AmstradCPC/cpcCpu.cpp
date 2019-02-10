@@ -79,6 +79,7 @@ namespace CPC {
 
     m_numCyclesAhead = 0;
     m_prefix = Prefix::None;
+    m_inHalt = false;
   }
 
   //----------------------------------------------------------------------------
@@ -117,8 +118,8 @@ namespace CPC {
     //  * If it's a prefix, the next byte of the prefix is read and remembered.
     //  * If it's an opcode, the whole instruction (i.e. opcode plus operands) is fetched and executed.
 
-    // Fetch opcode/prefix.
-    cpcByte opcode = FetchByte();
+    // Fetch opcode/prefix, or execute a NOP instruction if in HALT state.
+    cpcByte opcode = (m_inHalt ? 0x00/*NOP*/ : FetchByte());
     // Execute instruction or remember prefix.
     OpcodeInfo* table = m_opcodes[m_prefix];
     OpcodeInfo* opcodeInfo = &table[opcode];
@@ -412,6 +413,11 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, lsb);
+  }
+
+  void CCpu::HALT()
+  {
+      m_inHalt = true;
   }
 
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
