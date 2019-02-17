@@ -129,14 +129,14 @@ namespace CPC {
         // Flag accessor functions.
         enum Flag
         {
-            Flag_S = 7,
-            Flag_Z = 6,
-            Flag_5 = 5,
-            Flag_H = 4,
-            Flag_3 = 3,
-            Flag_PV = 2,
-            Flag_N = 1,
-            Flag_C = 0,
+            Flag_S = 7,     // Sign
+            Flag_Z = 6,     // Zero
+            Flag_5 = 5,     // Undocumented - Copy of bit 5
+            Flag_H = 4,     // Half carry
+            Flag_3 = 3,     // Undocumented - Copy of bit 3
+            Flag_PV = 2,    // Parity/Overflow
+            Flag_N = 1,     // Subtraction
+            Flag_C = 0,     // Carry
         };
         void SetFlag(Flag flag, bool state) { AF.b.l = (state ? AF.b.l | (1 << flag) : AF.b.l & ~(1 << flag)); }
         bool GetFlag(Flag flag) const { return ((AF.b.l & (1 << flag)) != 0); }
@@ -177,6 +177,8 @@ namespace CPC {
     void                    LD16_reg_nn               (Reg16* reg);
     void                    LD16_addrnn_reg           (const Reg16& value);
     void                    LD16_reg_addrnn           (Reg16* reg);
+    void                    ADD8_reg_reg              (cpcByte* a, cpcByte b);
+    void                    ADD8_reg_addrreg          (cpcByte* a, const Reg16& addressReg);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);
