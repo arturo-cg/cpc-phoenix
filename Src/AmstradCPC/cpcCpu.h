@@ -177,8 +177,8 @@ namespace CPC {
     void                    LD16_reg_nn               (Reg16* reg);
     void                    LD16_addrnn_reg           (const Reg16& value);
     void                    LD16_reg_addrnn           (Reg16* reg);
-    void                    ADD8_reg_reg              (cpcByte* a, cpcByte b);
-    void                    ADD8_reg_addrreg          (cpcByte* a, const Reg16& addressReg);
+    void                    ADD8_reg_reg              (cpcByte* a, cpcByte b, cpcByte carry);
+    void                    ADD8_reg_addrreg          (cpcByte* a, const Reg16& addressReg, cpcByte carry);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);

@@ -358,26 +358,26 @@ namespace CPC {
       reg->b.h = ReadByteFromMemory(address.w + 1);
   }
 
-  void CCpu::ADD8_reg_reg(cpcByte* a, cpcByte b)
+  void CCpu::ADD8_reg_reg(cpcByte* a, cpcByte b, cpcByte carry)
   {
       cpcByte oldA = *a;
-      *a = *a + b;
+      *a = *a + b + carry;
       m_registers.SetFlag(Registers::Flag_S, ((*a) & 0x80) != 0);
       m_registers.SetFlag(Registers::Flag_Z, (*a) == 0);
       m_registers.SetFlag(Registers::Flag_5, ((*a) & 0x20) != 0);
-      m_registers.SetFlag(Registers::Flag_H, (cpcWord(oldA & 0x0F) + cpcWord(b & 0x0F)) > 0x0F);
+      m_registers.SetFlag(Registers::Flag_H, (cpcWord(oldA & 0x0F) + cpcWord(b & 0x0F) + cpcWord(carry)) > 0x0F);
       m_registers.SetFlag(Registers::Flag_3, ((*a) & 0x08) != 0);
       // Overflow happens when adding two numbers with the same sign and the result has a different sign.
       // See: http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
-      m_registers.SetFlag(Registers::Flag_PV, (((~(oldA ^ b)) & (oldA ^ *a)) & 0x80) != 0);  // Overflow set if a and b have same sign, and result has different sign.
+      m_registers.SetFlag(Registers::Flag_PV, (((~(oldA ^ b)) & (oldA ^ *a)) & 0x80) != 0);  // Have a and b same sign, and result different sign?
       m_registers.SetFlag(Registers::Flag_N, false);
-      m_registers.SetFlag(Registers::Flag_C, (cpcWord(oldA) + cpcWord(b)) > 0xFF);
+      m_registers.SetFlag(Registers::Flag_C, (cpcWord(oldA) + cpcWord(b) + cpcWord(carry)) > 0xFF);
 }
 
-  void CCpu::ADD8_reg_addrreg(cpcByte* a, const Reg16& addressReg)
+  void CCpu::ADD8_reg_addrreg(cpcByte* a, const Reg16& addressReg, cpcByte carry)
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
-      ADD8_reg_reg(a, b);
+      ADD8_reg_reg(a, b, carry);
   }
 
   void CCpu::ADD16_reg_reg(Reg16* a, Reg16 b)
