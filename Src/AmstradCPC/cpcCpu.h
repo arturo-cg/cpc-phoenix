@@ -180,6 +180,8 @@ namespace CPC {
     void                    ADD8_reg_reg              (cpcByte* a, cpcByte b, cpcByte carry);
     void                    ADD8_reg_addrreg          (cpcByte* a, const Reg16& addressReg, cpcByte carry);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
+    void                    SUB8_reg_reg              (cpcByte b, cpcByte borrow);
+    void                    SUB8_reg_addrreg          (const Reg16& addressReg, cpcByte borrow);
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);
     void                    INC8_addrreg              (const Reg16& addressReg);

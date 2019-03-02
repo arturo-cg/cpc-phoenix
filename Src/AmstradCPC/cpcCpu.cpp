@@ -365,14 +365,14 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_S, ((*a) & 0x80) != 0);
       m_registers.SetFlag(Registers::Flag_Z, (*a) == 0);
       m_registers.SetFlag(Registers::Flag_5, ((*a) & 0x20) != 0);
-      m_registers.SetFlag(Registers::Flag_H, (cpcWord(oldA & 0x0F) + cpcWord(b & 0x0F) + cpcWord(carry)) > 0x0F);
+      m_registers.SetFlag(Registers::Flag_H, ((oldA & 0x0F) + (b & 0x0F) + carry) > 0x0F);
       m_registers.SetFlag(Registers::Flag_3, ((*a) & 0x08) != 0);
       // Overflow happens when adding two numbers with the same sign and the result has a different sign.
       // See: http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
       m_registers.SetFlag(Registers::Flag_PV, (((~(oldA ^ b)) & (oldA ^ *a)) & 0x80) != 0);  // Have a and b same sign, and result different sign?
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, (cpcWord(oldA) + cpcWord(b) + cpcWord(carry)) > 0xFF);
-}
+  }
 
   void CCpu::ADD8_reg_addrreg(cpcByte* a, const Reg16& addressReg, cpcByte carry)
   {
@@ -391,6 +391,26 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_3, (a->w & 0x0800) != 0);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, (longResult & 0x10000) != 0);
+  }
+
+  void CCpu::SUB8_reg_reg(cpcByte b, cpcByte borrow)
+  {
+      cpcByte oldA = m_registers.A();
+      m_registers.A() = m_registers.A() - b - borrow;
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, ((oldA & 0x0F) < ((b & 0x0F) + borrow)));
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, ((((oldA ^ b)) & (oldA ^ m_registers.A())) & 0x80) != 0);  // Have a and b different sign, and result different sign?
+      m_registers.SetFlag(Registers::Flag_N, true);
+      m_registers.SetFlag(Registers::Flag_C, oldA < (b + borrow));
+  }
+  
+  void CCpu::SUB8_reg_addrreg(const Reg16& addressReg, cpcByte borrow)
+  {
+      cpcByte b = ReadByteFromMemory(addressReg.w);
+      SUB8_reg_reg(b, borrow);
   }
 
   void CCpu::RL(cpcByte* byte)
