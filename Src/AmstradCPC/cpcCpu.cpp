@@ -28,6 +28,30 @@ namespace CPC {
 
   };
 
+  CCpu::StaticInitializer CCpu::s_staticInitializer;
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  CCpu::StaticInitializer::StaticInitializer()
+  {
+      // Parity look-up table.
+      for (int i = 0; i < 256; i++)
+      {
+          bool parity = false;
+          if ((i & 0x01) != 0)  parity = !parity;
+          if ((i & 0x02) != 0)  parity = !parity;
+          if ((i & 0x04) != 0)  parity = !parity;
+          if ((i & 0x08) != 0)  parity = !parity;
+          if ((i & 0x10) != 0)  parity = !parity;
+          if ((i & 0x20) != 0)  parity = !parity;
+          if ((i & 0x40) != 0)  parity = !parity;
+          if ((i & 0x80) != 0)  parity = !parity;
+          s_parity[i] = parity;
+      }
+  }
+
   //----------------------------------------------------------------------------
   /**
   ** 
@@ -286,6 +310,44 @@ namespace CPC {
       reg->w--;
   }
 
+  void CCpu::AND_reg(cpcByte b)
+  {
+      m_registers.A() &= b;
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, true);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[m_registers.A()]);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, false);
+  }
+
+  void CCpu::AND_addrreg(const Reg16& addressReg)
+  {
+      cpcByte b = ReadByteFromMemory(addressReg.w);
+      AND_reg(b);
+  }
+
+  void CCpu::XOR_reg(cpcByte b)
+  {
+      m_registers.A() ^= b;
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, true);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[m_registers.A()]);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, false);
+  }
+
+  void CCpu::XOR_addrreg(const Reg16& addressReg)
+  {
+      cpcByte b = ReadByteFromMemory(addressReg.w);
+      XOR_reg(b);
+  }
+
   void CCpu::CPL()
   {
       m_registers.A() = ~m_registers.A();
@@ -393,7 +455,7 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, (longResult & 0x10000) != 0);
   }
 
-  void CCpu::SUB8_reg_reg(cpcByte b, cpcByte borrow)
+  void CCpu::SUB8_reg(cpcByte b, cpcByte borrow)
   {
       cpcByte oldA = m_registers.A();
       m_registers.A() = m_registers.A() - b - borrow;
@@ -407,10 +469,10 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, oldA < (b + borrow));
   }
   
-  void CCpu::SUB8_reg_addrreg(const Reg16& addressReg, cpcByte borrow)
+  void CCpu::SUB8_addrreg(const Reg16& addressReg, cpcByte borrow)
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
-      SUB8_reg_reg(b, borrow);
+      SUB8_reg(b, borrow);
   }
 
   void CCpu::RL(cpcByte* byte)

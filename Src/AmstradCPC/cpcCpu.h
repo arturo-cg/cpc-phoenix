@@ -156,6 +156,16 @@ namespace CPC {
       Count
     };
 
+    class StaticInitializer
+    {
+    public:
+        StaticInitializer();
+    };
+
+    static StaticInitializer s_staticInitializer;
+    static bool s_parity[256];      // True = even, false = odd.
+
+
     void                    ResetVars                 ();
     void                    FreeVars                  ();
 
@@ -180,14 +190,18 @@ namespace CPC {
     void                    ADD8_reg_reg              (cpcByte* a, cpcByte b, cpcByte carry);
     void                    ADD8_reg_addrreg          (cpcByte* a, const Reg16& addressReg, cpcByte carry);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
-    void                    SUB8_reg_reg              (cpcByte b, cpcByte borrow);
-    void                    SUB8_reg_addrreg          (const Reg16& addressReg, cpcByte borrow);
+    void                    SUB8_reg                  (cpcByte b, cpcByte borrow);
+    void                    SUB8_addrreg              (const Reg16& addressReg, cpcByte borrow);
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);
     void                    INC8_addrreg              (const Reg16& addressReg);
     void                    DEC8_addrreg              (const Reg16& addressReg);
     void                    INC16_reg                 (Reg16* reg);
     void                    DEC16_reg                 (Reg16* reg);
+    void                    AND_reg                   (cpcByte b);
+    void                    AND_addrreg               (const Reg16& addressReg);
+    void                    XOR_reg                   (cpcByte b);
+    void                    XOR_addrreg               (const Reg16& addressReg);
     void                    CPL                       ();
     void                    DAA                       ();
     void                    RL                        (cpcByte* byte);
