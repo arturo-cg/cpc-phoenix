@@ -329,13 +329,32 @@ namespace CPC {
       AND_reg(b);
   }
 
+  void CCpu::OR_reg(cpcByte b)
+  {
+      m_registers.A() |= b;
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[m_registers.A()]);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, false);
+  }
+
+  void CCpu::OR_addrreg(const Reg16& addressReg)
+  {
+      cpcByte b = ReadByteFromMemory(addressReg.w);
+      OR_reg(b);
+  }
+
   void CCpu::XOR_reg(cpcByte b)
   {
       m_registers.A() ^= b;
       m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
       m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
       m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
-      m_registers.SetFlag(Registers::Flag_H, true);
+      m_registers.SetFlag(Registers::Flag_H, false);
       m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
       m_registers.SetFlag(Registers::Flag_PV, s_parity[m_registers.A()]);
       m_registers.SetFlag(Registers::Flag_N, false);

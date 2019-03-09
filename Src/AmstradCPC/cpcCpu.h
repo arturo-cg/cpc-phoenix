@@ -200,6 +200,8 @@ namespace CPC {
     void                    DEC16_reg                 (Reg16* reg);
     void                    AND_reg                   (cpcByte b);
     void                    AND_addrreg               (const Reg16& addressReg);
+    void                    OR_reg                    (cpcByte b);
+    void                    OR_addrreg                (const Reg16& addressReg);
     void                    XOR_reg                   (cpcByte b);
     void                    XOR_addrreg               (const Reg16& addressReg);
     void                    CPL                       ();
