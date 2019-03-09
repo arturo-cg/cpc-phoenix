@@ -213,6 +213,8 @@ namespace CPC {
     void                    HALT                      ();
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
     void                    SCF                       ();
+    void                    CP_reg                    (cpcByte b);
+    void                    CP_addrreg                (const Reg16& addressReg);
     void                    JR_n                      ();
     void                    JR_condition_n            (bool condition);
     void                    DJNZ_n                    ();

@@ -557,6 +557,25 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, true);
   }
 
+  void CCpu::CP_reg(cpcByte b)
+  {
+      cpcByte result = m_registers.A() - b;
+      m_registers.SetFlag(Registers::Flag_S, (result & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, result == 0);
+      m_registers.SetFlag(Registers::Flag_5, (b & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, ((m_registers.A() & 0x0F) < (b & 0x0F)));
+      m_registers.SetFlag(Registers::Flag_3, (b & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, ((((m_registers.A() ^ b)) & (m_registers.A() ^ result)) & 0x80) != 0);  // Have a and b different sign, and result different sign?
+      m_registers.SetFlag(Registers::Flag_N, true);
+      m_registers.SetFlag(Registers::Flag_C, m_registers.A() < b);
+  }
+
+  void CCpu::CP_addrreg(const Reg16& addressReg)
+  {
+      cpcByte b = ReadByteFromMemory(addressReg.w);
+      CP_reg(b);
+  }
+
   void CCpu::JR_n()
   {
       cpcByte displacement = FetchByte();
