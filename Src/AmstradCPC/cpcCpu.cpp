@@ -216,6 +216,30 @@ namespace CPC {
   }
 
   //----------------------------------------------------------------------------
+  /**
+  **
+  */
+  void CCpu::Push(const Reg16& value)
+  {
+      m_registers.SP.w--;
+      WriteByteToMemory(m_registers.SP.w, value.b.h);
+      m_registers.SP.w--;
+      WriteByteToMemory(m_registers.SP.w, value.b.l);
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  **
+  */
+  void CCpu::Pop(Reg16* value)
+  {
+      value->b.l = ReadByteFromMemory(m_registers.SP.w);
+      m_registers.SP.w++;
+      value->b.h = ReadByteFromMemory(m_registers.SP.w);
+      m_registers.SP.w++;
+  }
+
+  //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
   // Instructions.
   //----------------------------------------------------------------------------
@@ -455,6 +479,12 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, (cpcWord(oldA) + cpcWord(b) + cpcWord(carry)) > 0xFF);
   }
 
+  void CCpu::ADD8_reg_n(cpcByte* a, cpcByte carry)
+  {
+      cpcByte b = FetchByte();
+      ADD8_reg_reg(a, b, carry);
+  }
+
   void CCpu::ADD8_reg_addrreg(cpcByte* a, const Reg16& addressReg, cpcByte carry)
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
@@ -574,6 +604,82 @@ namespace CPC {
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
       CP_reg(b);
+  }
+
+  void CCpu::PUSH(const Reg16& value)
+  {
+      Push(value);
+  }
+
+  void CCpu::POP(Reg16* value)
+  {
+      Pop(value);
+  }
+
+  void CCpu::CALL_nn()
+  {
+      Reg16 newPC;
+      newPC.b.l = FetchByte();
+      newPC.b.h = FetchByte();
+      // Push current PC value onto stack.
+      Push(m_registers.PC);
+      // Set new PC value.
+      m_registers.PC = newPC;
+  }
+
+  void CCpu::CALL_condition_nn(bool condition)
+  {
+      Reg16 newPC;
+      newPC.b.l = FetchByte();
+      newPC.b.h = FetchByte();
+      if (condition)
+      {
+          // Push current PC value onto stack.
+          Push(m_registers.PC);
+          // Set new PC value.
+          m_registers.PC = newPC;
+      }
+  }
+
+  void CCpu::RST_p(cpcByte p)
+  {
+      // Push current PC value onto stack.
+      Push(m_registers.PC);
+      // Set new PC value.
+      m_registers.PC.b.h = 0;
+      m_registers.PC.b.l = p;
+  }
+
+  void CCpu::RET()
+  {
+      Pop(&m_registers.PC);
+  }
+
+  void CCpu::RET_condition(bool condition)
+  {
+      if (condition)
+      {
+          Pop(&m_registers.PC);
+      }
+  }
+
+  void CCpu::JP_nn()
+  {
+      Reg16 address;
+      address.b.l = FetchByte();
+      address.b.h = FetchByte();
+      m_registers.PC = address;
+  }
+
+  void CCpu::JP_condition_nn(bool condition)
+  {
+      Reg16 address;
+      address.b.l = FetchByte();
+      address.b.h = FetchByte();
+      if (condition)
+      {
+          m_registers.PC = address;
+      }
   }
 
   void CCpu::JR_n()

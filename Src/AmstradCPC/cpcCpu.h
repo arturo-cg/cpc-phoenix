@@ -177,6 +177,9 @@ namespace CPC {
     cpcByte                 ReadByteFromMemory        (cpcWord address);
     void                    WriteByteToMemory         (cpcWord address, cpcByte value);
 
+    void                    Push                      (const Reg16& value);
+    void                    Pop                       (Reg16* value);
+
     void                    LD8_reg_reg               (cpcByte* dest, cpcByte value);
     void                    LD8_reg_n                 (cpcByte* byte);
     void                    LD8_reg_mem               (cpcByte* byte, const Reg16& addressReg);
@@ -188,6 +191,7 @@ namespace CPC {
     void                    LD16_addrnn_reg           (const Reg16& value);
     void                    LD16_reg_addrnn           (Reg16* reg);
     void                    ADD8_reg_reg              (cpcByte* a, cpcByte b, cpcByte carry);
+    void                    ADD8_reg_n                (cpcByte* a, cpcByte carry);
     void                    ADD8_reg_addrreg          (cpcByte* a, const Reg16& addressReg, cpcByte carry);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
     void                    SUB8_reg                  (cpcByte b, cpcByte borrow);
@@ -215,6 +219,15 @@ namespace CPC {
     void                    SCF                       ();
     void                    CP_reg                    (cpcByte b);
     void                    CP_addrreg                (const Reg16& addressReg);
+    void                    PUSH                      (const Reg16& value);
+    void                    POP                       (Reg16* value);
+    void                    CALL_nn                   ();
+    void                    CALL_condition_nn         (bool condition);
+    void                    RST_p                     (cpcByte p);
+    void                    RET                       ();
+    void                    RET_condition             (bool condition);
+    void                    JP_nn                     ();
+    void                    JP_condition_nn           (bool condition);
     void                    JR_n                      ();
     void                    JR_condition_n            (bool condition);
     void                    DJNZ_n                    ();
