@@ -174,6 +174,8 @@ namespace CPC {
     //void                    AdvanceTStates            (int numTStates);
     //void                    SyncToWaitSignal          ();
 
+    void                    ProcessPrefixByte         (cpcByte prefixByte);
+
     cpcByte                 ReadByteFromMemory        (cpcWord address);
     void                    WriteByteToMemory         (cpcWord address, cpcByte value);
 

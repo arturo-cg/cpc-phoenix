@@ -193,6 +193,32 @@ namespace CPC {
   /**
   **
   */
+  void CCpu::ProcessPrefixByte(cpcByte prefixByte)
+  {
+      // Is it a 2-byte prefix?
+      if ((prefixByte == 0xCB) &&                                     // If current byte is CB...
+          ((m_prefix == Prefix::DD) || (m_prefix == Prefix::FD)))     // If previous byte was either DD or FD...
+      {
+          m_prefix = (m_prefix == Prefix::DD ? Prefix::DDCB : Prefix::FDCB);
+      }
+      else
+      {
+          // It's a 1-byte prefix.
+          // Ignore the previous prefix, if any.
+          switch (prefixByte)
+          {
+              case 0xED:  m_prefix = Prefix::ED; break;
+              case 0xCB:  m_prefix = Prefix::CB; break;
+              case 0xDD:  m_prefix = Prefix::DD; break;
+              case 0xFD:  m_prefix = Prefix::FD; break;
+          }
+      }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  **
+  */
   cpcByte CCpu::ReadByteFromMemory(cpcWord address)
   {
     cpcByte ret;
