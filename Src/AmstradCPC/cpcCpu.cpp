@@ -245,6 +245,32 @@ namespace CPC {
   /**
   **
   */
+  cpcByte CCpu::ReadByteFromPort(cpcWord address)
+  {
+    cpcByte ret;
+    //// Enter WAIT states while the /WAIT signal is active.
+    //SyncToWaitSignal();
+    // Read byte.
+    ret = m_cpuInterface->ReadByteFromPort(this, address);
+    return ret;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  **
+  */
+  void CCpu::WriteByteToPort(cpcWord address, cpcByte value)
+  {
+    //// Enter WAIT states while the /WAIT signal is active.
+    //SyncToWaitSignal();
+    // Write byte.
+    m_cpuInterface->WriteByteToPort(this, address, value);
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  **
+  */
   void CCpu::Push(const Reg16& value)
   {
       m_registers.SP.w--;
@@ -543,6 +569,12 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_N, true);
       m_registers.SetFlag(Registers::Flag_C, oldA < (b + borrow));
   }
+
+  void CCpu::SUB8_n(cpcByte borrow)
+  {
+      cpcByte b = FetchByte();
+      SUB8_reg(b, borrow);
+  }
   
   void CCpu::SUB8_addrreg(const Reg16& addressReg, cpcByte borrow)
   {
@@ -602,6 +634,13 @@ namespace CPC {
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
   {
       std::swap(a->w, b->w);
+  }
+
+  void CCpu::EXX()
+  {
+      std::swap(m_registers.BC, m_registers.altBC);
+      std::swap(m_registers.DE, m_registers.altDE);
+      std::swap(m_registers.HL, m_registers.altHL);
   }
 
   void CCpu::SCF()
@@ -731,6 +770,32 @@ namespace CPC {
       {
           m_registers.PC.w = m_registers.PC.w + displacement;
       }
+  }
+
+  void CCpu::IN_value_address(cpcByte* value, const Reg16& addressReg)
+  {
+      *value = ReadByteFromPort(addressReg.w);
+  }
+
+  void CCpu::IN_n()
+  {
+      Reg16 address;
+      address.b.l = FetchByte();
+      address.b.h = m_registers.A();
+      IN_value_address(&m_registers.A(), address);
+  }
+
+  void CCpu::OUT_address_value(const Reg16& addressReg, cpcByte value)
+  {
+      WriteByteToPort(addressReg.w, value);
+  }
+
+  void CCpu::OUT_n()
+  {
+      Reg16 address;
+      address.b.l = FetchByte();
+      address.b.h = m_registers.A();
+      OUT_address_value(address, m_registers.A());
   }
 
 } //namespace CPC

@@ -178,6 +178,8 @@ namespace CPC {
 
     cpcByte                 ReadByteFromMemory        (cpcWord address);
     void                    WriteByteToMemory         (cpcWord address, cpcByte value);
+    cpcByte                 ReadByteFromPort          (cpcWord address);
+    void                    WriteByteToPort           (cpcWord address, cpcByte value);
 
     void                    Push                      (const Reg16& value);
     void                    Pop                       (Reg16* value);
@@ -197,6 +199,7 @@ namespace CPC {
     void                    ADD8_reg_addrreg          (cpcByte* a, const Reg16& addressReg, cpcByte carry);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
     void                    SUB8_reg                  (cpcByte b, cpcByte borrow);
+    void                    SUB8_n                    (cpcByte borrow);
     void                    SUB8_addrreg              (const Reg16& addressReg, cpcByte borrow);
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);
@@ -218,6 +221,7 @@ namespace CPC {
     void                    RRC                       (cpcByte* byte);
     void                    HALT                      ();
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
+    void                    EXX                       ();
     void                    SCF                       ();
     void                    CP_reg                    (cpcByte b);
     void                    CP_addrreg                (const Reg16& addressReg);
@@ -233,6 +237,10 @@ namespace CPC {
     void                    JR_n                      ();
     void                    JR_condition_n            (bool condition);
     void                    DJNZ_n                    ();
+    void                    IN_value_address          (cpcByte* value, const Reg16& addressReg);
+    void                    IN_n                      ();
+    void                    OUT_address_value         (const Reg16& addressReg, cpcByte value);
+    void                    OUT_n                     ();
 
     Registers m_registers;
     bool m_inHalt;
