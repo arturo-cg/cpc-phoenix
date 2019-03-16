@@ -774,7 +774,15 @@ namespace CPC {
 
   void CCpu::IN_value_address(cpcByte* value, const Reg16& addressReg)
   {
-      *value = ReadByteFromPort(addressReg.w);
+      cpcByte a = ReadByteFromPort(addressReg.w);
+      *value = a;
+      m_registers.SetFlag(Registers::Flag_S, (a & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, a == 0);
+      m_registers.SetFlag(Registers::Flag_5, (a & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (a & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[a]);
+      m_registers.SetFlag(Registers::Flag_N, false);
   }
 
   void CCpu::IN_n()
@@ -782,7 +790,7 @@ namespace CPC {
       Reg16 address;
       address.b.l = FetchByte();
       address.b.h = m_registers.A();
-      IN_value_address(&m_registers.A(), address);
+      m_registers.A() = ReadByteFromPort(address.w);
   }
 
   void CCpu::OUT_address_value(const Reg16& addressReg, cpcByte value)
@@ -795,7 +803,7 @@ namespace CPC {
       Reg16 address;
       address.b.l = FetchByte();
       address.b.h = m_registers.A();
-      OUT_address_value(address, m_registers.A());
+      WriteByteToPort(address.w, m_registers.A());
   }
 
 } //namespace CPC
