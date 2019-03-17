@@ -399,6 +399,12 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, false);
   }
 
+  void CCpu::AND_n()
+  {
+      cpcByte b = FetchByte();
+      AND_reg(b);
+  }
+
   void CCpu::AND_addrreg(const Reg16& addressReg)
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
@@ -435,6 +441,12 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_PV, s_parity[m_registers.A()]);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, false);
+  }
+
+  void CCpu::XOR_n()
+  {
+      cpcByte b = FetchByte();
+      XOR_reg(b);
   }
 
   void CCpu::XOR_addrreg(const Reg16& addressReg)
@@ -636,6 +648,16 @@ namespace CPC {
       std::swap(a->w, b->w);
   }
 
+  void CCpu::EX_addrreg_reg(Reg16 addressReg, Reg16* b)
+  {
+      Reg16 temp;
+      temp.b.l = ReadByteFromMemory(m_registers.SP.w);
+      temp.b.h = ReadByteFromMemory(m_registers.SP.w + 1);
+      WriteByteToMemory(m_registers.SP.w, b->b.l);
+      WriteByteToMemory(m_registers.SP.w + 1, b->b.h);
+      *b = temp;
+  }
+
   void CCpu::EXX()
   {
       std::swap(m_registers.BC, m_registers.altBC);
@@ -726,6 +748,11 @@ namespace CPC {
       {
           Pop(&m_registers.PC);
       }
+  }
+
+  void CCpu::JP_reg(const Reg16& address)
+  {
+      m_registers.PC = address;
   }
 
   void CCpu::JP_nn()

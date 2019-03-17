@@ -208,10 +208,12 @@ namespace CPC {
     void                    INC16_reg                 (Reg16* reg);
     void                    DEC16_reg                 (Reg16* reg);
     void                    AND_reg                   (cpcByte b);
+    void                    AND_n                     ();
     void                    AND_addrreg               (const Reg16& addressReg);
     void                    OR_reg                    (cpcByte b);
     void                    OR_addrreg                (const Reg16& addressReg);
     void                    XOR_reg                   (cpcByte b);
+    void                    XOR_n                     ();
     void                    XOR_addrreg               (const Reg16& addressReg);
     void                    CPL                       ();
     void                    DAA                       ();
@@ -221,6 +223,7 @@ namespace CPC {
     void                    RRC                       (cpcByte* byte);
     void                    HALT                      ();
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
+    void                    EX_addrreg_reg            (Reg16 addressReg, Reg16* b);
     void                    EXX                       ();
     void                    SCF                       ();
     void                    CP_reg                    (cpcByte b);
@@ -232,6 +235,7 @@ namespace CPC {
     void                    RST_p                     (cpcByte p);
     void                    RET                       ();
     void                    RET_condition             (bool condition);
+    void                    JP_reg                    (const Reg16& address);
     void                    JP_nn                     ();
     void                    JP_condition_nn           (bool condition);
     void                    JR_n                      ();
