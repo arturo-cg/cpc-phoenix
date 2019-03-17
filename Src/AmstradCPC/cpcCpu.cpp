@@ -104,6 +104,7 @@ namespace CPC {
     m_numCyclesAhead = 0;
     m_prefix = Prefix::None;
     m_inHalt = false;
+    m_delayInterruptEnable = false;
   }
 
   //----------------------------------------------------------------------------
@@ -424,6 +425,12 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, false);
   }
 
+  void CCpu::OR_n()
+  {
+      cpcByte b = FetchByte();
+      OR_reg(b);
+  }
+
   void CCpu::OR_addrreg(const Reg16& addressReg)
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
@@ -501,6 +508,11 @@ namespace CPC {
       }
       m_registers.A() = tmp & 0xFF;
       m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+  }
+
+  void CCpu::LD16_reg_reg(Reg16* dest, const Reg16& src)
+  {
+      *dest = src;
   }
 
   void CCpu::LD16_reg_nn(Reg16* reg)
@@ -687,6 +699,12 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, m_registers.A() < b);
   }
 
+  void CCpu::CP_n()
+  {
+      cpcByte b = FetchByte();
+      CP_reg(b);
+  }
+
   void CCpu::CP_addrreg(const Reg16& addressReg)
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
@@ -831,6 +849,19 @@ namespace CPC {
       address.b.l = FetchByte();
       address.b.h = m_registers.A();
       WriteByteToPort(address.w, m_registers.A());
+  }
+
+  void CCpu::EI()
+  {
+      m_registers.IFF1 = true;
+      m_registers.IFF2 = true;
+      m_delayInterruptEnable = true;
+  }
+
+  void CCpu::DI()
+  {
+      m_registers.IFF1 = false;
+      m_registers.IFF2 = false;
   }
 
 } //namespace CPC

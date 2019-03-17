@@ -191,6 +191,7 @@ namespace CPC {
     void                    LD8_addrreg_n             (const Reg16& addressReg);
     void                    LD8_addrnn_reg            (cpcByte value);
     void                    LD8_reg_addrreg           (cpcByte* dest, const Reg16& addressReg);
+    void                    LD16_reg_reg              (Reg16* dest, const Reg16& src);
     void                    LD16_reg_nn               (Reg16* reg);
     void                    LD16_addrnn_reg           (const Reg16& value);
     void                    LD16_reg_addrnn           (Reg16* reg);
@@ -211,6 +212,7 @@ namespace CPC {
     void                    AND_n                     ();
     void                    AND_addrreg               (const Reg16& addressReg);
     void                    OR_reg                    (cpcByte b);
+    void                    OR_n                      ();
     void                    OR_addrreg                (const Reg16& addressReg);
     void                    XOR_reg                   (cpcByte b);
     void                    XOR_n                     ();
@@ -227,6 +229,7 @@ namespace CPC {
     void                    EXX                       ();
     void                    SCF                       ();
     void                    CP_reg                    (cpcByte b);
+    void                    CP_n                      ();
     void                    CP_addrreg                (const Reg16& addressReg);
     void                    PUSH                      (const Reg16& value);
     void                    POP                       (Reg16* value);
@@ -245,9 +248,12 @@ namespace CPC {
     void                    IN_n                      ();
     void                    OUT_address_value         (const Reg16& addressReg, cpcByte value);
     void                    OUT_n                     ();
+    void                    EI                        ();
+    void                    DI                        ();
 
     Registers m_registers;
     bool m_inHalt;
+    bool m_delayInterruptEnable;
     bool m_waitActive;
     unsigned m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
                                     // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.
