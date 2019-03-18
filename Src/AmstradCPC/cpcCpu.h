@@ -190,6 +190,7 @@ namespace CPC {
     void                    LD8_addrreg_valuereg      (const Reg16& addressReg, cpcByte value);
     void                    LD8_addrreg_n             (const Reg16& addressReg);
     void                    LD8_addrnn_reg            (cpcByte value);
+    void                    LD8_reg_addrnn            (cpcByte* dest);
     void                    LD8_reg_addrreg           (cpcByte* dest, const Reg16& addressReg);
     void                    LD16_reg_reg              (Reg16* dest, const Reg16& src);
     void                    LD16_reg_nn               (Reg16* reg);
@@ -223,11 +224,11 @@ namespace CPC {
     void                    RLC                       (cpcByte* byte);
     void                    RR                        (cpcByte* byte);
     void                    RRC                       (cpcByte* byte);
-    void                    HALT                      ();
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
     void                    EX_addrreg_reg            (Reg16 addressReg, Reg16* b);
     void                    EXX                       ();
     void                    SCF                       ();
+    void                    CCF                       ();
     void                    CP_reg                    (cpcByte b);
     void                    CP_n                      ();
     void                    CP_addrreg                (const Reg16& addressReg);
@@ -250,14 +251,15 @@ namespace CPC {
     void                    OUT_n                     ();
     void                    EI                        ();
     void                    DI                        ();
+    void                    HALT                      ();
 
     Registers m_registers;
     bool m_inHalt;
     bool m_delayInterruptEnable;
     bool m_waitActive;
-    unsigned m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
-                                    // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.
-                                    // If that number of cycles is higher than the number of cycles the Z80 emulation was asked to execute, it will sit idle until the emulator catches up with it.
+    int m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
+                               // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.
+                               // If that number of cycles is higher than the number of cycles the Z80 emulation was asked to execute, it will sit idle until the emulator catches up with it.
     Prefix m_prefix;
     OpcodeInfo* m_opcodes[Prefix::Count];     // One InstructionTable per prefix.
     CCpuInterface* m_cpuInterface;

@@ -14,7 +14,6 @@
 namespace CPC {
 
   CCpu::OpcodeInfo CCpu::m_opcodesMain[256] = {
-
     // This yields something similar to this:
     //
     // { &CCpu::Execute_00, false, "NOP" },
@@ -25,10 +24,46 @@ namespace CPC {
 #define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
 #include "cpcCpu_MainOpcodes.h"
 #undef Z80_OPCODE
+  };
 
+  CCpu::OpcodeInfo CCpu::m_opcodesED[256] = {
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#include "cpcCpu_OpcodesED.h"
+#undef Z80_OPCODE
+  };
+
+  CCpu::OpcodeInfo CCpu::m_opcodesCB[256] = {
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#include "cpcCpu_OpcodesCB.h"
+#undef Z80_OPCODE
+  };
+
+  CCpu::OpcodeInfo CCpu::m_opcodesDD[256] = {
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#include "cpcCpu_OpcodesDD.h"
+#undef Z80_OPCODE
+  };
+
+  CCpu::OpcodeInfo CCpu::m_opcodesDDCB[256] = {
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#include "cpcCpu_OpcodesDDCB.h"
+#undef Z80_OPCODE
+  };
+
+  CCpu::OpcodeInfo CCpu::m_opcodesFD[256] = {
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#include "cpcCpu_OpcodesFD.h"
+#undef Z80_OPCODE
+  };
+
+  CCpu::OpcodeInfo CCpu::m_opcodesFDCB[256] = {
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#include "cpcCpu_OpcodesFDCB.h"
+#undef Z80_OPCODE
   };
 
   CCpu::StaticInitializer CCpu::s_staticInitializer;
+  bool CCpu::s_parity[256];
 
   //----------------------------------------------------------------------------
   /**
@@ -77,6 +112,7 @@ namespace CPC {
   {
     Reset();
     m_waitActive = false;
+    m_cpuInterface = NULL;
   }
 
   //----------------------------------------------------------------------------
@@ -125,7 +161,7 @@ namespace CPC {
     KMASSERTM(m_cpuInterface != NULL, ("Unassigned CPU interface. Please assign one by calling the method CCpu::SetCpuInterface. The program will crash if you continue."));
 
     // Accumulate cycles.
-    m_numCyclesAhead -= nNumCycles;
+    m_numCyclesAhead -= (int)nNumCycles;
     while (m_numCyclesAhead < 0)     // As long as we are behind the emulation clock...
     {
       // Take a step forward: either read prefix or fetch and execute instruction.
@@ -330,6 +366,14 @@ namespace CPC {
       address.b.l = FetchByte();
       address.b.h = FetchByte();
       WriteByteToMemory(address.w, value);
+  }
+
+  void CCpu::LD8_reg_addrnn(cpcByte* dest)
+  {
+      Reg16 address;
+      address.b.l = FetchByte();
+      address.b.h = FetchByte();
+      *dest = ReadByteFromMemory(address.w);
   }
 
   void CCpu::LD8_reg_addrreg(cpcByte* dest, const Reg16& addressReg)
@@ -650,11 +694,6 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, lsb);
   }
 
-  void CCpu::HALT()
-  {
-      m_inHalt = true;
-  }
-
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
   {
       std::swap(a->w, b->w);
@@ -684,6 +723,16 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, true);
+  }
+
+  void CCpu::CCF()
+  {
+      bool oldCarry = m_registers.GetFlag(Registers::Flag_C);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, oldCarry);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, !oldCarry);
   }
 
   void CCpu::CP_reg(cpcByte b)
@@ -862,6 +911,11 @@ namespace CPC {
   {
       m_registers.IFF1 = false;
       m_registers.IFF2 = false;
+  }
+
+  void CCpu::HALT()
+  {
+      m_inHalt = true;
   }
 
 } //namespace CPC

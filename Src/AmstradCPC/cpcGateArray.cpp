@@ -5,7 +5,7 @@
 #include "cpcGateArray.h"
 #include "cpcMachine.h"
 #include "cpcMemoryBlock.h"
-#include "cpcThirdPartyCpu.h"
+#include "cpcCpu.h"
 #include "cpcVideoOutput.h"
 
 

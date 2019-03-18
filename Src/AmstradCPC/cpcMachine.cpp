@@ -3,7 +3,8 @@
 
 #include "stdafx.h"
 #include "cpcMachine.h"
-#include "cpcThirdPartyCpu.h"
+#include "cpcCpu.h"
+#include "cpcCpuToCpcInterface.h"
 #include "cpcMemory.h"
 #include "cpcGateArray.h"
 #include "cpcCrtc.h"
@@ -32,14 +33,16 @@ namespace CPC {
     m_eModel = eType;
 
     // Create the sub-systems
-    m_pCpu        = new CThirdPartyCpu( this );
-    m_pMemory     = new CMemory( this );
-    m_pGateArray  = new CGateArray( this );
-    m_pCrtc       = new CCrtc( this );
-    m_pPpi        = new CPpi( this );
-    m_pPsg        = new CPsg( this );
-    m_pFdc        = new CFdc( this );
-    m_pKeyboard   = new CKeyboard( this, pKeyStateProvider );
+    m_pCpuToCpcInterface = new CCpuToCpcInterface( this );
+    m_pCpu = new CCpu( this );
+    m_pCpu->SetCpuInterface(m_pCpuToCpcInterface);
+    m_pMemory = new CMemory( this );
+    m_pGateArray = new CGateArray( this );
+    m_pCrtc = new CCrtc( this );
+    m_pPpi = new CPpi( this );
+    m_pPsg = new CPsg( this );
+    m_pFdc = new CFdc( this );
+    m_pKeyboard = new CKeyboard( this, pKeyStateProvider );
     m_pDiskDrives[0] = new CDiskDrive( this );
     m_pDiskDrives[1] = new CDiskDrive( this );
     m_pVideoOutput = NULL;       // This object is provided by the front-end
@@ -54,6 +57,7 @@ namespace CPC {
   {
     m_eModel     = MODEL_INVALID;
     m_pCpu       = NULL;
+    m_pCpuToCpcInterface = NULL;
     m_pMemory    = NULL;
     m_pGateArray = NULL;
     m_pCrtc      = NULL;
@@ -84,6 +88,7 @@ namespace CPC {
     delete m_pGateArray; m_pGateArray = NULL;
     delete m_pMemory; m_pMemory = NULL;
     delete m_pCpu; m_pCpu = NULL;
+    delete m_pCpuToCpcInterface; m_pCpuToCpcInterface = NULL;
   }
 
   //----------------------------------------------------------------------------
@@ -151,15 +156,7 @@ namespace CPC {
   void CMachine::Run(unsigned nNum1MhzCycles)
   {
     // CPU (4Mhz clock)
-    // Note: The Z80 on the Amstrad CPC is clocked at 4Mhz but the Gate-Array forces it to enter
-    //       into a wait state every 1ms (i.e. every 4 Z80 clock ticks) to make sure the Gate-Array
-    //       gets exclusive access to the RAM while it is reading pixel data for video generation.
-    //       Because of this, the effective clock frequency of the Z80 on the CPC ends up being about 3.3Mhz.
-    m_fAccumulatedCpuCycles += nNum1MhzCycles * 3.3f;
-    unsigned nNumCpuCycles = (unsigned) m_fAccumulatedCpuCycles;
-    GetCpu()->Run(nNumCpuCycles);
-    m_fAccumulatedCpuCycles -= (float) nNumCpuCycles;
-    ///////////////////////////////////////////GetCpu()->Run(nNum1MhzCycles * 4 );
+    GetCpu()->Run(nNum1MhzCycles * 4);
 
     // CRTC (1Mhz clock)
     GetCrtc()->Run(nNum1MhzCycles);

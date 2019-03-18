@@ -102,6 +102,12 @@
     <ClInclude Include="cpcCpuInterface.h" />
     <ClInclude Include="cpcCpuToCpcInterface.h" />
     <ClInclude Include="cpcCpu_MainOpcodes.h" />
+    <ClInclude Include="cpcCpu_OpcodesCB.h" />
+    <ClInclude Include="cpcCpu_OpcodesDD.h" />
+    <ClInclude Include="cpcCpu_OpcodesDDCB.h" />
+    <ClInclude Include="cpcCpu_OpcodesED.h" />
+    <ClInclude Include="cpcCpu_OpcodesFD.h" />
+    <ClInclude Include="cpcCpu_OpcodesFDCB.h" />
     <ClInclude Include="cpcCrtc.h" />
     <ClInclude Include="cpcDisk.h" />
     <ClInclude Include="cpcDiskDrive.h" />
