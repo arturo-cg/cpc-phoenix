@@ -185,6 +185,15 @@ namespace CPC {
     OpcodeInfo* table = m_opcodes[m_prefix];
     OpcodeInfo* opcodeInfo = &table[opcode];
     std::invoke(opcodeInfo->microcodeFn, this);
+    if (opcodeInfo->isInstruction)   // If we just executed an instruction...
+    {
+        // Reset prefix.
+        m_prefix = Prefix::None;
+        // Consume cycles.
+        // TODO: implement correct timing.
+        m_numCyclesAhead += 4;
+        // TODO: interrupts.
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -648,6 +657,34 @@ namespace CPC {
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
       SUB8_reg(b, borrow);
+  }
+
+  void CCpu::SUB16_reg_reg(Reg16* a, Reg16 b, cpcWord borrow)
+  {
+      cpcWord oldA = a->w;
+      a->w = a->w - b.w - borrow;
+      m_registers.SetFlag(Registers::Flag_S, (a->w & 0x8000) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, a->w == 0);
+      m_registers.SetFlag(Registers::Flag_5, (a->w & 0x2000) != 0);
+      m_registers.SetFlag(Registers::Flag_H, ((oldA & 0x0F) < ((b.w & 0x0F) + borrow)));
+      m_registers.SetFlag(Registers::Flag_3, (a->w & 0x0800) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, ((((oldA ^ b.w)) & (oldA ^ a->w)) & 0x80) != 0);  // Have a and b different sign, and result different sign?
+      m_registers.SetFlag(Registers::Flag_N, true);
+      m_registers.SetFlag(Registers::Flag_C, oldA < (b.w + borrow));
+  }
+
+  void CCpu::NEG()
+  {
+      cpcByte oldA = m_registers.A();
+      m_registers.A() = 0 - m_registers.A();
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, (0 < ((m_registers.A() & 0x0F))));
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, ((oldA & m_registers.A()) & 0x80) != 0);  // Have a and b different sign, and result different sign?
+      m_registers.SetFlag(Registers::Flag_N, true);
+      m_registers.SetFlag(Registers::Flag_C, 0 < oldA);
   }
 
   void CCpu::RL(cpcByte* byte)

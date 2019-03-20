@@ -44,7 +44,7 @@ namespace CPC {
       using MicrocodeFn = void (CCpu::*)();
 
       MicrocodeFn microcodeFn;                      // Pointer to the function that contains the microde (i.e. the emulation) for the instruction.
-      bool isPrefix;                                // Prefixes are also included in the instruction look-up table. This variable is true iif this entry is for a prefix byte rather than an instruction.
+      bool isInstruction;                           // Prefixes are also included in the instruction look-up table. This variable is true iif this entry is for an instruction, or false if it's a prefix byte.
       //int numTStates;                               // The T states that this instruction takes.
       const char* mnemonic;                         // The mnemonic for this instruction.
     };
@@ -118,6 +118,8 @@ namespace CPC {
         cpcByte& E() { return DE.b.l; }
         cpcByte& H() { return HL.b.h; }
         cpcByte& L() { return HL.b.l; }
+        cpcByte& I() { return IR.b.h; }
+        cpcByte& R() { return IR.b.l; }
         const cpcByte& A() const { return AF.b.h; }
         const cpcByte& F() const { return AF.b.l; }
         const cpcByte& B() const { return BC.b.h; }
@@ -203,6 +205,8 @@ namespace CPC {
     void                    SUB8_reg                  (cpcByte b, cpcByte borrow);
     void                    SUB8_n                    (cpcByte borrow);
     void                    SUB8_addrreg              (const Reg16& addressReg, cpcByte borrow);
+    void                    SUB16_reg_reg             (Reg16* a, Reg16 b, cpcWord borrow);
+    void                    NEG();
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);
     void                    INC8_addrreg              (const Reg16& addressReg);
