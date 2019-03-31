@@ -243,6 +243,7 @@ namespace CPC {
     void                    RST_p                     (cpcByte p);
     void                    RET                       ();
     void                    RET_condition             (bool condition);
+    void                    RETN                      ();
     void                    JP_reg                    (const Reg16& address);
     void                    JP_nn                     ();
     void                    JP_condition_nn           (bool condition);
@@ -255,6 +256,7 @@ namespace CPC {
     void                    OUT_n                     ();
     void                    EI                        ();
     void                    DI                        ();
+    void                    IM                        (int mode);
     void                    HALT                      ();
 
     Registers m_registers;

@@ -854,6 +854,12 @@ namespace CPC {
       }
   }
 
+  void CCpu::RETN()
+  {
+      Pop(&m_registers.PC);
+      m_registers.IFF1 = m_registers.IFF2;
+  }
+
   void CCpu::JP_reg(const Reg16& address)
   {
       m_registers.PC = address;
@@ -948,6 +954,11 @@ namespace CPC {
   {
       m_registers.IFF1 = false;
       m_registers.IFF2 = false;
+  }
+
+  void CCpu::IM(int mode)
+  {
+      m_registers.IM = mode;
   }
 
   void CCpu::HALT()
