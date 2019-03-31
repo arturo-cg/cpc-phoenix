@@ -226,8 +226,10 @@ namespace CPC {
     void                    DAA                       ();
     void                    RL                        (cpcByte* byte);
     void                    RLC                       (cpcByte* byte);
+    void                    RLD                       ();
     void                    RR                        (cpcByte* byte);
     void                    RRC                       (cpcByte* byte);
+    void                    RRD                       ();
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
     void                    EX_addrreg_reg            (Reg16 addressReg, Reg16* b);
     void                    EXX                       ();
@@ -282,8 +284,43 @@ namespace CPC {
 #define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
     void Execute_##_num() \
         _microCode
-
 #include "cpcCpu_MainOpcodes.h"
+#undef Z80_OPCODE
+
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+    void Execute_ED##_num() \
+        _microCode
+#include "cpcCpu_OpcodesED.h"
+#undef Z80_OPCODE
+
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+    void Execute_CB##_num() \
+        _microCode
+#include "cpcCpu_OpcodesCB.h"
+#undef Z80_OPCODE
+
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+    void Execute_DD##_num() \
+        _microCode
+#include "cpcCpu_OpcodesDD.h"
+#undef Z80_OPCODE
+
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+    void Execute_DDCB##_num() \
+        _microCode
+#include "cpcCpu_OpcodesDDCB.h"
+#undef Z80_OPCODE
+
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+    void Execute_FD##_num() \
+        _microCode
+#include "cpcCpu_OpcodesFD.h"
+#undef Z80_OPCODE
+
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+    void Execute_FDCB##_num() \
+        _microCode
+#include "cpcCpu_OpcodesFDCB.h"
 #undef Z80_OPCODE
 
   };

@@ -27,37 +27,37 @@ namespace CPC {
   };
 
   CCpu::OpcodeInfo CCpu::m_opcodesED[256] = {
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_ED##_num, _isPrefix, _mnemonic },
 #include "cpcCpu_OpcodesED.h"
 #undef Z80_OPCODE
   };
 
   CCpu::OpcodeInfo CCpu::m_opcodesCB[256] = {
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_CB##_num, _isPrefix, _mnemonic },
 #include "cpcCpu_OpcodesCB.h"
 #undef Z80_OPCODE
   };
 
   CCpu::OpcodeInfo CCpu::m_opcodesDD[256] = {
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_DD##_num, _isPrefix, _mnemonic },
 #include "cpcCpu_OpcodesDD.h"
 #undef Z80_OPCODE
   };
 
   CCpu::OpcodeInfo CCpu::m_opcodesDDCB[256] = {
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_DDCB##_num, _isPrefix, _mnemonic },
 #include "cpcCpu_OpcodesDDCB.h"
 #undef Z80_OPCODE
   };
 
   CCpu::OpcodeInfo CCpu::m_opcodesFD[256] = {
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_FD##_num, _isPrefix, _mnemonic },
 #include "cpcCpu_OpcodesFD.h"
 #undef Z80_OPCODE
   };
 
   CCpu::OpcodeInfo CCpu::m_opcodesFDCB[256] = {
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_FDCB##_num, _isPrefix, _mnemonic },
 #include "cpcCpu_OpcodesFDCB.h"
 #undef Z80_OPCODE
   };
@@ -709,6 +709,22 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, msb);
   }
 
+  void CCpu::RLD()
+  {
+      cpcByte x = m_registers.A() & 0x0F;
+      cpcByte yz = ReadByteFromMemory(m_registers.HL.w);
+      m_registers.A() = (m_registers.A() & 0xF0) | ((yz & 0xF0) >> 4);
+      yz = ((yz & 0x0F) << 4) | x;
+      WriteByteToMemory(m_registers.HL.w, yz);
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[m_registers.A()]);
+      m_registers.SetFlag(Registers::Flag_N, false);
+  }
+
   void CCpu::RR(cpcByte* byte)
   {
       bool lsb = ((*byte) & 0x01) != 0;
@@ -729,6 +745,22 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, lsb);
+  }
+
+  void CCpu::RRD()
+  {
+      cpcByte x = m_registers.A() & 0x0F;
+      cpcByte yz = ReadByteFromMemory(m_registers.HL.w);
+      m_registers.A() = (m_registers.A() & 0xF0) | (yz & 0x0F);
+      yz = (x << 4) | ((yz & 0xF0) >> 4);
+      WriteByteToMemory(m_registers.HL.w, yz);
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[m_registers.A()]);
+      m_registers.SetFlag(Registers::Flag_N, false);
   }
 
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
@@ -912,7 +944,10 @@ namespace CPC {
   void CCpu::IN_value_address(cpcByte* value, const Reg16& addressReg)
   {
       cpcByte a = ReadByteFromPort(addressReg.w);
-      *value = a;
+      if (value != NULL)
+      {
+          *value = a;
+      }
       m_registers.SetFlag(Registers::Flag_S, (a & 0x80) != 0);
       m_registers.SetFlag(Registers::Flag_Z, a == 0);
       m_registers.SetFlag(Registers::Flag_5, (a & 0x20) != 0);
