@@ -59,11 +59,18 @@ namespace CPC {
     /** Resets the subsystem. */
     virtual void            Reset                     ();
 
-    /** Requests a maskable interrupt. It returns true if it was accepted, or false otherwise (i.e. interrupts are disabled). */
-    bool                    RequestInterrupt          ();
+    /** Sets the active state of the /INT signal (maskable interrupt request). */
+    void                    SetInterruptRequestActive (bool active)  { m_interruptRequestActive = active; }
+    bool                    IsInterruptRequestActive  () const       { return m_interruptRequestActive; }
+    /** Sets the interrupt vector, used by the Z80 in interrupt modes 0 and 2. */
+    void                    SetInterruptVector        (cpcByte interruptVector)  { m_interruptVector = interruptVector; }
+    cpcByte                 GetInterruptVector        () const                   { return m_interruptVector; }
+    /** Requests an NMI (non-maskable interrupt. */
+    void                    RequestNmi                ()        { m_nmiRequested = true; }
+    bool                    IsNmiRequested            () const  { return m_nmiRequested; }
     /** Sets the active state of the /WAIT signal. */
-    void                    SetWaitSignalActive       (bool active)  { m_waitActive = active; }
-    bool                    IsWaitSignalActive        () const       { return m_waitActive; }
+    void                    SetWaitActive             (bool active)  { m_waitActive = active; }
+    bool                    IsWaitActive              () const       { return m_waitActive; }
 
     /** Runs the CPU for the given number of cycles (or T-states, in Z80 terminology). */
     void                    Run                       (unsigned nNumCycles);
@@ -172,7 +179,10 @@ namespace CPC {
     void                    FreeVars                  ();
 
     void                    Step                      ();
+    void                    StepOpcode                (cpcByte opcode);
     cpcByte                 FetchByte                 ();
+    void                    AcceptNmi                 ();
+    void                    AcceptInterrupt           ();
     //void                    AdvanceTStates            (int numTStates);
     //void                    SyncToWaitSignal          ();
 
@@ -264,6 +274,9 @@ namespace CPC {
     Registers m_registers;
     bool m_inHalt;
     bool m_delayInterruptEnable;
+    bool m_interruptRequestActive;
+    cpcByte m_interruptVector;
+    bool m_nmiRequested;
     bool m_waitActive;
     int m_numCyclesAhead;      // How many clock cycles the Z80 emulation is ahead with respect to the rest of the emulator.
                                // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.

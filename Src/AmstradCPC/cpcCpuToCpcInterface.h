@@ -24,6 +24,8 @@ namespace CPC {
     virtual void OnReset(CCpu* cpu) override;
     /** The Z80 is starting a new T state (i.e. clock cycle), which happens at the rising edge of the clock. */
     virtual void OnTState(CCpu* cpu) override;
+    /** The Z80 just accepted the interrupt request. */
+    virtual void OnInterruptAcknowledge(CCpu* cpu) override;
 
     /** The Z80 requests to read a byte from memory. */
     virtual cpcByte ReadByteFromMemory(CCpu* cpu, cpcWord address) override;

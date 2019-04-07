@@ -141,15 +141,9 @@ namespace CPC {
     m_prefix = Prefix::None;
     m_inHalt = false;
     m_delayInterruptEnable = false;
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  bool CCpu::RequestInterrupt()
-  {
-    return false;
+    m_interruptRequestActive = false;
+    m_interruptVector = 0;
+    m_nmiRequested = false;
   }
 
   //----------------------------------------------------------------------------
@@ -175,25 +169,47 @@ namespace CPC {
   */
   void CCpu::Step()
   {
-    // Two things can happen:
-    //  * If it's a prefix, the next byte of the prefix is read and remembered.
-    //  * If it's an opcode, the whole instruction (i.e. opcode plus operands) is fetched and executed.
+      // Execute interrupt?
+      if ((m_prefix == Prefix::None) &&     // If we are not in the middle of a multi-byte instruction...
+          m_nmiRequested)                   // If an NMI has been requested...
+      {
+          // NMI.
+          AcceptNmi();
+      }
+      else if ((m_prefix == Prefix::None) &&     // If we are not in the middle of a multi-byte instruction...
+               m_interruptRequestActive &&       // If an interrupt is currently being requested...
+               !m_delayInterruptEnable)          // If the last instruction was not EI...
+      {
+          // Interrupt.
+          AcceptInterrupt();
+      }
+      else
+      {
+          // Fetch and execute opcode.
+          cpcByte opcode = (m_inHalt ? 0x00/*NOP*/ : FetchByte());
+          StepOpcode(opcode);
+      }
+  }
 
-    // Fetch opcode/prefix, or execute a NOP instruction if in HALT state.
-    cpcByte opcode = (m_inHalt ? 0x00/*NOP*/ : FetchByte());
-    // Execute instruction or remember prefix.
-    OpcodeInfo* table = m_opcodes[m_prefix];
-    OpcodeInfo* opcodeInfo = &table[opcode];
-    std::invoke(opcodeInfo->microcodeFn, this);
-    if (opcodeInfo->isInstruction)   // If we just executed an instruction...
-    {
-        // Reset prefix.
-        m_prefix = Prefix::None;
-        // Consume cycles.
-        // TODO: implement correct timing.
-        m_numCyclesAhead += 4;
-        // TODO: interrupts.
-    }
+  void CCpu::StepOpcode(cpcByte opcode)
+  {
+      // Two things can happen:
+      //  * If it's a prefix, it is simply remembered.
+      //  * If it's an opcode, the whole instruction (i.e. opcode plus operands) is fetched and executed.
+
+      m_delayInterruptEnable = false;
+      // Execute instruction or remember prefix.
+      OpcodeInfo* table = m_opcodes[m_prefix];
+      OpcodeInfo* opcodeInfo = &table[opcode];
+      std::invoke(opcodeInfo->microcodeFn, this);
+      if (opcodeInfo->isInstruction)   // If we just executed an instruction...
+      {
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
   }
 
   //----------------------------------------------------------------------------
@@ -206,6 +222,52 @@ namespace CPC {
     cpcByte ret = ReadByteFromMemory(m_registers.PC.w);
     m_registers.PC.w++;
     return ret;
+  }
+
+  void CCpu::AcceptNmi()
+  {
+      // Resume normal execution if currently in a HALT instruction.
+      m_inHalt = false;
+      // Don't allow further interrupts.
+      // Note that only IFF1 is changed; IFF2 is left as a backup of IFF1's original value so that a RETN instruction can restore it later on.
+      m_registers.IFF1 = false;
+
+      // Jump to NMI handler.
+      // Equivalent to executing an imaginary instruction RST 66H.
+      Push(m_registers.PC);
+      m_registers.PC.w = 0x66;
+  }
+
+  void CCpu::AcceptInterrupt()
+  {
+      // Resume normal execution if currently in a HALT instruction.
+      m_inHalt = false;
+      // Don't allow further interrupts.
+      m_registers.IFF1 = false;
+      m_registers.IFF2 = false;
+      // Acknowledge interrupt.
+      m_cpuInterface->OnInterruptAcknowledge(this);
+
+      switch (m_registers.IM)
+      {
+      case 0:
+          StepOpcode(m_interruptVector);
+          break;
+
+      case 1:
+          StepOpcode(0xFF/*RST 38H*/);                                                                                                          
+          break;
+
+      case 2:
+          //
+          // TODO
+          //
+          break;
+
+      default:
+          KMASSERTM(false, ("Invalid interrupt mode specified."));
+          break;
+      }
   }
 
   ////----------------------------------------------------------------------------

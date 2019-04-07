@@ -170,7 +170,6 @@ namespace CPC {
     m_nSelectedUpperRom = 0;
     m_nHSyncCounter     = 0;
     m_nHSyncCountSinceVSync = 0;
-    m_bRequestingInterrupt = false;
   }
 
   //----------------------------------------------------------------------------
@@ -221,7 +220,7 @@ namespace CPC {
       if (m_nHSyncCounter >= 32)
       {
         // Request interrupt.
-        m_bRequestingInterrupt = true;
+        GetMachine()->GetCpu()->SetInterruptRequestActive(true);
       }
       // Reset counter.
       m_nHSyncCounter = 0;
@@ -231,7 +230,7 @@ namespace CPC {
       if (m_nHSyncCounter >= 52)
       {
         m_nHSyncCounter = 0;
-        m_bRequestingInterrupt = true;
+        GetMachine()->GetCpu()->SetInterruptRequestActive(true);
       }
     }
   }
@@ -259,22 +258,12 @@ namespace CPC {
   /**
   ** 
   */
-  void CGateArray::RequestInterruptIfApplicable()
+  void CGateArray::OnInterruptAcknowledge()
   {
-    if (m_bRequestingInterrupt)     // If the Gate Array is currently requesting an interrupt...
-    {
-      if ( GetMachine()->GetCpu()->RequestInterrupt() )     // If the interrupt has been accepted...
-      {
-        // Clear the interrupt request.
-        // Clear top bit (bit 5) of the internal HSYNC counter - This prevents the next interrupt from occuring sooner than 32 HSYNCs.
-        m_bRequestingInterrupt = false;
-        m_nHSyncCounter = (m_nHSyncCounter & 0x1F);
-      }
-      else
-      {
-        // The Gate Array keeps requesting the interrupt until the CPU accepts it.
-      }
-    }
+      // Clear the interrupt request.
+      GetMachine()->GetCpu()->SetInterruptRequestActive(false);
+      // Clear top bit (bit 5) of the internal HSYNC counter - This prevents the next interrupt from occuring sooner than 32 HSYNCs.
+      m_nHSyncCounter = (m_nHSyncCounter & 0x1F);
   }
 
   //----------------------------------------------------------------------------
@@ -283,8 +272,7 @@ namespace CPC {
   */
   void CGateArray::Run(unsigned nMinNumCycles)
   {
-    // Request interrupt, if needed.
-    RequestInterruptIfApplicable();
+      // Empty.
   }
 
   //----------------------------------------------------------------------------
@@ -343,8 +331,8 @@ namespace CPC {
           // If set to 1, the m_nHSyncCounter counter is reset to 0 and the interrupt request is cleared.
           if (nValue & 0x10)
           {
-            m_nHSyncCounter        = 0;
-            m_bRequestingInterrupt = false;
+            m_nHSyncCounter = 0;
+            GetMachine()->GetCpu()->SetInterruptRequestActive(false);
           }
         }
         break;

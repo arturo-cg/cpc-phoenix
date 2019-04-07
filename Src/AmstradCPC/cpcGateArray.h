@@ -82,6 +82,8 @@ namespace CPC {
     void                    OnVSyncBegin              ();
     /** VSYNC signal's falling edge notification. */
     void                    OnVSyncEnd                ();
+    /** The CPU just accepted the Gate Array's interrupt request. */
+    void                    OnInterruptAcknowledge    ();
 
     /** We are notified that another subsytem is trying to write a byte to us.
     *** Usually it's the CPU through an OUT instruction. */
@@ -121,7 +123,6 @@ namespace CPC {
     void                    SelectUpperRom            (cpcByte nIndex);
 
     void                    UpdateVisibleMemoryBlocks ();
-    void                    RequestInterruptIfApplicable ();
 
     /** Currently selected pen. This is the pen that will be changed on the next "change pen color" operation.
     *** If this value is >= 16, the border is selected instead of a pen. */
@@ -158,7 +159,6 @@ namespace CPC {
     /** 6-bit counter related to the HSYNC signal from the CRTC, used to generate interrupts. */
     unsigned                m_nHSyncCounter;
     unsigned                m_nHSyncCountSinceVSync;
-    bool                    m_bRequestingInterrupt;
 
   };
 
