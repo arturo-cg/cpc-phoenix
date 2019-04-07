@@ -196,6 +196,8 @@ namespace CPC {
     void                    Push                      (const Reg16& value);
     void                    Pop                       (Reg16* value);
 
+    cpcWord                 ConvertSignedByteToWord   (cpcByte value) const;
+
     void                    LD8_reg_reg               (cpcByte* dest, cpcByte value);
     void                    LD8_reg_n                 (cpcByte* byte);
     void                    LD8_reg_mem               (cpcByte* byte, const Reg16& addressReg);

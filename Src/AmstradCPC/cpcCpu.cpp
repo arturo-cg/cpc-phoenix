@@ -400,6 +400,18 @@ namespace CPC {
   }
 
   //----------------------------------------------------------------------------
+  /**
+  **
+  */
+  cpcWord CCpu::ConvertSignedByteToWord(cpcByte value) const
+  {
+      // Sign-extend the provided two's complement number.
+      cpcWord ret = ((value & 0x80) != 0 ? 0xFF00 : 0x0000);  // Higher byte.
+      ret |= cpcWord(value);                                  // Lower byte.
+      return ret;
+  }
+
+  //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
   // Instructions.
   //----------------------------------------------------------------------------
@@ -981,7 +993,7 @@ namespace CPC {
   void CCpu::JR_n()
   {
       cpcByte displacement = FetchByte();
-      m_registers.PC.w += displacement;
+      m_registers.PC.w += ConvertSignedByteToWord(displacement);
   }
 
   void CCpu::JR_condition_n(bool condition)
@@ -989,7 +1001,7 @@ namespace CPC {
       cpcByte displacement = FetchByte();
       if (condition)
       {
-          m_registers.PC.w = m_registers.PC.w + displacement;
+          m_registers.PC.w = m_registers.PC.w + ConvertSignedByteToWord(displacement);
       }
   }
 
@@ -999,7 +1011,7 @@ namespace CPC {
       m_registers.B()--;
       if (m_registers.B() != 0)
       {
-          m_registers.PC.w = m_registers.PC.w + displacement;
+          m_registers.PC.w = m_registers.PC.w + ConvertSignedByteToWord(displacement);
       }
   }
 
