@@ -203,7 +203,7 @@ void Settings::SaveToFile()
 */
 void Settings::RestoreDefaultValues()
 {
-  m_eCpcModel       = CPC::CMachine::MODEL_464;
+  m_eCpcModel       = CPC::CMachine::MODEL_6128;
   m_eMonitorType    = CPC::CGateArray::RGBCONVERSIONTABLE_COLOR;
   m_bDrawScanLines  = false;
   m_fEmulationSpeed = 1.f;
