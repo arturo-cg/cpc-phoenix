@@ -9,6 +9,9 @@
 #include "cpcMachine.h"
 #include "cpcGateArray.h"
 #include "cpcCpuInterface.h"
+//#include <iostream>
+//#include <sstream>
+//#include <Windows.h>
 
 
 namespace CPC {
@@ -202,6 +205,12 @@ namespace CPC {
       // Execute instruction or remember prefix.
       OpcodeInfo* table = m_opcodes[m_prefix];
       OpcodeInfo* opcodeInfo = &table[opcode];
+      //{
+      //    std::ostringstream ss;
+      //    ss << std::hex << m_registers.PC.w - 1 << "    " << opcodeInfo->mnemonic << "\n";
+      //    //std::cout << ss.str();
+      //    OutputDebugString(ss.str().c_str());
+      //}
       std::invoke(opcodeInfo->microcodeFn, this);
       if (opcodeInfo->isInstruction)   // If we just executed an instruction...
       {
@@ -241,6 +250,9 @@ namespace CPC {
 
   void CCpu::AcceptInterrupt()
   {
+      //{
+      //    OutputDebugString("-- Interrupt --\n");
+      //}
       // Resume normal execution if currently in a HALT instruction.
       m_inHalt = false;
       // Don't allow further interrupts.
