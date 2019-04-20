@@ -477,6 +477,60 @@ namespace CPC {
       *dest = ReadByteFromMemory(addressReg.w);
   }
 
+  void CCpu::LDI()
+  {
+      cpcByte value = ReadByteFromMemory(m_registers.HL.w);
+      WriteByteToMemory(m_registers.DE.w, value);
+      m_registers.HL.w++;
+      m_registers.DE.w++;
+      m_registers.BC.w--;
+
+      cpcByte valuePlusA = value + m_registers.A();
+      m_registers.SetFlag(Registers::Flag_5, (valuePlusA & 0x02) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (valuePlusA & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, m_registers.BC.w != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+  }
+
+  void CCpu::LDIR()
+  {
+      // Do a LDI.
+      LDI();
+      // Repeat if BC != 0.
+      if (m_registers.BC.w != 0)
+      {
+          m_registers.PC.w -= 2;    // Note that LDIR is a 2-byte instruction.
+      }
+  }
+
+  void CCpu::LDD()
+  {
+      cpcByte value = ReadByteFromMemory(m_registers.HL.w);
+      WriteByteToMemory(m_registers.DE.w, value);
+      m_registers.HL.w--;
+      m_registers.DE.w--;
+      m_registers.BC.w--;
+
+      cpcByte valuePlusA = value + m_registers.A();
+      m_registers.SetFlag(Registers::Flag_5, (valuePlusA & 0x02) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (valuePlusA & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, m_registers.BC.w != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+  }
+
+  void CCpu::LDDR()
+  {
+      // Do a LDD.
+      LDD();
+      // Repeat if BC != 0.
+      if (m_registers.BC.w != 0)
+      {
+          m_registers.PC.w -= 2;    // Note that LDDR is a 2-byte instruction.
+      }
+  }
+
   void CCpu::INC8_reg(cpcByte* byte)
   {
       (*byte)++;

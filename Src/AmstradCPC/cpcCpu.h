@@ -206,6 +206,10 @@ namespace CPC {
     void                    LD8_addrnn_reg            (cpcByte value);
     void                    LD8_reg_addrnn            (cpcByte* dest);
     void                    LD8_reg_addrreg           (cpcByte* dest, const Reg16& addressReg);
+    void                    LDI                       ();
+    void                    LDIR                      ();
+    void                    LDD                       ();
+    void                    LDDR                      ();
     void                    LD16_reg_reg              (Reg16* dest, const Reg16& src);
     void                    LD16_reg_nn               (Reg16* reg);
     void                    LD16_addrnn_reg           (const Reg16& value);
