@@ -254,6 +254,10 @@ namespace CPC {
     void                    CP_reg                    (cpcByte b);
     void                    CP_n                      ();
     void                    CP_addrreg                (const Reg16& addressReg);
+    void                    CPI                       ();
+    void                    CPIR                      ();
+    void                    CPD                       ();
+    void                    CPDR                      ();
     void                    PUSH                      (const Reg16& value);
     void                    POP                       (Reg16* value);
     void                    CALL_nn                   ();

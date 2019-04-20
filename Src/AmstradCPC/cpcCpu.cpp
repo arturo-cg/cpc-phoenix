@@ -970,6 +970,72 @@ namespace CPC {
       CP_reg(b);
   }
 
+  void CCpu::CPI()
+  {
+      cpcByte value = ReadByteFromMemory(m_registers.HL.w);
+      cpcByte result = m_registers.A() - value;
+      m_registers.HL.w++;
+      m_registers.BC.w--;
+
+      m_registers.SetFlag(Registers::Flag_S, (result & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, result == 0);
+      m_registers.SetFlag(Registers::Flag_H, ((m_registers.A() & 0x0F) < (value & 0x0F)));
+      m_registers.SetFlag(Registers::Flag_PV, m_registers.BC.w != 0);
+      m_registers.SetFlag(Registers::Flag_N, true);
+
+      cpcByte resultMinusH = result;
+      if (m_registers.GetFlag(Registers::Flag_H))
+      {
+          resultMinusH--;
+      }
+      m_registers.SetFlag(Registers::Flag_5, (resultMinusH & 0x01) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (resultMinusH & 0x04) != 0);
+  }
+
+  void CCpu::CPIR()
+  {
+      // Do a CPI.
+      CPI();
+      // Repeat if BC != 0.
+      if (m_registers.BC.w != 0)
+      {
+          m_registers.PC.w -= 2;    // Note that CPIR is a 2-byte instruction.
+      }
+  }
+
+  void CCpu::CPD()
+  {
+      cpcByte value = ReadByteFromMemory(m_registers.HL.w);
+      cpcByte result = m_registers.A() - value;
+      m_registers.HL.w--;
+      m_registers.BC.w--;
+
+      m_registers.SetFlag(Registers::Flag_S, (result & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, result == 0);
+      m_registers.SetFlag(Registers::Flag_H, ((m_registers.A() & 0x0F) < (value & 0x0F)));
+      m_registers.SetFlag(Registers::Flag_PV, m_registers.BC.w != 0);
+      m_registers.SetFlag(Registers::Flag_N, true);
+
+      cpcByte resultMinusH = result;
+      if (m_registers.GetFlag(Registers::Flag_H))
+      {
+          resultMinusH--;
+      }
+      m_registers.SetFlag(Registers::Flag_5, (resultMinusH & 0x01) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (resultMinusH & 0x04) != 0);
+  }
+
+  void CCpu::CPDR()
+  {
+      // Do a CPD.
+      CPD();
+      // Repeat if BC != 0.
+      if (m_registers.BC.w != 0)
+      {
+          m_registers.PC.w -= 2;    // Note that CPDR is a 2-byte instruction.
+      }
+  }
+
   void CCpu::PUSH(const Reg16& value)
   {
       Push(value);
