@@ -203,34 +203,7 @@ namespace CPC {
 
       m_delayInterruptEnable = false;
       // Execute instruction or remember prefix.
-      if ((m_prefix == Prefix::DD) && (opcode == 0xE5))  // PUSH IX...
-      {
-          Push(m_registers.IX);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::DD) && (opcode == 0x21))  // LD IX, %nn...
-      {
-          LD16_reg_nn(&m_registers.IX);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::DD) && (opcode == 0x19))  // ADD IX, DE...
-      {
-          ADD16_reg_reg(&m_registers.IX, m_registers.DE);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::DD) && (opcode == 0x36))  // LD (IX+%n), %n...
+      if ((m_prefix == Prefix::DD) && (opcode == 0x36))  // LD (IX+%n), %n...
       {
           cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
           m_registers.PC.w++;
@@ -266,47 +239,11 @@ namespace CPC {
           // TODO: implement correct timing.
           m_numCyclesAhead += 4;
       }
-      else if ((m_prefix == Prefix::DD) && (opcode == 0xE1))  // POP IX...
-      {
-          Pop(&m_registers.IX);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::FD) && (opcode == 0x22))  // LD (%nn), IY...
-      {
-          LD16_addrnn_reg(m_registers.IY);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
       else if ((m_prefix == Prefix::FD) && (opcode == 0x77))  // LD (IY+%n), A...
       {
           cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
           m_registers.PC.w++;
           WriteByteToMemory(m_registers.IY.w + ConvertSignedByteToWord(displacement), m_registers.A());
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::FD) && (opcode == 0xE1))  // POP IY...
-      {
-          Pop(&m_registers.IY);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::FD) && (opcode == 0xE5))  // PUSH IY...
-      {
-          Push(m_registers.IY);
           // Reset prefix.
           m_prefix = Prefix::None;
           // Consume cycles.
