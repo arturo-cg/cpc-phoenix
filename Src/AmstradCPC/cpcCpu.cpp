@@ -203,22 +203,153 @@ namespace CPC {
 
       m_delayInterruptEnable = false;
       // Execute instruction or remember prefix.
-      OpcodeInfo* table = m_opcodes[m_prefix];
-      OpcodeInfo* opcodeInfo = &table[opcode];
-      //{
-      //    std::ostringstream ss;
-      //    ss << std::hex << m_registers.PC.w - 1 << "    " << opcodeInfo->mnemonic << "\n";
-      //    //std::cout << ss.str();
-      //    OutputDebugString(ss.str().c_str());
-      //}
-      std::invoke(opcodeInfo->microcodeFn, this);
-      if (opcodeInfo->isInstruction)   // If we just executed an instruction...
+      if ((m_prefix == Prefix::CB) && (opcode == 0x71))  // BIT 6,C...
       {
+          cpcByte result = m_registers.C() & (0x01 << 6);
+          m_registers.SetFlag(Registers::Flag_Z, result == 0);
+          m_registers.SetFlag(Registers::Flag_PV, result == 0);
           // Reset prefix.
           m_prefix = Prefix::None;
           // Consume cycles.
           // TODO: implement correct timing.
           m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::CB) && (opcode == 0x81))  // RES 0,C...
+      {
+          m_registers.C() &= ~(0x01 << 0);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::CB) && (opcode == 0x85))  // RES 0,L...
+      {
+          m_registers.L() &= ~(0x01 << 0);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::CB) && (opcode == 0x89))  // RES 1,C...
+      {
+          m_registers.C() &= ~(0x01 << 1);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::CB) && (opcode == 0x91))  // RES 2,C...
+      {
+          m_registers.C() &= ~(0x01 << 2);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::CB) && (opcode == 0xF1))  // SET 6,C...
+      {
+          m_registers.C() |= (0x01 << 6);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::DD) && (opcode == 0xE5))  // PUSH IX...
+      {
+          Push(m_registers.IX);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::DD) && (opcode == 0x21))  // LD IX, %nn...
+      {
+          LD16_reg_nn(&m_registers.IX);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::DD) && (opcode == 0x19))  // ADD IX, DE...
+      {
+          ADD16_reg_reg(&m_registers.IX, m_registers.DE);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::DD) && (opcode == 0x36))  // LD (IX+%n), %n...
+      {
+          cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
+          m_registers.PC.w++;
+          cpcByte value = ReadByteFromMemory(m_registers.PC.w);
+          m_registers.PC.w++;
+          WriteByteToMemory(m_registers.IX.w + ConvertSignedByteToWord(displacement), value);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::DD) && (opcode == 0x7E))  // LD A, (IX+%n)...
+      {
+          cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
+          m_registers.PC.w++;
+          m_registers.A() = ReadByteFromMemory(m_registers.IX.w + ConvertSignedByteToWord(displacement));
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::DD) && (opcode == 0xB6))  // OR (IX+%n)...
+      {
+          cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
+          m_registers.PC.w++;
+          cpcByte b = ReadByteFromMemory(m_registers.IX.w + ConvertSignedByteToWord(displacement));
+          OR_reg(b);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::DD) && (opcode == 0xE1))  // POP IX...
+      {
+          Pop(&m_registers.IX);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else
+      {
+          OpcodeInfo* table = m_opcodes[m_prefix];
+          OpcodeInfo* opcodeInfo = &table[opcode];
+          //{
+          //    std::ostringstream ss;
+          //    ss << std::hex << m_registers.PC.w - 1 << "    " << opcodeInfo->mnemonic << "\n";
+          //    //std::cout << ss.str();
+          //    OutputDebugString(ss.str().c_str());
+          //}
+          std::invoke(opcodeInfo->microcodeFn, this);
+          if (opcodeInfo->isInstruction)   // If we just executed an instruction...
+          {
+              // Reset prefix.
+              m_prefix = Prefix::None;
+              // Consume cycles.
+              // TODO: implement correct timing.
+              m_numCyclesAhead += 4;
+          }
       }
   }
 
@@ -334,6 +465,14 @@ namespace CPC {
               case 0xFD:  m_prefix = Prefix::FD; break;
           }
       }
+  }
+
+  void CCpu::HandleInvalidInstruction()
+  {
+      // Reset prefix.
+      m_prefix = Prefix::None;
+      // Disallow interrupts immediately after an invalid instruction.
+      m_delayInterruptEnable = true;
   }
 
   //----------------------------------------------------------------------------
@@ -828,24 +967,66 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, 0 < oldA);
   }
 
-  void CCpu::RL(cpcByte* byte)
+  void CCpu::RL_reg(cpcByte* byte)
   {
       bool msb = ((*byte) & 0x80) != 0;
       *byte = ((*byte) << 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
       m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
       m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, msb);
   }
 
-  void CCpu::RLC(cpcByte* byte)
+  void CCpu::RL_addrreg(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w);
+      RL_reg(&value);
+      WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::RLC_reg(cpcByte* byte)
   {
       bool msb = ((*byte) & 0x80) != 0;
       *byte = ((*byte) << 1) | (msb ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
       m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
       m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, msb);
+  }
+
+  void CCpu::RLC_addrreg(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w);
+      RLC_reg(&value);
+      WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::RLA()
+  {
+      bool msb = (m_registers.A() & 0x80) != 0;
+      m_registers.A() = (m_registers.A() << 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, msb);
+  }
+
+  void CCpu::RLCA()
+  {
+      bool msb = (m_registers.A() & 0x80) != 0;
+      m_registers.A() = (m_registers.A() << 1) | (msb ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, msb);
   }
@@ -866,24 +1047,66 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_N, false);
   }
 
-  void CCpu::RR(cpcByte* byte)
+  void CCpu::RR_reg(cpcByte* byte)
   {
       bool lsb = ((*byte) & 0x01) != 0;
       *byte = ((*byte) >> 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x80 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
       m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
       m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, lsb);
   }
 
-  void CCpu::RRC(cpcByte* byte)
+  void CCpu::RR_addrreg(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w);
+      RR_reg(&value);
+      WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::RRC_reg(cpcByte* byte)
   {
       bool lsb = ((*byte) & 0x01) != 0;
       *byte = ((*byte) >> 1) | (lsb ? 0x80 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, lsb);
+      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
       m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
       m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, lsb);
+  }
+
+  void CCpu::RRC_addrreg(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w);
+      RRC_reg(&value);
+      WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::RRA()
+  {
+      bool lsb = (m_registers.A() & 0x01) != 0;
+      m_registers.A() = (m_registers.A() >> 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x80 : 0x00);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, lsb);
+  }
+
+  void CCpu::RRCA()
+  {
+      bool lsb = (m_registers.A() & 0x01) != 0;
+      m_registers.A() = (m_registers.A() >> 1) | (lsb ? 0x80 : 0x00);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, lsb);
   }
@@ -902,6 +1125,55 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
       m_registers.SetFlag(Registers::Flag_PV, s_parity[m_registers.A()]);
       m_registers.SetFlag(Registers::Flag_N, false);
+  }
+
+  void CCpu::SL_reg(cpcByte* byte, bool bit0)
+  {
+      bool msb = ((*byte) & 0x80) != 0;
+      *byte = ((*byte) << 1) | (bit0 ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, msb);
+  }
+
+  void CCpu::SL_addrreg(const Reg16& addressReg, bool bit0)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w);
+      SL_reg(&value, bit0);
+      WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::SR_reg(cpcByte* byte, bool bit7)
+  {
+      bool lsb = ((*byte) & 0x01) != 0;
+      *byte = ((*byte) >> 1) | (bit7 ? 0x80 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, bit7 != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, lsb);
+  }
+
+  void CCpu::SRA_addrreg(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w);
+      SR_reg(&value, (value & 0x80) != 0);
+      WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::SRL_addrreg(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w);
+      SR_reg(&value, false);
+      WriteByteToMemory(addressReg.w, value);
   }
 
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)

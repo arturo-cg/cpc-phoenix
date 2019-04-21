@@ -187,6 +187,7 @@ namespace CPC {
     //void                    SyncToWaitSignal          ();
 
     void                    ProcessPrefixByte         (cpcByte prefixByte);
+    void                    HandleInvalidInstruction  ();
 
     cpcByte                 ReadByteFromMemory        (cpcWord address);
     void                    WriteByteToMemory         (cpcWord address, cpcByte value);
@@ -240,12 +241,25 @@ namespace CPC {
     void                    XOR_addrreg               (const Reg16& addressReg);
     void                    CPL                       ();
     void                    DAA                       ();
-    void                    RL                        (cpcByte* byte);
-    void                    RLC                       (cpcByte* byte);
+    void                    RL_reg                    (cpcByte* byte);
+    void                    RL_addrreg                (const Reg16& addressReg);
+    void                    RLC_reg                   (cpcByte* byte);
+    void                    RLC_addrreg               (const Reg16& addressReg);
+    void                    RLA                       ();
+    void                    RLCA                      ();
     void                    RLD                       ();
-    void                    RR                        (cpcByte* byte);
-    void                    RRC                       (cpcByte* byte);
+    void                    RR_reg                    (cpcByte* byte);
+    void                    RR_addrreg                (const Reg16& addressReg);
+    void                    RRC_reg                   (cpcByte* byte);
+    void                    RRC_addrreg               (const Reg16& addressReg);
+    void                    RRA                       ();
+    void                    RRCA                      ();
     void                    RRD                       ();
+    void                    SL_reg                    (cpcByte* byte, bool bit0);
+    void                    SL_addrreg                (const Reg16& addressReg, bool bit0);
+    void                    SR_reg                    (cpcByte* byte, bool bit7);
+    void                    SRA_addrreg               (const Reg16& addressReg);
+    void                    SRL_addrreg               (const Reg16& addressReg);
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
     void                    EX_addrreg_reg            (Reg16 addressReg, Reg16* b);
     void                    EXX                       ();
