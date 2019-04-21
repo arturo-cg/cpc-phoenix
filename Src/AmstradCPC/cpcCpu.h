@@ -294,8 +294,16 @@ namespace CPC {
     void                    DJNZ_n                    ();
     void                    IN_value_address          (cpcByte* value, const Reg16& addressReg);
     void                    IN_n                      ();
+    void                    INI                       ();
+    void                    INIR                      ();
+    void                    IND                       ();
+    void                    INDR                      ();
     void                    OUT_address_value         (const Reg16& addressReg, cpcByte value);
     void                    OUT_n                     ();
+    void                    OUTI                      ();
+    void                    OTIR                      ();
+    void                    OUTD                      ();
+    void                    OTDR                      ();
     void                    EI                        ();
     void                    DI                        ();
     void                    IM                        (int mode);

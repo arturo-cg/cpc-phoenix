@@ -275,6 +275,44 @@ namespace CPC {
           // TODO: implement correct timing.
           m_numCyclesAhead += 4;
       }
+      else if ((m_prefix == Prefix::FD) && (opcode == 0x22))  // LD (%nn), IY...
+      {
+          LD16_addrnn_reg(m_registers.IY);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::FD) && (opcode == 0x77))  // LD (IY+%n), A...
+      {
+          cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
+          m_registers.PC.w++;
+          WriteByteToMemory(m_registers.IY.w + ConvertSignedByteToWord(displacement), m_registers.A());
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::FD) && (opcode == 0xE1))  // POP IY...
+      {
+          Pop(&m_registers.IY);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
+      else if ((m_prefix == Prefix::FD) && (opcode == 0xE5))  // PUSH IY...
+      {
+          Push(m_registers.IY);
+          // Reset prefix.
+          m_prefix = Prefix::None;
+          // Consume cycles.
+          // TODO: implement correct timing.
+          m_numCyclesAhead += 4;
+      }
       else
       {
           OpcodeInfo* table = m_opcodes[m_prefix];
@@ -1430,6 +1468,54 @@ namespace CPC {
       m_registers.A() = ReadByteFromPort(address.w);
   }
 
+  void CCpu::INI()
+  {
+      cpcByte value = ReadByteFromPort(m_registers.BC.w);
+      WriteByteToMemory(m_registers.HL.w, value);
+      m_registers.B()--;
+      m_registers.HL.w++;
+
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.B() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.B() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.B() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.B() & 0x08) != 0);
+  }
+
+  void CCpu::INIR()
+  {
+      // Do a INI.
+      INI();
+      // Repeat if B != 0.
+      if (m_registers.B() != 0)
+      {
+          m_registers.PC.w -= 2;    // Note that INIR is a 2-byte instruction.
+      }
+  }
+
+  void CCpu::IND()
+  {
+      cpcByte value = ReadByteFromPort(m_registers.BC.w);
+      WriteByteToMemory(m_registers.HL.w, value);
+      m_registers.B()--;
+      m_registers.HL.w--;
+
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.B() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.B() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.B() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.B() & 0x08) != 0);
+  }
+
+  void CCpu::INDR()
+  {
+      // Do a IND.
+      IND();
+      // Repeat if B != 0.
+      if (m_registers.B() != 0)
+      {
+          m_registers.PC.w -= 2;    // Note that INDR is a 2-byte instruction.
+      }
+  }
+
   void CCpu::OUT_address_value(const Reg16& addressReg, cpcByte value)
   {
       WriteByteToPort(addressReg.w, value);
@@ -1441,6 +1527,54 @@ namespace CPC {
       address.b.l = FetchByte();
       address.b.h = m_registers.A();
       WriteByteToPort(address.w, m_registers.A());
+  }
+
+  void CCpu::OUTI()
+  {
+      cpcByte value = ReadByteFromMemory(m_registers.HL.w);
+      m_registers.B()--;
+      WriteByteToPort(m_registers.BC.w, value);
+      m_registers.HL.w++;
+
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.B() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.B() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.B() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.B() & 0x08) != 0);
+  }
+
+  void CCpu::OTIR()
+  {
+      // Do a OUTI.
+      OUTI();
+      // Repeat if B != 0.
+      if (m_registers.B() != 0)
+      {
+          m_registers.PC.w -= 2;    // Note that OTIR is a 2-byte instruction.
+      }
+  }
+
+  void CCpu::OUTD()
+  {
+      cpcByte value = ReadByteFromMemory(m_registers.HL.w);
+      m_registers.B()--;
+      WriteByteToPort(m_registers.BC.w, value);
+      m_registers.HL.w--;
+
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.B() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.B() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.B() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.B() & 0x08) != 0);
+  }
+
+  void CCpu::OTDR()
+  {
+      // Do a OUTD.
+      OUTD();
+      // Repeat if B != 0.
+      if (m_registers.B() != 0)
+      {
+          m_registers.PC.w -= 2;    // Note that OTDR is a 2-byte instruction.
+      }
   }
 
   void CCpu::EI()
