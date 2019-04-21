@@ -203,63 +203,7 @@ namespace CPC {
 
       m_delayInterruptEnable = false;
       // Execute instruction or remember prefix.
-      if ((m_prefix == Prefix::CB) && (opcode == 0x71))  // BIT 6,C...
-      {
-          cpcByte result = m_registers.C() & (0x01 << 6);
-          m_registers.SetFlag(Registers::Flag_Z, result == 0);
-          m_registers.SetFlag(Registers::Flag_PV, result == 0);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::CB) && (opcode == 0x81))  // RES 0,C...
-      {
-          m_registers.C() &= ~(0x01 << 0);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::CB) && (opcode == 0x85))  // RES 0,L...
-      {
-          m_registers.L() &= ~(0x01 << 0);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::CB) && (opcode == 0x89))  // RES 1,C...
-      {
-          m_registers.C() &= ~(0x01 << 1);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::CB) && (opcode == 0x91))  // RES 2,C...
-      {
-          m_registers.C() &= ~(0x01 << 2);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::CB) && (opcode == 0xF1))  // SET 6,C...
-      {
-          m_registers.C() |= (0x01 << 6);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::DD) && (opcode == 0xE5))  // PUSH IX...
+      if ((m_prefix == Prefix::DD) && (opcode == 0xE5))  // PUSH IX...
       {
           Push(m_registers.IX);
           // Reset prefix.
@@ -348,7 +292,7 @@ namespace CPC {
               m_prefix = Prefix::None;
               // Consume cycles.
               // TODO: implement correct timing.
-              m_numCyclesAhead += 4;
+              m_numCyclesAhead += 16;
           }
       }
   }
@@ -1306,6 +1250,48 @@ namespace CPC {
       {
           m_registers.PC.w -= 2;    // Note that CPDR is a 2-byte instruction.
       }
+  }
+
+  void CCpu::BIT_reg(int bit, cpcByte value)
+  {
+      cpcByte result = value & (0x01 << bit);
+      m_registers.SetFlag(Registers::Flag_S, (bit == 7) && ((value & 0x80) != 0));
+      m_registers.SetFlag(Registers::Flag_Z, result == 0);
+      m_registers.SetFlag(Registers::Flag_5, (value & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, true);
+      m_registers.SetFlag(Registers::Flag_3, (value & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, result == 0);
+      m_registers.SetFlag(Registers::Flag_N, false);
+  }
+
+  void CCpu::BIT_addr(int bit, cpcWord address)
+  {
+      cpcByte value = ReadByteFromMemory(address);
+      BIT_reg(bit, value);
+  }
+
+  void CCpu::RES_reg(int bit, cpcByte* value)
+  {
+      *value &= ~(0x01 << bit);
+  }
+
+  void CCpu::RES_addr(int bit, cpcWord address)
+  {
+      cpcByte value = ReadByteFromMemory(address);
+      RES_reg(bit, &value);
+      WriteByteToMemory(address, value);
+  }
+
+  void CCpu::SET_reg(int bit, cpcByte* value)
+  {
+      *value |= (0x01 << bit);
+  }
+
+  void CCpu::SET_addr(int bit, cpcWord address)
+  {
+      cpcByte value = ReadByteFromMemory(address);
+      SET_reg(bit, &value);
+      WriteByteToMemory(address, value);
   }
 
   void CCpu::PUSH(const Reg16& value)

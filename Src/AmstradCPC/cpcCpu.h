@@ -272,6 +272,12 @@ namespace CPC {
     void                    CPIR                      ();
     void                    CPD                       ();
     void                    CPDR                      ();
+    void                    BIT_reg                   (int bit, cpcByte value);
+    void                    BIT_addr                  (int bit, cpcWord address);
+    void                    RES_reg                   (int bit, cpcByte* value);
+    void                    RES_addr                  (int bit, cpcWord address);
+    void                    SET_reg                   (int bit, cpcByte* value);
+    void                    SET_addr                  (int bit, cpcWord address);
     void                    PUSH                      (const Reg16& value);
     void                    POP                       (Reg16* value);
     void                    CALL_nn                   ();
