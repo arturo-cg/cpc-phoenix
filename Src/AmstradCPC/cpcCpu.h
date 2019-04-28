@@ -127,6 +127,10 @@ namespace CPC {
         cpcByte& L() { return HL.b.l; }
         cpcByte& I() { return IR.b.h; }
         cpcByte& R() { return IR.b.l; }
+        cpcByte& IXH() { return IX.b.h; }
+        cpcByte& IXL() { return IX.b.l; }
+        cpcByte& IYH() { return IY.b.h; }
+        cpcByte& IYL() { return IY.b.l; }
         const cpcByte& A() const { return AF.b.h; }
         const cpcByte& F() const { return AF.b.l; }
         const cpcByte& B() const { return BC.b.h; }
@@ -135,6 +139,10 @@ namespace CPC {
         const cpcByte& E() const { return DE.b.l; }
         const cpcByte& H() const { return HL.b.h; }
         const cpcByte& L() const { return HL.b.l; }
+        const cpcByte& IXH() const { return IX.b.h; }
+        const cpcByte& IXL() const { return IX.b.l; }
+        const cpcByte& IYH() const { return IY.b.h; }
+        const cpcByte& IYL() const { return IY.b.l; }
         // Flag accessor functions.
         enum Flag
         {
@@ -207,6 +215,9 @@ namespace CPC {
     void                    LD8_addrnn_reg            (cpcByte value);
     void                    LD8_reg_addrnn            (cpcByte* dest);
     void                    LD8_reg_addrreg           (cpcByte* dest, const Reg16& addressReg);
+    void                    LD8_addrreg_offset_n      (const Reg16& addressReg);
+    void                    LD8_addrreg_offset_valuereg (const Reg16& addressReg, cpcByte value);
+    void                    LD8_reg_addrreg_offset    (cpcByte* dest, const Reg16& addressReg);
     void                    LDI                       ();
     void                    LDIR                      ();
     void                    LDD                       ();
@@ -218,27 +229,34 @@ namespace CPC {
     void                    ADD8_reg_reg              (cpcByte* a, cpcByte b, cpcByte carry);
     void                    ADD8_reg_n                (cpcByte* a, cpcByte carry);
     void                    ADD8_reg_addrreg          (cpcByte* a, const Reg16& addressReg, cpcByte carry);
+    void                    ADD8_reg_addrreg_offset   (cpcByte* a, const Reg16& addressReg, cpcByte carry);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
     void                    SUB8_reg                  (cpcByte b, cpcByte borrow);
     void                    SUB8_n                    (cpcByte borrow);
     void                    SUB8_addrreg              (const Reg16& addressReg, cpcByte borrow);
+    void                    SUB8_addrreg_offset       (const Reg16& addressReg, cpcByte borrow);
     void                    SUB16_reg_reg             (Reg16* a, Reg16 b, cpcWord borrow);
     void                    NEG();
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);
     void                    INC8_addrreg              (const Reg16& addressReg);
     void                    DEC8_addrreg              (const Reg16& addressReg);
+    void                    INC8_addrreg_offset       (const Reg16& addressReg);
+    void                    DEC8_addrreg_offset       (const Reg16& addressReg);
     void                    INC16_reg                 (Reg16* reg);
     void                    DEC16_reg                 (Reg16* reg);
     void                    AND_reg                   (cpcByte b);
     void                    AND_n                     ();
     void                    AND_addrreg               (const Reg16& addressReg);
+    void                    AND_addrreg_offset        (const Reg16& addressReg);
     void                    OR_reg                    (cpcByte b);
     void                    OR_n                      ();
     void                    OR_addrreg                (const Reg16& addressReg);
+    void                    OR_addrreg_offset         (const Reg16& addressReg);
     void                    XOR_reg                   (cpcByte b);
     void                    XOR_n                     ();
     void                    XOR_addrreg               (const Reg16& addressReg);
+    void                    XOR_addrreg_offset        (const Reg16& addressReg);
     void                    CPL                       ();
     void                    DAA                       ();
     void                    RL_reg                    (cpcByte* byte);
@@ -268,6 +286,7 @@ namespace CPC {
     void                    CP_reg                    (cpcByte b);
     void                    CP_n                      ();
     void                    CP_addrreg                (const Reg16& addressReg);
+    void                    CP_addrreg_offset         (const Reg16& addressReg);
     void                    CPI                       ();
     void                    CPIR                      ();
     void                    CPD                       ();

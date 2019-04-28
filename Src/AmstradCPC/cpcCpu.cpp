@@ -205,10 +205,8 @@ namespace CPC {
       // Execute instruction or remember prefix.
       if ((m_prefix == Prefix::DD) && (opcode == 0x36))  // LD (IX+%n), %n...
       {
-          cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
-          m_registers.PC.w++;
-          cpcByte value = ReadByteFromMemory(m_registers.PC.w);
-          m_registers.PC.w++;
+          cpcByte displacement = FetchByte();
+          cpcByte value = FetchByte();
           WriteByteToMemory(m_registers.IX.w + ConvertSignedByteToWord(displacement), value);
           // Reset prefix.
           m_prefix = Prefix::None;
@@ -218,8 +216,7 @@ namespace CPC {
       }
       else if ((m_prefix == Prefix::DD) && (opcode == 0x7E))  // LD A, (IX+%n)...
       {
-          cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
-          m_registers.PC.w++;
+          cpcByte displacement = FetchByte();
           m_registers.A() = ReadByteFromMemory(m_registers.IX.w + ConvertSignedByteToWord(displacement));
           // Reset prefix.
           m_prefix = Prefix::None;
@@ -229,21 +226,9 @@ namespace CPC {
       }
       else if ((m_prefix == Prefix::DD) && (opcode == 0xB6))  // OR (IX+%n)...
       {
-          cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
-          m_registers.PC.w++;
+          cpcByte displacement = FetchByte();
           cpcByte b = ReadByteFromMemory(m_registers.IX.w + ConvertSignedByteToWord(displacement));
           OR_reg(b);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::FD) && (opcode == 0x77))  // LD (IY+%n), A...
-      {
-          cpcByte displacement = ReadByteFromMemory(m_registers.PC.w);
-          m_registers.PC.w++;
-          WriteByteToMemory(m_registers.IY.w + ConvertSignedByteToWord(displacement), m_registers.A());
           // Reset prefix.
           m_prefix = Prefix::None;
           // Consume cycles.
@@ -535,6 +520,25 @@ namespace CPC {
       *dest = ReadByteFromMemory(addressReg.w);
   }
 
+  void CCpu::LD8_addrreg_offset_n(const Reg16& addressReg)
+  {
+      cpcByte displacement = FetchByte();
+      cpcByte value = FetchByte();
+      WriteByteToMemory(addressReg.w + ConvertSignedByteToWord(displacement), value);
+  }
+
+  void CCpu::LD8_addrreg_offset_valuereg(const Reg16& addressReg, cpcByte value)
+  {
+      cpcByte displacement = FetchByte();
+      WriteByteToMemory(addressReg.w + ConvertSignedByteToWord(displacement), value);
+  }
+
+  void CCpu::LD8_reg_addrreg_offset(cpcByte* dest, const Reg16& addressReg)
+  {
+      cpcByte displacement = FetchByte();
+      *dest = ReadByteFromMemory(addressReg.w + ConvertSignedByteToWord(displacement));
+  }
+
   void CCpu::LDI()
   {
       cpcByte value = ReadByteFromMemory(m_registers.HL.w);
@@ -629,6 +633,24 @@ namespace CPC {
       WriteByteToMemory(addressReg.w, value);
   }
 
+  void CCpu::INC8_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte displacement = FetchByte();
+      cpcWord address = addressReg.w + ConvertSignedByteToWord(displacement);
+      cpcByte value = ReadByteFromMemory(address);
+      INC8_reg(&value);
+      WriteByteToMemory(address, value);
+  }
+
+  void CCpu::DEC8_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte displacement = FetchByte();
+      cpcWord address = addressReg.w + ConvertSignedByteToWord(displacement);
+      cpcByte value = ReadByteFromMemory(address);
+      DEC8_reg(&value);
+      WriteByteToMemory(address, value);
+  }
+
   void CCpu::INC16_reg(Reg16* reg)
   {
       reg->w++;
@@ -664,6 +686,13 @@ namespace CPC {
       AND_reg(b);
   }
 
+  void CCpu::AND_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte displacement = FetchByte();
+      cpcByte b = ReadByteFromMemory(addressReg.w + ConvertSignedByteToWord(displacement));
+      AND_reg(b);
+  }
+
   void CCpu::OR_reg(cpcByte b)
   {
       m_registers.A() |= b;
@@ -689,6 +718,13 @@ namespace CPC {
       OR_reg(b);
   }
 
+  void CCpu::OR_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte displacement = FetchByte();
+      cpcByte b = ReadByteFromMemory(addressReg.w + ConvertSignedByteToWord(displacement));
+      OR_reg(b);
+  }
+
   void CCpu::XOR_reg(cpcByte b)
   {
       m_registers.A() ^= b;
@@ -711,6 +747,13 @@ namespace CPC {
   void CCpu::XOR_addrreg(const Reg16& addressReg)
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
+      XOR_reg(b);
+  }
+
+  void CCpu::XOR_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte displacement = FetchByte();
+      cpcByte b = ReadByteFromMemory(addressReg.w + ConvertSignedByteToWord(displacement));
       XOR_reg(b);
   }
 
@@ -819,6 +862,13 @@ namespace CPC {
       ADD8_reg_reg(a, b, carry);
   }
 
+  void CCpu::ADD8_reg_addrreg_offset(cpcByte* a, const Reg16& addressReg, cpcByte carry)
+  {
+      cpcByte displacement = FetchByte();
+      cpcByte b = ReadByteFromMemory(addressReg.w + ConvertSignedByteToWord(displacement));
+      ADD8_reg_reg(a, b, carry);
+  }
+
   void CCpu::ADD16_reg_reg(Reg16* a, Reg16 b)
   {
       m_registers.SetFlag(Registers::Flag_H, (((a->w & 0x0FFF) + (b.w & 0x0FFF)) & 0x1000) != 0);
@@ -855,6 +905,13 @@ namespace CPC {
   void CCpu::SUB8_addrreg(const Reg16& addressReg, cpcByte borrow)
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
+      SUB8_reg(b, borrow);
+  }
+
+  void CCpu::SUB8_addrreg_offset(const Reg16& addressReg, cpcByte borrow)
+  {
+      cpcByte displacement = FetchByte();
+      cpcByte b = ReadByteFromMemory(addressReg.w + ConvertSignedByteToWord(displacement));
       SUB8_reg(b, borrow);
   }
 
@@ -1158,6 +1215,13 @@ namespace CPC {
   void CCpu::CP_addrreg(const Reg16& addressReg)
   {
       cpcByte b = ReadByteFromMemory(addressReg.w);
+      CP_reg(b);
+  }
+
+  void CCpu::CP_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte displacement = FetchByte();
+      cpcByte b = ReadByteFromMemory(addressReg.w + ConvertSignedByteToWord(displacement));
       CP_reg(b);
   }
 
