@@ -34,6 +34,11 @@ namespace CPC {
   ** the Gate-Array has already moved on to a higher address. On this emulator on the other hand it would be the other way around; the CPU
   ** would write the new byte value first and then the Gate-Array would read the byte, which has already been changed.
   **
+  ** TODO:
+  **   - DDCB instructions.
+  **   - FDCB instructions.
+  **   - R register.
+  **   - Timing.
   */
   class CCpu : public CSubSystem
   {

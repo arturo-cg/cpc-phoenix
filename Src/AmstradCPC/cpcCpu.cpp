@@ -203,57 +203,22 @@ namespace CPC {
 
       m_delayInterruptEnable = false;
       // Execute instruction or remember prefix.
-      if ((m_prefix == Prefix::DD) && (opcode == 0x36))  // LD (IX+%n), %n...
+      OpcodeInfo* table = m_opcodes[m_prefix];
+      OpcodeInfo* opcodeInfo = &table[opcode];
+      //{
+      //    std::ostringstream ss;
+      //    ss << std::hex << m_registers.PC.w - 1 << "    " << opcodeInfo->mnemonic << "\n";
+      //    //std::cout << ss.str();
+      //    OutputDebugString(ss.str().c_str());
+      //}
+      std::invoke(opcodeInfo->microcodeFn, this);
+      if (opcodeInfo->isInstruction)   // If we just executed an instruction...
       {
-          cpcByte displacement = FetchByte();
-          cpcByte value = FetchByte();
-          WriteByteToMemory(m_registers.IX.w + ConvertSignedByteToWord(displacement), value);
           // Reset prefix.
           m_prefix = Prefix::None;
           // Consume cycles.
           // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::DD) && (opcode == 0x7E))  // LD A, (IX+%n)...
-      {
-          cpcByte displacement = FetchByte();
-          m_registers.A() = ReadByteFromMemory(m_registers.IX.w + ConvertSignedByteToWord(displacement));
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else if ((m_prefix == Prefix::DD) && (opcode == 0xB6))  // OR (IX+%n)...
-      {
-          cpcByte displacement = FetchByte();
-          cpcByte b = ReadByteFromMemory(m_registers.IX.w + ConvertSignedByteToWord(displacement));
-          OR_reg(b);
-          // Reset prefix.
-          m_prefix = Prefix::None;
-          // Consume cycles.
-          // TODO: implement correct timing.
-          m_numCyclesAhead += 4;
-      }
-      else
-      {
-          OpcodeInfo* table = m_opcodes[m_prefix];
-          OpcodeInfo* opcodeInfo = &table[opcode];
-          //{
-          //    std::ostringstream ss;
-          //    ss << std::hex << m_registers.PC.w - 1 << "    " << opcodeInfo->mnemonic << "\n";
-          //    //std::cout << ss.str();
-          //    OutputDebugString(ss.str().c_str());
-          //}
-          std::invoke(opcodeInfo->microcodeFn, this);
-          if (opcodeInfo->isInstruction)   // If we just executed an instruction...
-          {
-              // Reset prefix.
-              m_prefix = Prefix::None;
-              // Consume cycles.
-              // TODO: implement correct timing.
-              m_numCyclesAhead += 16;
-          }
+          m_numCyclesAhead += 16;
       }
   }
 
