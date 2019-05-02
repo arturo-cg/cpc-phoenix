@@ -839,8 +839,6 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_H, (((a->w & 0x0FFF) + (b.w & 0x0FFF)) & 0x1000) != 0);
       uint32_t longResult = uint32_t(a->w) + uint32_t(b.w);
       a->w += b.w;
-      m_registers.SetFlag(Registers::Flag_S, (a->w & 0x8000) != 0);                                     // TODO: Unclear if flag affected.
-      m_registers.SetFlag(Registers::Flag_Z, a->w == 0);                                                // TODO: Unclear if flag affected.
       m_registers.SetFlag(Registers::Flag_5, (a->w & 0x2000) != 0);
       m_registers.SetFlag(Registers::Flag_3, (a->w & 0x0800) != 0);
       m_registers.SetFlag(Registers::Flag_N, false);
