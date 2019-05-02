@@ -234,11 +234,12 @@ namespace CPC {
     void                    ADD8_reg_addrreg          (cpcByte* a, const Reg16& addressReg, cpcByte carry);
     void                    ADD8_reg_addrreg_offset   (cpcByte* a, const Reg16& addressReg, cpcByte carry);
     void                    ADD16_reg_reg             (Reg16* a, Reg16 b);
+    void                    ADC16_reg_reg             (Reg16* a, Reg16 b);
     void                    SUB8_reg                  (cpcByte b, cpcByte borrow);
     void                    SUB8_n                    (cpcByte borrow);
     void                    SUB8_addrreg              (const Reg16& addressReg, cpcByte borrow);
     void                    SUB8_addrreg_offset       (const Reg16& addressReg, cpcByte borrow);
-    void                    SUB16_reg_reg             (Reg16* a, Reg16 b, cpcWord borrow);
+    void                    SBC16_reg                 (Reg16 b);
     void                    NEG();
     void                    INC8_reg                  (cpcByte* byte);
     void                    DEC8_reg                  (cpcByte* byte);

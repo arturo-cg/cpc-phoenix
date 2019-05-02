@@ -219,7 +219,7 @@ namespace CPC {
           m_prefix = Prefix::None;
           // Consume cycles.
           // TODO: implement correct timing.
-          m_numCyclesAhead += 16;
+          m_numCyclesAhead += 4;///////////////////////16;
       }
   }
 
@@ -850,6 +850,22 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, (longResult & 0x10000) != 0);
   }
 
+  void CCpu::ADC16_reg_reg(Reg16* a, Reg16 b)
+  {
+      cpcWord oldA = a->w;
+      cpcWord carry = (m_registers.GetFlag(Registers::Flag_C) ? 1 : 0);
+      m_registers.SetFlag(Registers::Flag_H, (((a->w & 0x0FFF) + (b.w & 0x0FFF) + carry) & 0x1000) != 0);
+      uint32_t longResult = uint32_t(a->w) + uint32_t(b.w) + uint32_t(carry);
+      a->w += b.w + carry;
+      m_registers.SetFlag(Registers::Flag_S, (a->w & 0x8000) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, a->w == 0);
+      m_registers.SetFlag(Registers::Flag_5, (a->w & 0x2000) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (a->w & 0x0800) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, (((~(oldA ^ b.w)) & (oldA ^ a->w)) & 0x8000) != 0);  // Have a and b same sign, and result different sign?
+      m_registers.SetFlag(Registers::Flag_N, false);
+      m_registers.SetFlag(Registers::Flag_C, (longResult & 0x10000) != 0);
+  }
+
   void CCpu::SUB8_reg(cpcByte b, cpcByte borrow)
   {
       cpcByte oldA = m_registers.A();
@@ -883,18 +899,19 @@ namespace CPC {
       SUB8_reg(b, borrow);
   }
 
-  void CCpu::SUB16_reg_reg(Reg16* a, Reg16 b, cpcWord borrow)
+  void CCpu::SBC16_reg(Reg16 b)
   {
-      cpcWord oldA = a->w;
-      a->w = a->w - b.w - borrow;
-      m_registers.SetFlag(Registers::Flag_S, (a->w & 0x8000) != 0);
-      m_registers.SetFlag(Registers::Flag_Z, a->w == 0);
-      m_registers.SetFlag(Registers::Flag_5, (a->w & 0x2000) != 0);
-      m_registers.SetFlag(Registers::Flag_H, ((oldA & 0x0F) < ((b.w & 0x0F) + borrow)));
-      m_registers.SetFlag(Registers::Flag_3, (a->w & 0x0800) != 0);
-      m_registers.SetFlag(Registers::Flag_PV, ((((oldA ^ b.w)) & (oldA ^ a->w)) & 0x80) != 0);  // Have a and b different sign, and result different sign?
+      cpcWord oldHL = m_registers.HL.w;
+      cpcWord borrow = (m_registers.GetFlag(Registers::Flag_C) ? 1 : 0);
+      m_registers.HL.w = m_registers.HL.w - b.w - borrow;
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.HL.w & 0x8000) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.HL.w == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.HL.w & 0x2000) != 0);
+      m_registers.SetFlag(Registers::Flag_H, ((oldHL & 0x0FFF) < ((b.w & 0x0FFF) + borrow)));
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.HL.w & 0x0800) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, ((((oldHL ^ b.w)) & (oldHL ^ m_registers.HL.w)) & 0x8000) != 0);  // Have a and b different sign, and result different sign?
       m_registers.SetFlag(Registers::Flag_N, true);
-      m_registers.SetFlag(Registers::Flag_C, oldA < (b.w + borrow));
+      m_registers.SetFlag(Registers::Flag_C, oldHL < (b.w + borrow));
   }
 
   void CCpu::NEG()
