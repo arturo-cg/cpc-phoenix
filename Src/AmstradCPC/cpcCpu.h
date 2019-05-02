@@ -35,8 +35,6 @@ namespace CPC {
   ** would write the new byte value first and then the Gate-Array would read the byte, which has already been changed.
   **
   ** TODO:
-  **   - DDCB instructions.
-  **   - FDCB instructions.
   **   - R register.
   **   - Timing.
   */
@@ -264,25 +262,45 @@ namespace CPC {
     void                    XOR_addrreg_offset        (const Reg16& addressReg);
     void                    CPL                       ();
     void                    DAA                       ();
+    void                    RL_result_value           (cpcByte* result, cpcByte value);
     void                    RL_reg                    (cpcByte* byte);
     void                    RL_addrreg                (const Reg16& addressReg);
+    void                    RL_addrreg_offset         (const Reg16& addressReg);
+    void                    RL_addrreg_offset_reg     (const Reg16& addressReg, cpcByte* result);
+    void                    RLC_result_value          (cpcByte* result, cpcByte value);
     void                    RLC_reg                   (cpcByte* byte);
     void                    RLC_addrreg               (const Reg16& addressReg);
+    void                    RLC_addrreg_offset        (const Reg16& addressReg);
+    void                    RLC_addrreg_offset_reg    (const Reg16& addressReg, cpcByte* result);
     void                    RLA                       ();
     void                    RLCA                      ();
     void                    RLD                       ();
+    void                    RR_result_value           (cpcByte* result, cpcByte value);
     void                    RR_reg                    (cpcByte* byte);
     void                    RR_addrreg                (const Reg16& addressReg);
+    void                    RR_addrreg_offset         (const Reg16& addressReg);
+    void                    RR_addrreg_offset_reg     (const Reg16& addressReg, cpcByte* result);
+    void                    RRC_result_value          (cpcByte* result, cpcByte value);
     void                    RRC_reg                   (cpcByte* byte);
     void                    RRC_addrreg               (const Reg16& addressReg);
+    void                    RRC_addrreg_offset        (const Reg16& addressReg);
+    void                    RRC_addrreg_offset_reg    (const Reg16& addressReg, cpcByte* result);
     void                    RRA                       ();
     void                    RRCA                      ();
     void                    RRD                       ();
+    void                    SL_result_value           (cpcByte* result, cpcByte value, bool bit0);
     void                    SL_reg                    (cpcByte* byte, bool bit0);
     void                    SL_addrreg                (const Reg16& addressReg, bool bit0);
+    void                    SL_addrreg_offset         (const Reg16& addressReg, bool bit0);
+    void                    SL_addrreg_offset_reg     (const Reg16& addressReg, cpcByte* result, bool bit0);
+    void                    SR_result_value           (cpcByte* result, cpcByte value, bool bit7);
     void                    SR_reg                    (cpcByte* byte, bool bit7);
+    void                    SR_addrreg_offset         (const Reg16& addressReg, bool bit7);
+    void                    SR_addrreg_offset_reg     (const Reg16& addressReg, cpcByte* result, bool bit7);
     void                    SRA_addrreg               (const Reg16& addressReg);
+    void                    SRA_addrreg_offset        (const Reg16& addressReg);
     void                    SRL_addrreg               (const Reg16& addressReg);
+    void                    SRL_addrreg_offset        (const Reg16& addressReg);
     void                    EX_reg_reg                (Reg16* a, Reg16* b);
     void                    EX_addrreg_reg            (Reg16 addressReg, Reg16* b);
     void                    EXX                       ();
@@ -298,10 +316,15 @@ namespace CPC {
     void                    CPDR                      ();
     void                    BIT_reg                   (int bit, cpcByte value);
     void                    BIT_addr                  (int bit, cpcWord address);
+    void                    BIT_addr_offset           (int bit, cpcWord address);
     void                    RES_reg                   (int bit, cpcByte* value);
     void                    RES_addr                  (int bit, cpcWord address);
+    void                    RES_addr_offset           (int bit, cpcWord address);
+    void                    RES_addr_offset_reg       (int bit, cpcWord address, cpcByte* result);
     void                    SET_reg                   (int bit, cpcByte* value);
     void                    SET_addr                  (int bit, cpcWord address);
+    void                    SET_addr_offset           (int bit, cpcWord address);
+    void                    SET_addr_offset_reg       (int bit, cpcWord address, cpcByte* result);
     void                    PUSH                      (const Reg16& value);
     void                    POP                       (Reg16* value);
     void                    CALL_nn                   ();
@@ -344,6 +367,7 @@ namespace CPC {
                                // When an instruction is fetched and executed, this counter is incremented by the number of cycles the instruction actually takes.
                                // If that number of cycles is higher than the number of cycles the Z80 emulation was asked to execute, it will sit idle until the emulator catches up with it.
     Prefix m_prefix;
+    cpcWord m_signedDisplacement;
     OpcodeInfo* m_opcodes[Prefix::Count];     // One InstructionTable per prefix.
     CCpuInterface* m_cpuInterface;
 

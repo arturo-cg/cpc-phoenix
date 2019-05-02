@@ -147,6 +147,7 @@ namespace CPC {
     m_interruptRequestActive = false;
     m_interruptVector = 0;
     m_nmiRequested = false;
+    m_signedDisplacement = 0;
   }
 
   //----------------------------------------------------------------------------
@@ -321,6 +322,9 @@ namespace CPC {
           ((m_prefix == Prefix::DD) || (m_prefix == Prefix::FD)))     // If previous byte was either DD or FD...
       {
           m_prefix = (m_prefix == Prefix::DD ? Prefix::DDCB : Prefix::FDCB);
+          // In 2-byte prefix instructions, the prefix is immediately followed by a displacement byte.
+          // Fetch the displacement byte.
+          m_signedDisplacement = ConvertSignedByteToWord(FetchByte());
       }
       else
       {
@@ -767,6 +771,7 @@ namespace CPC {
           m_registers.SetFlag(Registers::Flag_C, true);
       }
       m_registers.A() = tmp & 0xFF;
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
       m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
   }
 
@@ -906,18 +911,23 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_C, 0 < oldA);
   }
 
-  void CCpu::RL_reg(cpcByte* byte)
+  void CCpu::RL_result_value(cpcByte* result, cpcByte value)
   {
-      bool msb = ((*byte) & 0x80) != 0;
-      *byte = ((*byte) << 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x01 : 0x00);
-      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
-      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
-      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      bool msb = (value & 0x80) != 0;
+      *result = (value << 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, ((*result) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*result) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*result) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
-      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
-      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_3, ((*result) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*result]);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, msb);
+  }
+
+  void CCpu::RL_reg(cpcByte* byte)
+  {
+      RL_result_value(byte, *byte);   // Store result in the source operand.
   }
 
   void CCpu::RL_addrreg(const Reg16& addressReg)
@@ -927,18 +937,36 @@ namespace CPC {
       WriteByteToMemory(addressReg.w, value);
   }
 
-  void CCpu::RLC_reg(cpcByte* byte)
+  void CCpu::RL_addrreg_offset(const Reg16& addressReg)
   {
-      bool msb = ((*byte) & 0x80) != 0;
-      *byte = ((*byte) << 1) | (msb ? 0x01 : 0x00);
-      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
-      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
-      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      RL_result_value(&value, value);
+      WriteByteToMemory(addressReg.w + m_signedDisplacement, value);
+  }
+
+  void CCpu::RL_addrreg_offset_reg(const Reg16& addressReg, cpcByte* result)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      RL_result_value(result, value);
+  }
+
+  void CCpu::RLC_result_value(cpcByte* result, cpcByte value)
+  {
+      bool msb = (value & 0x80) != 0;
+      *result = (value << 1) | (msb ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, ((*result) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*result) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*result) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
-      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
-      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_3, ((*result) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*result]);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, msb);
+  }
+
+  void CCpu::RLC_reg(cpcByte* byte)
+  {
+      RLC_result_value(byte, *byte);   // Store result in the source operand.
   }
 
   void CCpu::RLC_addrreg(const Reg16& addressReg)
@@ -946,6 +974,19 @@ namespace CPC {
       cpcByte value = ReadByteFromMemory(addressReg.w);
       RLC_reg(&value);
       WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::RLC_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      RLC_result_value(&value, value);
+      WriteByteToMemory(addressReg.w + m_signedDisplacement, value);
+  }
+
+  void CCpu::RLC_addrreg_offset_reg(const Reg16& addressReg, cpcByte* result)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      RLC_result_value(result, value);
   }
 
   void CCpu::RLA()
@@ -986,18 +1027,23 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_N, false);
   }
 
-  void CCpu::RR_reg(cpcByte* byte)
+  void CCpu::RR_result_value(cpcByte* result, cpcByte value)
   {
-      bool lsb = ((*byte) & 0x01) != 0;
-      *byte = ((*byte) >> 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x80 : 0x00);
-      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
-      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
-      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      bool lsb = (value & 0x01) != 0;
+      *result = (value >> 1) | (m_registers.GetFlag(Registers::Flag_C) ? 0x80 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, ((*result) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*result) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*result) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
-      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
-      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_3, ((*result) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*result]);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, lsb);
+  }
+
+  void CCpu::RR_reg(cpcByte* byte)
+  {
+      RR_result_value(byte, *byte);   // Store result in the source operand.
   }
 
   void CCpu::RR_addrreg(const Reg16& addressReg)
@@ -1007,18 +1053,36 @@ namespace CPC {
       WriteByteToMemory(addressReg.w, value);
   }
 
-  void CCpu::RRC_reg(cpcByte* byte)
+  void CCpu::RR_addrreg_offset(const Reg16& addressReg)
   {
-      bool lsb = ((*byte) & 0x01) != 0;
-      *byte = ((*byte) >> 1) | (lsb ? 0x80 : 0x00);
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      RR_result_value(&value, value);
+      WriteByteToMemory(addressReg.w + m_signedDisplacement, value);
+  }
+
+  void CCpu::RR_addrreg_offset_reg(const Reg16& addressReg, cpcByte* result)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      RR_result_value(result, value);
+  }
+
+  void CCpu::RRC_result_value(cpcByte* result, cpcByte value)
+  {
+      bool lsb = (value & 0x01) != 0;
+      *result = (value >> 1) | (lsb ? 0x80 : 0x00);
       m_registers.SetFlag(Registers::Flag_S, lsb);
-      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
-      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*result) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*result) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
-      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
-      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_3, ((*result) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*result]);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, lsb);
+  }
+
+  void CCpu::RRC_reg(cpcByte* byte)
+  {
+      RRC_result_value(byte, *byte);   // Store result in the source operand.
   }
 
   void CCpu::RRC_addrreg(const Reg16& addressReg)
@@ -1026,6 +1090,19 @@ namespace CPC {
       cpcByte value = ReadByteFromMemory(addressReg.w);
       RRC_reg(&value);
       WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::RRC_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      RRC_result_value(&value, value);
+      WriteByteToMemory(addressReg.w + m_signedDisplacement, value);
+  }
+
+  void CCpu::RRC_addrreg_offset_reg(const Reg16& addressReg, cpcByte* result)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      RRC_result_value(result, value);
   }
 
   void CCpu::RRA()
@@ -1066,18 +1143,23 @@ namespace CPC {
       m_registers.SetFlag(Registers::Flag_N, false);
   }
 
-  void CCpu::SL_reg(cpcByte* byte, bool bit0)
+  void CCpu::SL_result_value(cpcByte* result, cpcByte value, bool bit0)
   {
-      bool msb = ((*byte) & 0x80) != 0;
-      *byte = ((*byte) << 1) | (bit0 ? 0x01 : 0x00);
-      m_registers.SetFlag(Registers::Flag_S, ((*byte) & 0x80) != 0);
-      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
-      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      bool msb = (value & 0x80) != 0;
+      *result = (value << 1) | (bit0 ? 0x01 : 0x00);
+      m_registers.SetFlag(Registers::Flag_S, ((*result) & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*result) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*result) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
-      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
-      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_3, ((*result) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*result]);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, msb);
+  }
+
+  void CCpu::SL_reg(cpcByte* byte, bool bit0)
+  {
+      SL_result_value(byte, *byte, bit0);   // Store result in the source operand.
   }
 
   void CCpu::SL_addrreg(const Reg16& addressReg, bool bit0)
@@ -1087,18 +1169,49 @@ namespace CPC {
       WriteByteToMemory(addressReg.w, value);
   }
 
-  void CCpu::SR_reg(cpcByte* byte, bool bit7)
+  void CCpu::SL_addrreg_offset(const Reg16& addressReg, bool bit0)
   {
-      bool lsb = ((*byte) & 0x01) != 0;
-      *byte = ((*byte) >> 1) | (bit7 ? 0x80 : 0x00);
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      SL_result_value(&value, value, bit0);
+      WriteByteToMemory(addressReg.w + m_signedDisplacement, value);
+  }
+
+  void CCpu::SL_addrreg_offset_reg(const Reg16& addressReg, cpcByte* result, bool bit0)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      SL_result_value(result, value, bit0);
+  }
+
+  void CCpu::SR_result_value(cpcByte* result, cpcByte value, bool bit7)
+  {
+      bool lsb = (value & 0x01) != 0;
+      *result = (value >> 1) | (bit7 ? 0x80 : 0x00);
       m_registers.SetFlag(Registers::Flag_S, bit7 != 0);
-      m_registers.SetFlag(Registers::Flag_Z, (*byte) == 0);
-      m_registers.SetFlag(Registers::Flag_5, ((*byte) & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, (*result) == 0);
+      m_registers.SetFlag(Registers::Flag_5, ((*result) & 0x20) != 0);
       m_registers.SetFlag(Registers::Flag_H, false);
-      m_registers.SetFlag(Registers::Flag_3, ((*byte) & 0x08) != 0);
-      m_registers.SetFlag(Registers::Flag_PV, s_parity[*byte]);
+      m_registers.SetFlag(Registers::Flag_3, ((*result) & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, s_parity[*result]);
       m_registers.SetFlag(Registers::Flag_N, false);
       m_registers.SetFlag(Registers::Flag_C, lsb);
+  }
+
+  void CCpu::SR_reg(cpcByte* byte, bool bit7)
+  {
+      SR_result_value(byte, *byte, bit7);   // Store result in the source operand.
+  }
+
+  void CCpu::SR_addrreg_offset(const Reg16& addressReg, bool bit7)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      SR_result_value(&value, value, bit7);
+      WriteByteToMemory(addressReg.w + m_signedDisplacement, value);
+  }
+
+  void CCpu::SR_addrreg_offset_reg(const Reg16& addressReg, cpcByte* result, bool bit7)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      SR_result_value(result, value, bit7);
   }
 
   void CCpu::SRA_addrreg(const Reg16& addressReg)
@@ -1108,11 +1221,25 @@ namespace CPC {
       WriteByteToMemory(addressReg.w, value);
   }
 
+  void CCpu::SRA_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      SR_reg(&value, (value & 0x80) != 0);
+      WriteByteToMemory(addressReg.w + m_signedDisplacement, value);
+  }
+
   void CCpu::SRL_addrreg(const Reg16& addressReg)
   {
       cpcByte value = ReadByteFromMemory(addressReg.w);
       SR_reg(&value, false);
       WriteByteToMemory(addressReg.w, value);
+  }
+
+  void CCpu::SRL_addrreg_offset(const Reg16& addressReg)
+  {
+      cpcByte value = ReadByteFromMemory(addressReg.w + m_signedDisplacement);
+      SR_reg(&value, false);
+      WriteByteToMemory(addressReg.w + m_signedDisplacement, value);
   }
 
   void CCpu::EX_reg_reg(Reg16* a, Reg16* b)
@@ -1272,6 +1399,12 @@ namespace CPC {
       BIT_reg(bit, value);
   }
 
+  void CCpu::BIT_addr_offset(int bit, cpcWord address)
+  {
+      cpcByte value = ReadByteFromMemory(address + m_signedDisplacement);
+      BIT_reg(bit, value);
+  }
+
   void CCpu::RES_reg(int bit, cpcByte* value)
   {
       *value &= ~(0x01 << bit);
@@ -1284,6 +1417,19 @@ namespace CPC {
       WriteByteToMemory(address, value);
   }
 
+  void CCpu::RES_addr_offset(int bit, cpcWord address)
+  {
+      cpcByte value = ReadByteFromMemory(address + m_signedDisplacement);
+      RES_reg(bit, &value);
+      WriteByteToMemory(address + m_signedDisplacement, value);
+  }
+
+  void CCpu::RES_addr_offset_reg(int bit, cpcWord address, cpcByte* result)
+  {
+      *result = ReadByteFromMemory(address + m_signedDisplacement);
+      RES_reg(bit, result);
+  }
+
   void CCpu::SET_reg(int bit, cpcByte* value)
   {
       *value |= (0x01 << bit);
@@ -1294,6 +1440,19 @@ namespace CPC {
       cpcByte value = ReadByteFromMemory(address);
       SET_reg(bit, &value);
       WriteByteToMemory(address, value);
+  }
+
+  void CCpu::SET_addr_offset(int bit, cpcWord address)
+  {
+      cpcByte value = ReadByteFromMemory(address + m_signedDisplacement);
+      SET_reg(bit, &value);
+      WriteByteToMemory(address + m_signedDisplacement, value);
+  }
+
+  void CCpu::SET_addr_offset_reg(int bit, cpcWord address, cpcByte* result)
+  {
+      *result = ReadByteFromMemory(address + m_signedDisplacement);
+      SET_reg(bit, result);
   }
 
   void CCpu::PUSH(const Reg16& value)
