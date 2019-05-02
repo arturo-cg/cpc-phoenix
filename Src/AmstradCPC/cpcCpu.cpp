@@ -77,7 +77,7 @@ namespace CPC {
       // Parity look-up table.
       for (int i = 0; i < 256; i++)
       {
-          bool parity = false;
+          bool parity = true;
           if ((i & 0x01) != 0)  parity = !parity;
           if ((i & 0x02) != 0)  parity = !parity;
           if ((i & 0x04) != 0)  parity = !parity;
