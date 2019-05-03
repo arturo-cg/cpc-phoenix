@@ -1350,16 +1350,17 @@ namespace CPC {
       {
           resultMinusH--;
       }
-      m_registers.SetFlag(Registers::Flag_5, (resultMinusH & 0x01) != 0);
-      m_registers.SetFlag(Registers::Flag_3, (resultMinusH & 0x04) != 0);
+      m_registers.SetFlag(Registers::Flag_5, (resultMinusH & 0x02) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (resultMinusH & 0x08) != 0);
   }
 
   void CCpu::CPIR()
   {
       // Do a CPI.
       CPI();
-      // Repeat if BC != 0.
-      if (m_registers.BC.w != 0)
+      // Repeat if BC != 0 and Z not set.
+      if ((m_registers.BC.w != 0) &&                        // If BC != 0...
+          !m_registers.GetFlag(Registers::Flag_Z))          // If A != (HL)...
       {
           m_registers.PC.w -= 2;    // Note that CPIR is a 2-byte instruction.
       }
@@ -1383,16 +1384,17 @@ namespace CPC {
       {
           resultMinusH--;
       }
-      m_registers.SetFlag(Registers::Flag_5, (resultMinusH & 0x01) != 0);
-      m_registers.SetFlag(Registers::Flag_3, (resultMinusH & 0x04) != 0);
+      m_registers.SetFlag(Registers::Flag_5, (resultMinusH & 0x02) != 0);
+      m_registers.SetFlag(Registers::Flag_3, (resultMinusH & 0x08) != 0);
   }
 
   void CCpu::CPDR()
   {
       // Do a CPD.
       CPD();
-      // Repeat if BC != 0.
-      if (m_registers.BC.w != 0)
+      // Repeat if BC != 0 and Z not set.
+      if ((m_registers.BC.w != 0) &&                        // If BC != 0...
+          !m_registers.GetFlag(Registers::Flag_Z))          // If A != (HL)...
       {
           m_registers.PC.w -= 2;    // Note that CPDR is a 2-byte instruction.
       }
