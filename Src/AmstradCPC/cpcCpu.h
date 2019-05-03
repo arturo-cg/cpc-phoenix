@@ -35,7 +35,7 @@ namespace CPC {
   ** would write the new byte value first and then the Gate-Array would read the byte, which has already been changed.
   **
   ** TODO:
-  **   - R register.
+  **   - Interrupt Mode 2.
   **   - Timing.
   */
   class CCpu : public CSubSystem
@@ -142,6 +142,8 @@ namespace CPC {
         const cpcByte& E() const { return DE.b.l; }
         const cpcByte& H() const { return HL.b.h; }
         const cpcByte& L() const { return HL.b.l; }
+        const cpcByte& I() const { return IR.b.h; }
+        const cpcByte& R() const { return IR.b.l; }
         const cpcByte& IXH() const { return IX.b.h; }
         const cpcByte& IXL() const { return IX.b.l; }
         const cpcByte& IYH() const { return IY.b.h; }
@@ -192,6 +194,7 @@ namespace CPC {
     void                    Step                      ();
     void                    StepOpcode                (cpcByte opcode);
     cpcByte                 FetchByte                 ();
+    void                    IncrementR                ();
     void                    AcceptNmi                 ();
     void                    AcceptInterrupt           ();
     //void                    AdvanceTStates            (int numTStates);

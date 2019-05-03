@@ -192,6 +192,7 @@ namespace CPC {
       {
           // Fetch and execute opcode.
           cpcByte opcode = (m_inHalt ? 0x00/*NOP*/ : FetchByte());
+          IncrementR();
           StepOpcode(opcode);
       }
   }
@@ -233,6 +234,17 @@ namespace CPC {
     cpcByte ret = ReadByteFromMemory(m_registers.PC.w);
     m_registers.PC.w++;
     return ret;
+  }
+
+  void CCpu::IncrementR()
+  {
+      if (m_registers.R() == 127)
+      {
+          int aaaa = 0;
+      }
+      // Bits 6-0 get incremented, bit 7 is preserved.
+      int msb = m_registers.R() & 0x80;
+      m_registers.R() = ((m_registers.R() + 1) & 0x7F) | msb;
   }
 
   void CCpu::AcceptNmi()
