@@ -508,6 +508,18 @@ namespace CPC {
       *dest = ReadByteFromMemory(addressReg.w + ConvertSignedByteToWord(displacement));
   }
 
+  void CCpu::LD8_IorR(cpcByte value)
+  {
+      m_registers.A() = value;
+      m_registers.SetFlag(Registers::Flag_S, (m_registers.A() & 0x80) != 0);
+      m_registers.SetFlag(Registers::Flag_Z, m_registers.A() == 0);
+      m_registers.SetFlag(Registers::Flag_5, (m_registers.A() & 0x20) != 0);
+      m_registers.SetFlag(Registers::Flag_H, false);
+      m_registers.SetFlag(Registers::Flag_3, (m_registers.A() & 0x08) != 0);
+      m_registers.SetFlag(Registers::Flag_PV, m_registers.IFF2);
+      m_registers.SetFlag(Registers::Flag_N, false);
+  }
+
   void CCpu::LDI()
   {
       cpcByte value = ReadByteFromMemory(m_registers.HL.w);

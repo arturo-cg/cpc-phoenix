@@ -221,6 +221,7 @@ namespace CPC {
     void                    LD8_addrreg_offset_n      (const Reg16& addressReg);
     void                    LD8_addrreg_offset_valuereg (const Reg16& addressReg, cpcByte value);
     void                    LD8_reg_addrreg_offset    (cpcByte* dest, const Reg16& addressReg);
+    void                    LD8_IorR                  (cpcByte value);
     void                    LDI                       ();
     void                    LDIR                      ();
     void                    LDD                       ();
