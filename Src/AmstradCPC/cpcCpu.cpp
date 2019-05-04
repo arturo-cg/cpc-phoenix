@@ -1471,6 +1471,7 @@ namespace CPC {
   {
       *result = ReadByteFromMemory(address + m_signedDisplacement);
       RES_reg(bit, result);
+      WriteByteToMemory(address + m_signedDisplacement, *result);
   }
 
   void CCpu::SET_reg(int bit, cpcByte* value)
@@ -1496,6 +1497,7 @@ namespace CPC {
   {
       *result = ReadByteFromMemory(address + m_signedDisplacement);
       SET_reg(bit, result);
+      WriteByteToMemory(address + m_signedDisplacement, *result);
   }
 
   void CCpu::PUSH(const Reg16& value)
