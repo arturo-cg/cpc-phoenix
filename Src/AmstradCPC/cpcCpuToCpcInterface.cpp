@@ -23,7 +23,7 @@ namespace CPC {
   {
     // The Gate Array controls the CPU's WAIT input signal so that it is inactive 1 out of every 4 T states.
     // The WAIT signal remains active the other 3 out of every 4 T states.
-    m_tStateCounter = m_tStateCounter % 4;
+    m_tStateCounter = (m_tStateCounter + 1) % 4;
     cpu->SetWaitActive(m_tStateCounter != 0);   // T state 0: inactive; T states 1, 2 and 3: active.
   }
 
