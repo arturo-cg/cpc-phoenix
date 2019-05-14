@@ -175,10 +175,6 @@
       <Project>{8e18f230-3ccd-469d-aeff-6b453862059a}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\z80ex\z80ex.vcxproj">
-      <Project>{f78b01d1-b3c1-40a6-86b3-8ec8bc63d445}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

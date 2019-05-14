@@ -1,9 +1,9 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2026
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CPCPhoenix", "CPCPhoenix\CPCPhoenix.vcxproj", "{A8AAA06A-1A7A-4054-9A8F-DBA97368F2E7}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z80ex", "z80ex\z80ex.vcxproj", "{F78B01D1-B3C1-40A6-86B3-8EC8BC63D445}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Base", "Base\kmbBase.vcxproj", "{8E18F230-3CCD-469D-AEFF-6B453862059A}"
 EndProject
@@ -19,10 +19,6 @@ Global
 		{A8AAA06A-1A7A-4054-9A8F-DBA97368F2E7}.Debug|Win32.Build.0 = Debug|Win32
 		{A8AAA06A-1A7A-4054-9A8F-DBA97368F2E7}.Release|Win32.ActiveCfg = Release|Win32
 		{A8AAA06A-1A7A-4054-9A8F-DBA97368F2E7}.Release|Win32.Build.0 = Release|Win32
-		{F78B01D1-B3C1-40A6-86B3-8EC8BC63D445}.Debug|Win32.ActiveCfg = Debug|Win32
-		{F78B01D1-B3C1-40A6-86B3-8EC8BC63D445}.Debug|Win32.Build.0 = Debug|Win32
-		{F78B01D1-B3C1-40A6-86B3-8EC8BC63D445}.Release|Win32.ActiveCfg = Release|Win32
-		{F78B01D1-B3C1-40A6-86B3-8EC8BC63D445}.Release|Win32.Build.0 = Release|Win32
 		{8E18F230-3CCD-469D-AEFF-6B453862059A}.Debug|Win32.ActiveCfg = Debug|Win32
 		{8E18F230-3CCD-469D-AEFF-6B453862059A}.Debug|Win32.Build.0 = Debug|Win32
 		{8E18F230-3CCD-469D-AEFF-6B453862059A}.Release|Win32.ActiveCfg = Release|Win32
@@ -34,5 +30,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EE2379A0-647B-43BF-AF20-A105F59B96F3}
 	EndGlobalSection
 EndGlobal
