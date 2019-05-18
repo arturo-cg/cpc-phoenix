@@ -24,45 +24,51 @@ namespace CPC {
         // { &CCpu::Execute_02, false, "LD (BC), A" },
         // { &CCpu::Execute_03, false, "INC BC" },
         // ...
-        #define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_##_num, _isPrefix, _mnemonic },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_##_num, _isInstruction, _mnemonic, _timingType },
         #include "cpcCpu_MainOpcodes.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesED[256] = {
-        #define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_ED##_num, _isPrefix, _mnemonic },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_ED##_num, _isInstruction, _mnemonic, _timingType },
         #include "cpcCpu_OpcodesED.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesCB[256] = {
-        #define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_CB##_num, _isPrefix, _mnemonic },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_CB##_num, _isInstruction, _mnemonic, _timingType },
         #include "cpcCpu_OpcodesCB.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesDD[256] = {
-        #define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_DD##_num, _isPrefix, _mnemonic },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_DD##_num, _isInstruction, _mnemonic, _timingType },
         #include "cpcCpu_OpcodesDD.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesDDCB[256] = {
-        #define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_DDCB##_num, _isPrefix, _mnemonic },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_DDCB##_num, _isInstruction, _mnemonic, _timingType },
         #include "cpcCpu_OpcodesDDCB.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesFD[256] = {
-        #define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_FD##_num, _isPrefix, _mnemonic },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_FD##_num, _isInstruction, _mnemonic, _timingType },
         #include "cpcCpu_OpcodesFD.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesFDCB[256] = {
-        #define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) { &CCpu::Execute_FDCB##_num, _isPrefix, _mnemonic },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_FDCB##_num, _isInstruction, _mnemonic, _timingType },
         #include "cpcCpu_OpcodesFDCB.h"
         #undef Z80_OPCODE
+    };
+
+    // Based on http://z80.info/z80ins.txt
+    // Note: prefixed instructions do *not* include timing for the prefix bytes; each prefix byte has its own entry in the timing table.
+    /*static*/ CCpu::InstructionTiming CCpu::s_instructionTimings[] = {
+        { 4 }, { CCpu::MCYCLE_FETCH },
     };
 
     CCpu::StaticInitializer CCpu::s_staticInitializer;
@@ -213,14 +219,12 @@ namespace CPC {
         //    //std::cout << ss.str();
         //    OutputDebugString(ss.str().c_str());
         //}
+        DoInstructionTiming(s_instructionTimings[opcodeInfo->timingType]);
         std::invoke(opcodeInfo->microcodeFn, this);
         if (opcodeInfo->isInstruction)   // If we just executed an instruction...
         {
             // Reset prefix.
             m_prefix = Prefix::None;
-            // Consume cycles.
-            // TODO: implement correct timing.
-            m_numCyclesAhead += 4;///////////////////////16;
         }
     }
 
@@ -292,18 +296,52 @@ namespace CPC {
         }
     }
 
-    ////----------------------------------------------------------------------------
-    ///**
-    //**
-    //*/
-    //void CCpu::AdvanceTStates(int numTStates)
-    //{
-    //  for (int i = 0; i < numTStates; i++)
-    //  {
-    //    m_numCyclesAhead++;
-    //    m_cpuInterface->OnTState(this);
-    //  }
-    //}
+    void CCpu::DoInstructionTiming(const InstructionTiming& instructionTiming)
+    {
+        for (int mcycle = 0; (mcycle < MAX_MCYCLES) && (instructionTiming.tstates[mcycle] > 0); mcycle++)   // Note that tstates[n] == 0 indicates there are no more M cycles.
+        {
+            DoMCycleTiming(instructionTiming.tstates[mcycle], instructionTiming.mcycleTypes[mcycle]);
+        }
+    }
+
+    void CCpu::DoMCycleTiming(int tstates, CCpu::MCycleType mcycleType)
+    {
+        switch (mcycleType)
+        {
+            case CPC::CCpu::MCYCLE_FETCH: ConsumeTStatesWithWait(tstates, 1); break;
+            case CPC::CCpu::MCYCLE_MEM: ConsumeTStatesWithWait(tstates, 1); break;
+            case CPC::CCpu::MCYCLE_IO: ConsumeTStatesWithWait(tstates + 1, 2); break;   // A wait state is always inserted.
+            case CPC::CCpu::MCYCLE_INTERNAL: ConsumeTStates(tstates); break;
+            default: KMASSERTM(false, ("Unhandled case")); break;
+        }
+    }
+
+    void CCpu::ConsumeTStates(int numTStates)
+    {
+      for (int i = 0; i < numTStates; i++)
+      {
+        m_numCyclesAhead++;
+        m_cpuInterface->OnTState(this);
+      }
+    }
+
+    void CCpu::ConsumeTStatesWithWait(int tstates, int when)
+    {
+        KMASSERT(when < tstates);
+        int tstatesBeforeWhen = when;
+        int tstatesAfterWhen = tstates - 1 - when;
+        // Before 'when'.
+        ConsumeTStates(tstatesBeforeWhen);
+        // During 'when'. Insert wait states if necessary.
+        bool wait;
+        do
+        {
+            wait = IsWaitActive();
+            ConsumeTStates(1);
+        } while (wait);
+        // After 'when'.
+        ConsumeTStates(tstatesAfterWhen);
+    }
 
     ////----------------------------------------------------------------------------
     ///**

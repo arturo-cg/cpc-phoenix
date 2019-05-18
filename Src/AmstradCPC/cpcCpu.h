@@ -42,15 +42,21 @@ namespace CPC {
     {
     public:
 
+        enum InstructionTimingType
+        {
+            TIMING_NOP = 0,             // NOP and other instructions that have identical timing (HALT, EI, DI, CPL, CCF, SCF, etc.).
+        };
+
         struct OpcodeInfo
         {
             using MicrocodeFn = void (CCpu::*)();
 
             MicrocodeFn microcodeFn;                      // Pointer to the function that contains the microde (i.e. the emulation) for the instruction.
             bool isInstruction;                           // Prefixes are also included in the instruction look-up table. This variable is true iif this entry is for an instruction, or false if it's a prefix byte.
-            //int numTStates;                               // The T states that this instruction takes.
             const char* mnemonic;                         // The mnemonic for this instruction.
+            InstructionTimingType timingType;             // Index into the timing table.
         };
+
 
         CCpu(CMachine *pMachine);
         virtual                ~CCpu() { FreeVars(); }
@@ -178,6 +184,21 @@ namespace CPC {
             Count
         };
 
+        enum MCycleType
+        {
+            MCYCLE_FETCH = 0,       // Opcode fetch.
+            MCYCLE_MEM,             // Memory read/write.
+            MCYCLE_IO,              // External device input/output.
+            MCYCLE_INTERNAL         // Internal operation.
+        };
+
+        static const int MAX_MCYCLES = 5;
+        struct InstructionTiming
+        {
+            int tstates[MAX_MCYCLES];               // T states per M cycle. 0 indicates that the instruction doesn't use this M cycle.
+            MCycleType mcycleTypes[MAX_MCYCLES];    // Type of each M cycle (fetch, memory r/w, I/O or internal operation).
+        };
+
         class StaticInitializer
         {
         public:
@@ -186,6 +207,7 @@ namespace CPC {
 
         static StaticInitializer s_staticInitializer;
         static bool s_parity[256];      // True = even, false = odd.
+        static InstructionTiming CCpu::s_instructionTimings[];
 
 
         void                    ResetVars();
@@ -197,8 +219,11 @@ namespace CPC {
         void                    IncrementR();
         void                    AcceptNmi();
         void                    AcceptInterrupt();
-        //void                    AdvanceTStates            (int numTStates);
-        //void                    SyncToWaitSignal          ();
+
+        void                    DoInstructionTiming(const InstructionTiming& instructionTiming);
+        void                    DoMCycleTiming(int tstates, CCpu::MCycleType mcycleType);
+        void                    ConsumeTStates(int tstates);
+        void                    ConsumeTStatesWithWait(int tstates, int when);
 
         void                    ProcessPrefixByte(cpcByte prefixByte);
         void                    HandleInvalidInstruction();
@@ -385,43 +410,43 @@ namespace CPC {
         static OpcodeInfo m_opcodesFDCB[256];
 
         // Define all the opcodes' micro-code functions.
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
     void Execute_##_num() \
         _microCode
 #include "cpcCpu_MainOpcodes.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
     void Execute_ED##_num() \
         _microCode
 #include "cpcCpu_OpcodesED.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
     void Execute_CB##_num() \
         _microCode
 #include "cpcCpu_OpcodesCB.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
     void Execute_DD##_num() \
         _microCode
 #include "cpcCpu_OpcodesDD.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
     void Execute_DDCB##_num() \
         _microCode
 #include "cpcCpu_OpcodesDDCB.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
     void Execute_FD##_num() \
         _microCode
 #include "cpcCpu_OpcodesFD.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
     void Execute_FDCB##_num() \
         _microCode
 #include "cpcCpu_OpcodesFDCB.h"

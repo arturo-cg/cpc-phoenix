@@ -8,48 +8,51 @@
 
 namespace CPC {
 
-  CCpuToCpcInterface::CCpuToCpcInterface(CMachine* machine)
-  {
-    m_machine = machine;
-    m_tStateCounter = 0;
-  }
+    CCpuToCpcInterface::CCpuToCpcInterface(CMachine* machine)
+    {
+        m_machine = machine;
+        m_tStateCounter = 0;
+    }
 
-  void CCpuToCpcInterface::OnReset(CCpu* cpu)
-  {
-    m_tStateCounter = 0;
-  }
+    void CCpuToCpcInterface::OnReset(CCpu* cpu)
+    {
+        m_tStateCounter = 0;
+    }
 
-  void CCpuToCpcInterface::OnTState(CCpu* cpu)
-  {
-    // The Gate Array controls the CPU's WAIT input signal so that it is inactive 1 out of every 4 T states.
-    // The WAIT signal remains active the other 3 out of every 4 T states.
-    m_tStateCounter = (m_tStateCounter + 1) % 4;
-    cpu->SetWaitActive(m_tStateCounter != 0);   // T state 0: inactive; T states 1, 2 and 3: active.
-  }
+    void CCpuToCpcInterface::OnTState(CCpu* cpu)
+    {
+        // The Gate Array controls the CPU's WAIT input signal so that it is inactive 1 out of every 4 T states.
+        //   T0: Active
+        //   T1: Inactive
+        //   T2: Active
+        //   T3: Active
+        m_tStateCounter = (m_tStateCounter + 1) % 4;
+        cpu->SetWaitActive(m_tStateCounter != 1);
+    }
 
-  void CCpuToCpcInterface::OnInterruptAcknowledge(CCpu* cpu)
-  {
-      m_machine->GetGateArray()->OnInterruptAcknowledge();
-  }
+    void CCpuToCpcInterface::OnInterruptAcknowledge(CCpu* cpu)
+    {
+        m_machine->GetGateArray()->OnInterruptAcknowledge();
+    }
 
-  cpcByte CCpuToCpcInterface::ReadByteFromMemory(CCpu* cpu, cpcWord address)
-  {
-    return m_machine->GetGateArray()->ReadByteFromMemory(address);
-  }
+    cpcByte CCpuToCpcInterface::ReadByteFromMemory(CCpu* cpu, cpcWord address)
+    {
+        return m_machine->GetGateArray()->ReadByteFromMemory(address);
+    }
 
-  void CCpuToCpcInterface::WriteByteToMemory(CCpu* cpu, cpcWord address, cpcByte value)
-  {
-    m_machine->GetGateArray()->WriteByteToMemory(address, value);
-  }
+    void CCpuToCpcInterface::WriteByteToMemory(CCpu* cpu, cpcWord address, cpcByte value)
+    {
+        m_machine->GetGateArray()->WriteByteToMemory(address, value);
+    }
 
-  cpcByte CCpuToCpcInterface::ReadByteFromPort(CCpu* cpu, cpcWord port)
-  {
-    return m_machine->ReadByteFromPort(port);
-  }
+    cpcByte CCpuToCpcInterface::ReadByteFromPort(CCpu* cpu, cpcWord port)
+    {
+        return m_machine->ReadByteFromPort(port);
+    }
 
-  void CCpuToCpcInterface::WriteByteToPort(CCpu* cpu, cpcWord port, cpcByte value)
-  {
-    m_machine->WriteByteToPort(port, value);
-  }
+    void CCpuToCpcInterface::WriteByteToPort(CCpu* cpu, cpcWord port, cpcByte value)
+    {
+        m_machine->WriteByteToPort(port, value);
+    }
 
 } //namespace CPC
