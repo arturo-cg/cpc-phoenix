@@ -67,8 +67,13 @@ namespace CPC {
 
     // Based on http://z80.info/z80ins.txt
     // Note: prefixed instructions do *not* include timing for the prefix bytes; each prefix byte has its own entry in the timing table.
-    /*static*/ CCpu::InstructionTiming CCpu::s_instructionTimings[] = {
-        { 4 }, { CCpu::MCYCLE_FETCH },
+    /*static*/ CCpu::InstructionTiming CCpu::s_instructionTimings[INSTRUCTION_TIMING_COUNT] = {
+        /*TIMING_NOP*/ { { 4 }, { CCpu::MCYCLE_FETCH } },
+        /*TIMING_LD_r_mem*/ { { 4, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM } },
+        /*TIMING_LD_r_IX_offset*/ { { 4, 3, 5, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL, CCpu::MCYCLE_MEM } },
+        ///*TIMING_*/ { { 4 }, { CCpu::MCYCLE_FETCH } },
+        /*TIMING_RET*/ { { 4, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_RST*/ { { 5, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
     };
 
     CCpu::StaticInitializer CCpu::s_staticInitializer;
@@ -198,7 +203,6 @@ namespace CPC {
         {
             // Fetch and execute opcode.
             cpcByte opcode = (m_inHalt ? 0x00/*NOP*/ : FetchByte());
-            IncrementR();
             StepOpcode(opcode);
         }
     }
@@ -210,6 +214,7 @@ namespace CPC {
         //  * If it's an opcode, the whole instruction (i.e. opcode plus operands) is fetched and executed.
 
         m_delayInterruptEnable = false;
+        IncrementR();
         // Execute instruction or remember prefix.
         OpcodeInfo* table = m_opcodes[m_prefix];
         OpcodeInfo* opcodeInfo = &table[opcode];
@@ -281,6 +286,8 @@ namespace CPC {
             break;
 
         case 1:
+            // 2 wait states automatically added.
+            ConsumeTStates(2);
             StepOpcode(0xFF/*RST 38H*/);
             break;
 

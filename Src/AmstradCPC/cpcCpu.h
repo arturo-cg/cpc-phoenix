@@ -44,7 +44,13 @@ namespace CPC {
 
         enum InstructionTimingType
         {
-            TIMING_NOP = 0,             // NOP and other instructions that have identical timing (HALT, EI, DI, CPL, CCF, SCF, etc.).
+            TIMING_NOP = 0,             // NOP and other instructions that have identical timing (HALT / EI / DI / CPL / CCF / SCF / etc.)
+            TIMING_LD_r_mem,            // LD r,n / LD r,(HL) / LD (HL),r / LD A,(BC) / etc.
+            TIMING_LD_r_IX_offset,      // LD r,(IX+d) / LD (IX+d),r
+            TIMING_RET,                 // RET / RETI / RETN
+            TIMING_RST,                 // RST
+
+            INSTRUCTION_TIMING_COUNT
         };
 
         struct OpcodeInfo
@@ -207,7 +213,7 @@ namespace CPC {
 
         static StaticInitializer s_staticInitializer;
         static bool s_parity[256];      // True = even, false = odd.
-        static InstructionTiming CCpu::s_instructionTimings[];
+        static InstructionTiming CCpu::s_instructionTimings[INSTRUCTION_TIMING_COUNT];
 
 
         void                    ResetVars();
