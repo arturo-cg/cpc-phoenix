@@ -68,12 +68,32 @@ namespace CPC {
     // Based on http://z80.info/z80ins.txt
     // Note: prefixed instructions do *not* include timing for the prefix bytes; each prefix byte has its own entry in the timing table.
     /*static*/ CCpu::InstructionTiming CCpu::s_instructionTimings[INSTRUCTION_TIMING_COUNT] = {
-        /*TIMING_NOP*/ { { 4 }, { CCpu::MCYCLE_FETCH } },
-        /*TIMING_LD_r_mem*/ { { 4, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM } },
-        /*TIMING_LD_r_IX_offset*/ { { 4, 3, 5, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL, CCpu::MCYCLE_MEM } },
-        ///*TIMING_*/ { { 4 }, { CCpu::MCYCLE_FETCH } },
-        /*TIMING_RET*/ { { 4, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
-        /*TIMING_RST*/ { { 5, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4*/ { { 4 }, { CCpu::MCYCLE_FETCH } },
+        /*TIMING_F5*/ { { 5 }, { CCpu::MCYCLE_FETCH } },
+        /*TIMING_F6*/ { { 6 }, { CCpu::MCYCLE_FETCH } },
+        /*TIMING_F4M3*/ { { 4, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M4*/ { { 4, 4 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4E4*/ { { 4, 4 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_IO } },
+        /*TIMING_F5M3*/ { { 5, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3M3*/ { { 4, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3E4*/ { { 4, 3, 4 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_IO } },
+        /*TIMING_F4M4M3*/ { { 4, 4, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3I5*/ { { 4, 3, 5 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL } },
+        /*TIMING_F4I4I3*/ { { 4, 4, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_INTERNAL, CCpu::MCYCLE_INTERNAL } },
+        /*TIMING_F4M3M5*/ { { 4, 3, 5 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F5M3M3*/ { { 5, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F5M3E4*/ { { 5, 3, 4 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_IO } },
+        /*TIMING_F5E4M3*/ { { 5, 4, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_IO, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3M3M3*/ { { 4, 3, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3I4M3*/ { { 4, 3, 4, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3I5M3*/ { { 4, 3, 5, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3I5M4*/ { { 4, 3, 5, 4 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL, CCpu::MCYCLE_MEM } },
+        /*TIMING_F5M3E4I5*/ { { 5, 3, 4, 5 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_IO, CCpu::MCYCLE_INTERNAL } },
+        /*TIMING_F5E4M3I5*/ { { 5, 4, 3, 5 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_IO, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL } },
+        /*TIMING_F4M3M3M3M3*/ { { 4, 3, 3, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3M4M3M3*/ { { 4, 3, 4, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3M4M3M5*/ { { 4, 3, 4, 3, 5 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3I5M4M3*/ { { 4, 3, 5, 4, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
     };
 
     CCpu::StaticInitializer CCpu::s_staticInitializer;

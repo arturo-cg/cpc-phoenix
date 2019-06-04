@@ -44,11 +44,37 @@ namespace CPC {
 
         enum InstructionTimingType
         {
-            TIMING_NOP = 0,             // NOP and other instructions that have identical timing (HALT / EI / DI / CPL / CCF / SCF / etc.)
-            TIMING_LD_r_mem,            // LD r,n / LD r,(HL) / LD (HL),r / LD A,(BC) / etc.
-            TIMING_LD_r_IX_offset,      // LD r,(IX+d) / LD (IX+d),r
-            TIMING_RET,                 // RET / RETI / RETN
-            TIMING_RST,                 // RST
+            // F - Fetch cycle
+            // M - Memory cycle
+            // I - Internal operation cycle
+            // E - External device input/output cycle
+
+            TIMING_F4 = 0,
+            TIMING_F5,
+            TIMING_F6,
+            TIMING_F4M3,
+            TIMING_F4M4,
+            TIMING_F4E4,
+            TIMING_F5M3,
+            TIMING_F4M3M3,
+            TIMING_F4M3E4,
+            TIMING_F4M4M3,
+            TIMING_F4M3I5,
+            TIMING_F4I4I3,
+            TIMING_F4M3M5,
+            TIMING_F5M3M3,
+            TIMING_F5M3E4,
+            TIMING_F5E4M3,
+            TIMING_F4M3M3M3,
+            TIMING_F4M3I4M3,
+            TIMING_F4M3I5M3,
+            TIMING_F4M3I5M4,
+            TIMING_F5M3E4I5,
+            TIMING_F5E4M3I5,
+            TIMING_F4M3M3M3M3,
+            TIMING_F4M3M4M3M3,
+            TIMING_F4M3M4M3M5,
+            TIMING_F4M3I5M4M3,
 
             INSTRUCTION_TIMING_COUNT
         };
