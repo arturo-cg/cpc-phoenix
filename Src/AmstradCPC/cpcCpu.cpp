@@ -281,7 +281,7 @@ namespace CPC {
         m_registers.IFF1 = false;
 
         // Jump to NMI handler.
-        // Equivalent to executing an imaginary instruction RST 66H.
+        // Equivalent to executing an fictitious instruction RST 66H.
         Push(m_registers.PC);
         m_registers.PC.w = 0x66;
     }
@@ -617,6 +617,7 @@ namespace CPC {
         if (m_registers.BC.w != 0)
         {
             m_registers.PC.w -= 2;    // Note that LDIR is a 2-byte instruction.
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
@@ -644,6 +645,7 @@ namespace CPC {
         if (m_registers.BC.w != 0)
         {
             m_registers.PC.w -= 2;    // Note that LDDR is a 2-byte instruction.
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
@@ -1448,6 +1450,7 @@ namespace CPC {
             !m_registers.GetFlag(Registers::Flag_Z))          // If A != (HL)...
         {
             m_registers.PC.w -= 2;    // Note that CPIR is a 2-byte instruction.
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
@@ -1482,6 +1485,7 @@ namespace CPC {
             !m_registers.GetFlag(Registers::Flag_Z))          // If A != (HL)...
         {
             m_registers.PC.w -= 2;    // Note that CPDR is a 2-byte instruction.
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
@@ -1615,6 +1619,8 @@ namespace CPC {
         if (condition)
         {
             Pop(&m_registers.PC);
+            DoMCycleTiming(3, MCYCLE_MEM);
+            DoMCycleTiming(3, MCYCLE_MEM);
         }
     }
 
@@ -1659,7 +1665,8 @@ namespace CPC {
         cpcByte displacement = FetchByte();
         if (condition)
         {
-            m_registers.PC.w = m_registers.PC.w + ConvertSignedByteToWord(displacement);
+            m_registers.PC.w += ConvertSignedByteToWord(displacement);
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
@@ -1669,7 +1676,8 @@ namespace CPC {
         m_registers.B()--;
         if (m_registers.B() != 0)
         {
-            m_registers.PC.w = m_registers.PC.w + ConvertSignedByteToWord(displacement);
+            m_registers.PC.w += ConvertSignedByteToWord(displacement);
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
@@ -1779,6 +1787,7 @@ namespace CPC {
         if (m_registers.B() != 0)
         {
             m_registers.PC.w -= 2;    // Note that OTIR is a 2-byte instruction.
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
@@ -1803,6 +1812,7 @@ namespace CPC {
         if (m_registers.B() != 0)
         {
             m_registers.PC.w -= 2;    // Note that OTDR is a 2-byte instruction.
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
