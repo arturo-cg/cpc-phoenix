@@ -1597,6 +1597,14 @@ namespace CPC {
             Push(m_registers.PC);
             // Set new PC value.
             m_registers.PC = newPC;
+            // Extra timing.
+            DoMCycleTiming(4, MCYCLE_MEM);
+            DoMCycleTiming(3, MCYCLE_MEM);
+            DoMCycleTiming(3, MCYCLE_MEM);
+        }
+        else
+        {
+            DoMCycleTiming(3, MCYCLE_MEM);
         }
     }
 
