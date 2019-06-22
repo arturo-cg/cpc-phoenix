@@ -36,6 +36,7 @@ namespace CPC {
     m_pCpuToCpcInterface = new CCpuToCpcInterface( this );
     m_pCpu = new CCpu( this );
     m_pCpu->SetCpuInterface(m_pCpuToCpcInterface);
+    m_pCpu->SetInterruptVector(0xFF);       // When the Z80 is in interrupt mode 0, this corresponds to a RST 38h instruction.
     m_pMemory = new CMemory( this );
     m_pGateArray = new CGateArray( this );
     m_pCrtc = new CCrtc( this );
