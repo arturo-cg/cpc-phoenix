@@ -75,6 +75,7 @@ namespace CPC {
             TIMING_F4M3M4M3M3,
             TIMING_F4M3M4M3M5,
             TIMING_F4M3I5M4M3,
+            TIMING_F4M3M3I5M3,
 
             INSTRUCTION_TIMING_COUNT
         };

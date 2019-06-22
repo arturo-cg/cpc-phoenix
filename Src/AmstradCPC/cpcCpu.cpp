@@ -94,6 +94,7 @@ namespace CPC {
         /*TIMING_F4M3M4M3M3*/ { { 4, 3, 4, 3, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
         /*TIMING_F4M3M4M3M5*/ { { 4, 3, 4, 3, 5 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
         /*TIMING_F4M3I5M4M3*/ { { 4, 3, 5, 4, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM } },
+        /*TIMING_F4M3M3I5M3*/ { { 4, 3, 3, 5, 3 }, { CCpu::MCYCLE_FETCH, CCpu::MCYCLE_MEM, CCpu::MCYCLE_MEM, CCpu::MCYCLE_INTERNAL, CCpu::MCYCLE_MEM } },
     };
 
     CCpu::StaticInitializer CCpu::s_staticInitializer;
