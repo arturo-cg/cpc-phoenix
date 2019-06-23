@@ -254,10 +254,6 @@ namespace CPC {
         }
     }
 
-    //----------------------------------------------------------------------------
-    /**
-    **
-    */
     cpcByte CCpu::FetchByte()
     {
         // Read byte and increment PC.
@@ -371,24 +367,6 @@ namespace CPC {
         ConsumeTStates(tstatesAfterWhen);
     }
 
-    ////----------------------------------------------------------------------------
-    ///**
-    //**
-    //*/
-    //void CCpu::SyncToWaitSignal()
-    //{
-    //  while (m_waitActive)
-    //  {
-    //    // Wait for one clock cycle.
-    //    m_numCyclesAhead++;
-    //    m_cpuInterface->OnTState(this);
-    //  }
-    //}
-
-    //----------------------------------------------------------------------------
-    /**
-    **
-    */
     void CCpu::ProcessPrefixByte(cpcByte prefixByte)
     {
         // Is it a 2-byte prefix?
