@@ -277,6 +277,8 @@ namespace CPC {
         // Note that only IFF1 is changed; IFF2 is left as a backup of IFF1's original value so that a RETN instruction can restore it later on.
         m_registers.IFF1 = false;
 
+        // TODO: timing.
+
         // Jump to NMI handler.
         // Equivalent to executing an fictitious instruction RST 66H.
         Push(m_registers.PC);
@@ -299,6 +301,8 @@ namespace CPC {
         switch (m_registers.IM)
         {
         case 0:
+            // TODO: this won't work with devices that put multi-byte instructions on the bus.
+            ConsumeTStates(2);
             StepOpcode(m_interruptVector);
             break;
 
@@ -390,6 +394,9 @@ namespace CPC {
             case 0xFD:  m_prefix = Prefix::FD; break;
             }
         }
+
+        // Don't accept interrupts right after a prefix byte.
+        m_delayInterruptEnable = true;
     }
 
     void CCpu::HandleInvalidInstruction()
@@ -1713,6 +1720,7 @@ namespace CPC {
         if (m_registers.B() != 0)
         {
             m_registers.PC.w -= 2;    // Note that INIR is a 2-byte instruction.
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
@@ -1737,6 +1745,7 @@ namespace CPC {
         if (m_registers.B() != 0)
         {
             m_registers.PC.w -= 2;    // Note that INDR is a 2-byte instruction.
+            DoMCycleTiming(5, MCYCLE_INTERNAL);
         }
     }
 
