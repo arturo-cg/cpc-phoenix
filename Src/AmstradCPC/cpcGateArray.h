@@ -117,6 +117,7 @@ namespace CPC {
     void                    SelectPen                 (cpcByte nPen);
     void                    SetSelectedPenColor       (cpcByte nColorIndex);
     void                    SetBorderColor            (cpcByte nColorIndex);
+    void                    RequestScreenModeChange   (EScreenMode eScreenMode);
     void                    SetScreenMode             (EScreenMode eScreenMode);
     void                    SetRamConfiguration       (unsigned nSecondaryPage, ERamConfig eConfig);
     void                    SetRomVisibility          (bool bLowerRomVisible, bool bUpperRomVisible);
@@ -137,6 +138,7 @@ namespace CPC {
     const unsigned*         m_paCurrentRgbConversionTable;
 
     /** Screen mode. When this value is changed, it won't take effect until the next HSYNC. */
+    EScreenMode             m_eRequestedScreenMode;
     EScreenMode             m_eScreenMode;
 
     /** The blocks that are visible for read operations (can be either ROM or RAM blocks). */

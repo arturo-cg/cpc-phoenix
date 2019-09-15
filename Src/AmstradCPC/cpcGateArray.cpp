@@ -162,6 +162,7 @@ namespace CPC {
 
     m_nBorderColor      = 0;
     m_paCurrentRgbConversionTable = s_aRgbConversionTable_Color;
+    m_eRequestedScreenMode = SCREEN_MODE_1;
     m_eScreenMode       = SCREEN_MODE_1;
     m_nSecondaryRamPage = 1;
     m_eRamConfig        = RAM_CONFIG_0_1_2_3;
@@ -200,6 +201,9 @@ namespace CPC {
   */
   void CGateArray::OnHSyncBegin()
   {
+    // Set requested screen mode.
+    // Note that if a new screen mode has not been requested, this call won't have any effect.
+    SetScreenMode(m_eRequestedScreenMode);
     // Pass it on to the video output.
     GetMachine()->GetVideoOutput()->OnHSyncBegin();
   }
@@ -321,8 +325,9 @@ namespace CPC {
 
       case 2:   // Change screen mode, ROM visibility and interrupt control
         {
-          // Screen mode (bits 1,0)
-          SetScreenMode( (EScreenMode) (nValue & 0x03) );
+          // Screen mode (bits 1,0).
+          // It will take effect during the next HSYNC.
+          RequestScreenModeChange( (EScreenMode) (nValue & 0x03) );
 
           // ROM selection (bit 2 - Lower ROM, bit 3 - Upper ROM)
           SetRomVisibility( (nValue&0x04)==0, (nValue&0x08)==0 );
@@ -410,6 +415,15 @@ namespace CPC {
         default:                        KMASSERTM( false, ("Unknown RGB conversion table.") );
       }
     }
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  void CGateArray::RequestScreenModeChange(EScreenMode eScreenMode)
+  {
+    m_eRequestedScreenMode = eScreenMode;
   }
 
   //----------------------------------------------------------------------------
