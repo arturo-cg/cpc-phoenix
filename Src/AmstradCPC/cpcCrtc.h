@@ -71,7 +71,7 @@ namespace CPC {
 
     /** Returns the current state of the DISPLAY_ENABLED signal.
     *** On the CPC, the Gate-Array uses it to generate video signal. If enabled, it reads pixel data from RAM. Otherwise, it uses the border color. */
-    bool                    GetDisplayEnabledState    () const  { return m_bDisplayEnabled; }
+    bool                    GetDisplayEnabledState    () const  { return (m_bDisplayEnabledH && m_bDisplayEnabledV); }
     /** Returns the current state of the HSYNC signal. */
     bool                    GetHSyncState             () const  { return m_bHSyncState; }
     /** Returns the current state of the VSYNC signal. */
@@ -121,7 +121,8 @@ namespace CPC {
     cpcByte                 m_nScanLinesForVSyncOff;
     SGeneratedAddress       m_currentAddress;
 
-    bool                    m_bDisplayEnabled;
+    bool                    m_bDisplayEnabledH;
+    bool                    m_bDisplayEnabledV;
     bool                    m_bHSyncState;
     bool                    m_bVSyncState;
 

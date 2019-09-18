@@ -34,7 +34,8 @@ namespace CPC {
     m_nCurrentScanLine   = 0;
     m_nFirstCharacterAfterLastHSyncEnd = 0;
     m_nScanLinesForVSyncOff = 0;
-    m_bDisplayEnabled    = true;
+    m_bDisplayEnabledH   = true;
+    m_bDisplayEnabledV   = true;
     m_bHSyncState        = false;
     m_bVSyncState        = false;
 
@@ -118,27 +119,36 @@ namespace CPC {
       // Move to next scan line.
       UpdateVertical();
     }
-    else if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_DISPLAYED])    // At start of right border area?
+    else
     {
-      // Gate-Array starts using border color to generate video signal.
-      m_bDisplayEnabled = false;
+      m_currentAddress.MA++;
+
+      if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_SYNC_POSITION])    // At HSYNC's rising edge?
+      {
+        // Monitor starts moving its beam to the beginning of next raster line.
+        m_bHSyncState = true;
+        // Notify the Gate Array that HSYNC's rising edge just occured.
+        GetMachine()->GetGateArray()->OnHSyncBegin();
+      }
+      else if (m_nCurrentHCharacter == nHorizontalSyncOff)    // At HSYNC's falling edge?
+      {
+        // Monitor starts rasterizing next raster line (note that the CRTC remains on the current scan line for a few more characters).
+        // Also, DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
+        m_bHSyncState = false;
+        m_nFirstCharacterAfterLastHSyncEnd = m_nCurrentHCharacter;
+        // Notify the Gate Array that HSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+        GetMachine()->GetGateArray()->OnHSyncEnd();
+      }
+      else if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_TOTAL])
+      {
+        m_currentAddress.MA -= m_anRegisters[HORIZONTAL_TOTAL];
+      }
     }
-    else if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_SYNC_POSITION])    // At HSYNC's rising edge?
-    {
-      // Monitor starts moving its beam to the beginning of next raster line.
-      m_bHSyncState = true;
-      // Notify the Gate Array that HSYNC's rising edge just occured.
-      GetMachine()->GetGateArray()->OnHSyncBegin();
-    }
-    else if (m_nCurrentHCharacter == nHorizontalSyncOff)    // At HSYNC's falling edge?
-    {
-      // Monitor starts rasterizing next raster line (note that the CRTC remains on the current scan line for a few more characters).
-      // Also, DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
-      m_bHSyncState = false;
-      m_nFirstCharacterAfterLastHSyncEnd = m_nCurrentHCharacter;
-      // Notify the Gate Array that HSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
-      GetMachine()->GetGateArray()->OnHSyncEnd();
-    }
+
+    // Display is re-enabled (horizontally) if character column is in the range [0, HORIZONTAL_DISPLAYED).
+    // When enabled, Gate-Array reads bytes from RAM to generate video signal.
+    // When disabled, Gate-Array uses border color to generate video signal.
+    m_bDisplayEnabledH = m_nCurrentHCharacter < m_anRegisters[HORIZONTAL_DISPLAYED];
   }
 
   //----------------------------------------------------------------------------
@@ -200,10 +210,10 @@ namespace CPC {
       }
     }
 
-    // Display is re-enabled if character row is in the range [0, VERTICAL_DISPLAYED).
+    // Display is re-enabled (vertically) if character row is in the range [0, VERTICAL_DISPLAYED).
     // When enabled, Gate-Array reads bytes from RAM to generate video signal.
     // When disabled, Gate-Array uses border color to generate video signal.
-    m_bDisplayEnabled = m_nCurrentVCharacter < m_anRegisters[VERTICAL_DISPLAYED];
+    m_bDisplayEnabledV = m_nCurrentVCharacter < m_anRegisters[VERTICAL_DISPLAYED];
   }
 
   //----------------------------------------------------------------------------
