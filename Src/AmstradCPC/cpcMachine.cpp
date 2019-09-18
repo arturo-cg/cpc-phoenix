@@ -165,6 +165,9 @@ namespace CPC {
     // Gate-Array (1Mhz clock)
     GetGateArray()->Run(nNum1MhzCycles);
 
+    // Monitor.
+    GetVideoOutput()->Run();
+
     // PSG (1Mhz clock)
     GetPsg()->Run(nNum1MhzCycles);
   }

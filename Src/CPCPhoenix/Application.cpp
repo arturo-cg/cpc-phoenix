@@ -224,8 +224,8 @@ void Application::ChangeDrawScanLinesSetting(bool bDrawScanLines)
   // Change application settings
   GetSettings()->SetDrawScanLines( bDrawScanLines );
 
-  // Apply/remove the effect
-  m_pMachine->GetVideoOutput()->SetScanLineEffectActivated( bDrawScanLines );
+  // TODO: Apply/remove the effect
+  //////m_pMachine->GetVideoOutput()->SetScanLineEffectActivated( bDrawScanLines );
 
   // Notify the application window
   m_pAppWindow->OnApplicationSettingsChanged();
