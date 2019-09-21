@@ -9,32 +9,6 @@
 #include "cpcGateArray.h"
 
 
-// Final
-// Memory     CRTC
-// Address    Address
-// -------    -------
-// A15        MA13
-// A14        MA12
-// A13        RA2
-// A12        RA1
-// A11        RA0
-// A10        MA9
-// A9         MA8
-// A8         MA7
-// A7         MA6
-// A6         MA5
-// A5         MA4
-// A4         MA3
-// A3         MA2
-// A2         MA1
-// A1         MA0
-// A0         CCLK
-#define CONVERT_ADDRESS_CRTC_TO_MEMORY(_MA, _RA) \
-  ( (((_MA) & 0x3000) <<  2) | \
-    (((_RA) & 0x0007) << 11) | \
-    (((_MA) & 0x03FF) <<  1) )
-
-
 namespace CPC {
 
     CVideoOutput::CVideoOutput(CMachine *pMachine) : inherited(pMachine)
