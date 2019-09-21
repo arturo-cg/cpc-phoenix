@@ -39,7 +39,7 @@ namespace CPC {
       VERTICAL_DISPLAYED = 6,         // [7 bits] Number of characters displayed vertically.
       VERTICAL_SYNC_POSITION = 7,     // [7 bits] When VSYNC signal starts, in characters.
       INTERLACE_MODE_AND_SKEW = 8,    // This register is used to select the operating modes of the UM6845R and is configured as follows: (see UM6845 datasheet).
-      MAXIMUM_RASTER_ADDRESS = 9,     // [5 bits] Number of scan lines per character row, including spacing minus one.
+      MAXIMUM_SCAN_LINE_ADDRESS = 9,  // [5 bits] Number of scan lines per character row, including spacing, minus one.
       CURSOR_START_RASTER = 10,       // These 5-bit registers select the starting and edning scan lines for the cursor. In addition, bits 5 and 6 of R10 are used to select the cursor mode, as follows: (see UM6845 datasheet).
       CURSOR_END_RASTER = 11,         // "            "            "
       START_ADDRESS_HIGH = 12,        // These registers together comprise a 14-bit register containing the memory address of the first character of the displayed scan line (character on the top left of the video display, as in Figure 4). ...
@@ -78,8 +78,6 @@ namespace CPC {
     bool                    GetVSyncState             () const  { return m_bVSyncState; }
     /** Returns the current state of the VSYNC signal. */
     cpcByte                 GetCurrentVCharacter      () const  { return m_nCurrentVCharacter; }
-    /** Returns first character after the last HSYNC end. */
-    cpcByte                 GetFirstCharacterAfterLastHSyncEnd() const  { return m_nFirstCharacterAfterLastHSyncEnd; }
     /** Returns the current memory address. */
     const SGeneratedAddress GetCurrentAddress         () const  { return m_currentAddress; }
 
@@ -117,7 +115,6 @@ namespace CPC {
     cpcByte                 m_nCurrentVCharacter;
     cpcByte                 m_nCurrentScanLine;
 
-    cpcByte                 m_nFirstCharacterAfterLastHSyncEnd;
     cpcByte                 m_nScanLinesForVSyncOff;
     SGeneratedAddress       m_currentAddress;
 
