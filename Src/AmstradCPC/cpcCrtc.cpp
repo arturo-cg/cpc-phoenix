@@ -13,247 +13,247 @@
 namespace CPC {
 
 
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  CCrtc::CCrtc(CMachine *pMachine) : inherited( pMachine )
-  {
-    Reset();
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** ResetVars
-  */
-  void CCrtc::ResetVars()
-  {
-    m_eSelectedRegister  = HORIZONTAL_TOTAL;
-    m_nCurrentHCharacter = 0;
-    m_nCurrentVCharacter = 0;
-    m_nCurrentScanLine   = 0;
-    m_nScanLinesForVSyncOff = 0;
-    m_bDisplayEnabledH   = true;
-    m_bDisplayEnabledV   = true;
-    m_bHSyncState        = false;
-    m_bVSyncState        = false;
-
-    for (int i = 0; i < NUM_REGISTERS; i++)
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    CCrtc::CCrtc(CMachine *pMachine) : inherited(pMachine)
     {
-      m_anRegisters[i] = 0;
+        Reset();
     }
-  }
 
-  //----------------------------------------------------------------------------
-  /**
-  ** FreeVars
-  */
-  void CCrtc::FreeVars()
-  {
-    //...
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  /*virtual*/ void CCrtc::Reset()
-  {
-    // Reset members
-    ResetVars();
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  void CCrtc::SelectRegister(ERegister eRegister)
-  {
-    if (eRegister != INVALID_REGISTER)
+    //----------------------------------------------------------------------------
+    /**
+    ** ResetVars
+    */
+    void CCrtc::ResetVars()
     {
-      m_eSelectedRegister = eRegister;
-    }
-  }
+        m_eSelectedRegister = HORIZONTAL_TOTAL;
+        m_nCurrentHCharacter = 0;
+        m_nCurrentVCharacter = 0;
+        m_nCurrentScanLine = 0;
+        m_nScanLinesForVSyncOff = 0;
+        m_bDisplayEnabledH = true;
+        m_bDisplayEnabledV = true;
+        m_bHSyncState = false;
+        m_bVSyncState = false;
 
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  void CCrtc::WriteSelectedRegister(cpcByte nValue)
-  {
-    KMASSERT( m_eSelectedRegister < NUM_REGISTERS );
-    m_anRegisters[m_eSelectedRegister] = nValue;
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  void CCrtc::Run(unsigned nNumCycles)
-  {
-    for (unsigned i = 0; i < nNumCycles; i++)
-    {
-      // Advance 1 character per 1us cycle.
-      UpdateHorizontal();
-    }
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  void CCrtc::UpdateHorizontal()
-  {
-      cpcByte nHorizontalTotal = m_anRegisters[HORIZONTAL_TOTAL] + 1;
-      cpcByte nHorizontalSyncOff = m_anRegisters[HORIZONTAL_SYNC_POSITION] + (m_anRegisters[SYNC_WIDTHS] & 0x0F);
-
-      // Advance 1 character.
-      m_nCurrentHCharacter++;
-      m_currentAddress.MA++;
-
-      // Update signals depending on where we are in the scan line.
-      if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_DISPLAYED])
-      {
-          // Disable display.
-          // Display is enabled (horizontally) if character column is in the range [0, HORIZONTAL_DISPLAYED).
-          // When enabled, Gate-Array reads bytes from RAM to generate video signal.
-          // When disabled, Gate-Array uses border color to generate video signal.
-          m_bDisplayEnabledH = false;
-      }
-
-      if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_SYNC_POSITION])     // At HSYNC's rising edge?
-      {
-          if (!m_bVSyncState)       // HSYNC doesn't go active if VSYNC is active.
-          {
-              // Monitor starts moving its beam to the beginning of next raster line.
-              m_bHSyncState = true;
-              // Notify the Gate Array that HSYNC's rising edge just occured.
-              GetMachine()->GetGateArray()->OnHSyncBegin();
-          }
-      }
-
-      if (m_nCurrentHCharacter == nHorizontalSyncOff)    // At HSYNC's falling edge?
-      {
-          // Monitor starts rasterizing next raster line (note that the CRTC remains on the current scan line for a few more characters).
-          // Also, DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
-          m_bHSyncState = false;
-          // Notify the Gate Array that HSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
-          GetMachine()->GetGateArray()->OnHSyncEnd();
-      }
-
-      if (m_nCurrentHCharacter == nHorizontalTotal)
-      {
-          // At this point, monitor raster is right past the left border.
-          // Gate-Array starts reading bytes from RAM to generate video signal (if vertical position is in visible area too).
-          // Re-enable display.
-          m_bDisplayEnabledH = true;
-          // Move to next scan line.
-          m_nCurrentHCharacter = 0;
-          m_currentAddress.MA -= nHorizontalTotal;
-          UpdateVertical();
-      }
-  }
-
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  void CCrtc::UpdateVertical()
-  {
-    KMASSERTM( m_anRegisters[VERTICAL_TOTAL_ADJUST] == 0, ("TODO - CRTC's register 5 (VERTICAL_TOTAL_ADJUST) is not 0. We are ignoring it for now.") );
-
-    // Advance 1 scan line.
-    cpcByte nMaximumScanLineAddress = m_anRegisters[MAXIMUM_SCAN_LINE_ADDRESS] + 1;
-    m_nCurrentScanLine++;
-    m_currentAddress.RA++;
-
-    // If VSYNC is active, check whether it is time for it to go inactive.
-    if (m_bVSyncState)
-    {
-        m_nScanLinesForVSyncOff--;
-        if (m_nScanLinesForVSyncOff == 0)
+        for (int i = 0; i < NUM_REGISTERS; i++)
         {
-            // Monitor starts rasterizing top raster line (note that CRTC doesn't reset character row count yet).
-            // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
-            m_bVSyncState = false;
-            // Notify the Gate Array that VSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
-            GetMachine()->GetGateArray()->OnVSyncEnd();
+            m_anRegisters[i] = 0;
         }
     }
 
-    // Is it time to advance to the next character row?
-    if (m_nCurrentScanLine == nMaximumScanLineAddress)
+    //----------------------------------------------------------------------------
+    /**
+    ** FreeVars
+    */
+    void CCrtc::FreeVars()
     {
-        cpcByte nVerticalTotal = m_anRegisters[VERTICAL_TOTAL] + 1;
+        //...
+    }
 
-        // Advance 1 character row.
-        m_nCurrentVCharacter++;
-        m_currentAddress.MA += m_anRegisters[HORIZONTAL_DISPLAYED];
-        m_currentAddress.RA = 0;
-        m_nCurrentScanLine = 0;
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    /*virtual*/ void CCrtc::Reset()
+    {
+        // Reset members
+        ResetVars();
+    }
 
-        // Update signals depending on where we are in the frame.
-        if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_DISPLAYED])
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CCrtc::SelectRegister(ERegister eRegister)
+    {
+        if (eRegister != INVALID_REGISTER)
+        {
+            m_eSelectedRegister = eRegister;
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CCrtc::WriteSelectedRegister(cpcByte nValue)
+    {
+        KMASSERT(m_eSelectedRegister < NUM_REGISTERS);
+        m_anRegisters[m_eSelectedRegister] = nValue;
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CCrtc::Run(unsigned nNumCycles)
+    {
+        for (unsigned i = 0; i < nNumCycles; i++)
+        {
+            // Advance 1 character per 1us cycle.
+            UpdateHorizontal();
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CCrtc::UpdateHorizontal()
+    {
+        cpcByte nHorizontalTotal = m_anRegisters[HORIZONTAL_TOTAL] + 1;
+        cpcByte nHorizontalSyncOff = m_anRegisters[HORIZONTAL_SYNC_POSITION] + (m_anRegisters[SYNC_WIDTHS] & 0x0F);
+
+        // Advance 1 character.
+        m_nCurrentHCharacter++;
+        m_currentAddress.MA++;
+
+        // Update signals depending on where we are in the scan line.
+        if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_DISPLAYED])
         {
             // Disable display.
-            m_bDisplayEnabledV = false;
+            // Display is enabled (horizontally) if character column is in the range [0, HORIZONTAL_DISPLAYED).
+            // When enabled, Gate-Array reads bytes from RAM to generate video signal.
+            // When disabled, Gate-Array uses border color to generate video signal.
+            m_bDisplayEnabledH = false;
         }
 
-        if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION])    // At VSYNC rising edge?
+        if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_SYNC_POSITION])     // At HSYNC's rising edge?
         {
-            // Monitor starts moving its beam to the beginning of top raster line.
-            m_bVSyncState = true;
-            m_nScanLinesForVSyncOff = (m_anRegisters[SYNC_WIDTHS] & 0xF0) >> 4;
+            if (!m_bVSyncState)       // HSYNC doesn't go active if VSYNC is active.
+            {
+                // Monitor starts moving its beam to the beginning of next raster line.
+                m_bHSyncState = true;
+                // Notify the Gate Array that HSYNC's rising edge just occured.
+                GetMachine()->GetGateArray()->OnHSyncBegin();
+            }
+        }
+
+        if (m_nCurrentHCharacter == nHorizontalSyncOff)    // At HSYNC's falling edge?
+        {
+            // Monitor starts rasterizing next raster line (note that the CRTC remains on the current scan line for a few more characters).
+            // Also, DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
+            m_bHSyncState = false;
+            // Notify the Gate Array that HSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+            GetMachine()->GetGateArray()->OnHSyncEnd();
+        }
+
+        if (m_nCurrentHCharacter == nHorizontalTotal)
+        {
+            // At this point, monitor raster is right past the left border.
+            // Gate-Array starts reading bytes from RAM to generate video signal (if vertical position is in visible area too).
+            // Re-enable display.
+            m_bDisplayEnabledH = true;
+            // Move to next scan line.
+            m_nCurrentHCharacter = 0;
+            m_currentAddress.MA -= nHorizontalTotal;
+            UpdateVertical();
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CCrtc::UpdateVertical()
+    {
+        KMASSERTM(m_anRegisters[VERTICAL_TOTAL_ADJUST] == 0, ("TODO - CRTC's register 5 (VERTICAL_TOTAL_ADJUST) is not 0. We are ignoring it for now."));
+
+        // Advance 1 scan line.
+        cpcByte nMaximumScanLineAddress = m_anRegisters[MAXIMUM_SCAN_LINE_ADDRESS] + 1;
+        m_nCurrentScanLine++;
+        m_currentAddress.RA++;
+
+        // If VSYNC is active, check whether it is time for it to go inactive.
+        if (m_bVSyncState)
+        {
+            m_nScanLinesForVSyncOff--;
             if (m_nScanLinesForVSyncOff == 0)
             {
-                m_nScanLinesForVSyncOff = 16;
+                // Monitor starts rasterizing top raster line (note that CRTC doesn't reset character row count yet).
+                // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
+                m_bVSyncState = false;
+                // Notify the Gate Array that VSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+                GetMachine()->GetGateArray()->OnVSyncEnd();
             }
-            // Notify the Gate Array that VSYNC's rising edge just occured.
-            GetMachine()->GetGateArray()->OnVSyncBegin();
         }
 
-        if (m_nCurrentVCharacter == nVerticalTotal)    // At start of new CRTC frame?
+        // Is it time to advance to the next character row?
+        if (m_nCurrentScanLine == nMaximumScanLineAddress)
         {
-            // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
-            // Re-enable display.
-            m_bDisplayEnabledV = true;
-            m_nCurrentVCharacter = 0;
-            m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
+            cpcByte nVerticalTotal = m_anRegisters[VERTICAL_TOTAL] + 1;
+
+            // Advance 1 character row.
+            m_nCurrentVCharacter++;
+            m_currentAddress.MA += m_anRegisters[HORIZONTAL_DISPLAYED];
+            m_currentAddress.RA = 0;
+            m_nCurrentScanLine = 0;
+
+            // Update signals depending on where we are in the frame.
+            if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_DISPLAYED])
+            {
+                // Disable display.
+                m_bDisplayEnabledV = false;
+            }
+
+            if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION])    // At VSYNC rising edge?
+            {
+                // Monitor starts moving its beam to the beginning of top raster line.
+                m_bVSyncState = true;
+                m_nScanLinesForVSyncOff = (m_anRegisters[SYNC_WIDTHS] & 0xF0) >> 4;
+                if (m_nScanLinesForVSyncOff == 0)
+                {
+                    m_nScanLinesForVSyncOff = 16;
+                }
+                // Notify the Gate Array that VSYNC's rising edge just occured.
+                GetMachine()->GetGateArray()->OnVSyncBegin();
+            }
+
+            if (m_nCurrentVCharacter == nVerticalTotal)    // At start of new CRTC frame?
+            {
+                // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
+                // Re-enable display.
+                m_bDisplayEnabledV = true;
+                m_nCurrentVCharacter = 0;
+                m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
+            }
         }
     }
-  }
 
-  //----------------------------------------------------------------------------
-  /**
-  ** 
-  */
-  void CCrtc::RespondToWritePortRequest(cpcWord nPort, cpcByte nValue)
-  {
-    //
-    // CRTC port --> Bit 14 == 0
-    //
-
-    // CRTC port?
-    if ( !(nPort & 0x4000) )    // If bit 14 is cleared...
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CCrtc::RespondToWritePortRequest(cpcWord nPort, cpcByte nValue)
     {
-      // Bits 9,8 select the function:
-      //   0,0 --> Register select
-      //   0,1 --> Register write
-      //   1,0 --> *Read-only* (depends on the model of the 6845 chip)
-      //   1,1 --> *Read-only* (depends on the model of the 6845 chip)
+        //
+        // CRTC port --> Bit 14 == 0
+        //
 
-      switch ((nPort & 0x0300) >> 8)
-      {
-        // Register select
-        case 0:     SelectRegister( nValue<NUM_REGISTERS ? (ERegister)nValue : INVALID_REGISTER ); break;
-        // Register write
-        case 1:     WriteSelectedRegister( nValue ); break;
-        // *Read-only* (depends on the model of the 6845 chip)
-        case 2:     /* ... */; break;
-        // *Read-only* (depends on the model of the 6845 chip)
-        case 3:     /* ... */; break;
-      }
+        // CRTC port?
+        if (!(nPort & 0x4000))    // If bit 14 is cleared...
+        {
+            // Bits 9,8 select the function:
+            //   0,0 --> Register select
+            //   0,1 --> Register write
+            //   1,0 --> *Read-only* (depends on the model of the 6845 chip)
+            //   1,1 --> *Read-only* (depends on the model of the 6845 chip)
+
+            switch ((nPort & 0x0300) >> 8)
+            {
+                // Register select
+                case 0:     SelectRegister(nValue < NUM_REGISTERS ? (ERegister)nValue : INVALID_REGISTER); break;
+                    // Register write
+                case 1:     WriteSelectedRegister(nValue); break;
+                    // *Read-only* (depends on the model of the 6845 chip)
+                case 2:     /* ... */; break;
+                    // *Read-only* (depends on the model of the 6845 chip)
+                case 3:     /* ... */; break;
+            }
+        }
     }
-  }
 
 } //namespace CPC
