@@ -33,8 +33,8 @@ namespace CPC {
         // to go out of sync.
         // Horizontal: 64 (CRTC::HORIZONTAL_TOTAL) * 16 (# of mode 2 pixels per CRTC character).
         // Vertical: 39 (CRTC::VERTICAL_TOTAL) * 8 (CRTC::MAXIMUM_RASTER_ADDRESS+1)
-        static const unsigned   BUFFER_WIDTH = 1024;
-        static const unsigned   BUFFER_HEIGHT = 312;
+        static const unsigned   BUFFER_WIDTH = 1024;////832;
+        static const unsigned   BUFFER_HEIGHT = 312;////288;
 
         enum EPixelFormat
         {

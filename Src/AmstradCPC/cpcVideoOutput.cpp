@@ -63,8 +63,11 @@ namespace CPC {
     void CVideoOutput::OnHSyncBegin()
     {
         m_HSyncActive = true;
-        m_beamX = 0;
-        m_beamY++;
+        if (!m_VSyncActive)     // If VSYNC is active, the electron beam is held at the top left corner.
+        {
+            m_beamX = 0;
+            m_beamY++;
+        }
     }
 
     void CVideoOutput::OnHSyncEnd()

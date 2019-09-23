@@ -123,19 +123,16 @@ namespace CPC {
 
         if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_SYNC_POSITION])     // At HSYNC's rising edge?
         {
-            if (!m_bVSyncState)       // HSYNC doesn't go active if VSYNC is active.
-            {
-                // Monitor starts moving its beam to the beginning of next raster line.
-                m_bHSyncState = true;
-                // Notify the Gate Array that HSYNC's rising edge just occured.
-                GetMachine()->GetGateArray()->OnHSyncBegin();
-            }
+            // Monitor starts moving its beam to the beginning of next raster line.
+            m_bHSyncState = true;
+            // Notify the Gate Array that HSYNC's rising edge just occured.
+            GetMachine()->GetGateArray()->OnHSyncBegin();
         }
 
         if (m_nCurrentHCharacter == nHorizontalSyncOff)    // At HSYNC's falling edge?
         {
             // Monitor starts rasterizing next raster line (note that the CRTC remains on the current scan line for a few more characters).
-            // Also, DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
+            // DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
             m_bHSyncState = false;
             // Notify the Gate Array that HSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
             GetMachine()->GetGateArray()->OnHSyncEnd();
