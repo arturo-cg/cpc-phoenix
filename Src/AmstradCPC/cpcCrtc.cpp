@@ -42,6 +42,8 @@ namespace CPC {
         {
             m_anRegisters[i] = 0;
         }
+        m_anRegisters[HORIZONTAL_TOTAL] = 63;
+        m_anRegisters[VERTICAL_TOTAL] = 38;
     }
 
     //----------------------------------------------------------------------------
@@ -112,6 +114,18 @@ namespace CPC {
         m_currentAddress.MA++;
 
         // Update signals depending on where we are in the scan line.
+        if (m_nCurrentHCharacter == nHorizontalTotal)
+        {
+            // At this point, monitor raster is right past the left border.
+            // Gate-Array starts reading bytes from RAM to generate video signal (if vertical position is in visible area too).
+            // Re-enable display.
+            m_bDisplayEnabledH = true;
+            // Move to next scan line.
+            m_nCurrentHCharacter = 0;
+            m_currentAddress.MA -= nHorizontalTotal;
+            UpdateVertical();
+        }
+
         if (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_DISPLAYED])
         {
             // Disable display.
@@ -137,18 +151,6 @@ namespace CPC {
             // Notify the Gate Array that HSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
             GetMachine()->GetGateArray()->OnHSyncEnd();
         }
-
-        if (m_nCurrentHCharacter == nHorizontalTotal)
-        {
-            // At this point, monitor raster is right past the left border.
-            // Gate-Array starts reading bytes from RAM to generate video signal (if vertical position is in visible area too).
-            // Re-enable display.
-            m_bDisplayEnabledH = true;
-            // Move to next scan line.
-            m_nCurrentHCharacter = 0;
-            m_currentAddress.MA -= nHorizontalTotal;
-            UpdateVertical();
-        }
     }
 
     //----------------------------------------------------------------------------
@@ -160,7 +162,6 @@ namespace CPC {
         KMASSERTM(m_anRegisters[VERTICAL_TOTAL_ADJUST] == 0, ("TODO - CRTC's register 5 (VERTICAL_TOTAL_ADJUST) is not 0. We are ignoring it for now."));
 
         // Advance 1 scan line.
-        cpcByte nMaximumScanLineAddress = m_anRegisters[MAXIMUM_SCAN_LINE_ADDRESS] + 1;
         m_nCurrentScanLine++;
         m_currentAddress.RA++;
 
@@ -179,6 +180,7 @@ namespace CPC {
         }
 
         // Is it time to advance to the next character row?
+        cpcByte nMaximumScanLineAddress = m_anRegisters[MAXIMUM_SCAN_LINE_ADDRESS] + 1;
         if (m_nCurrentScanLine == nMaximumScanLineAddress)
         {
             cpcByte nVerticalTotal = m_anRegisters[VERTICAL_TOTAL] + 1;
@@ -190,6 +192,15 @@ namespace CPC {
             m_nCurrentScanLine = 0;
 
             // Update signals depending on where we are in the frame.
+            if (m_nCurrentVCharacter == nVerticalTotal)    // At start of new CRTC frame?
+            {
+                // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
+                // Re-enable display.
+                m_bDisplayEnabledV = true;
+                m_nCurrentVCharacter = 0;
+                m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
+            }
+
             if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_DISPLAYED])
             {
                 // Disable display.
@@ -207,15 +218,6 @@ namespace CPC {
                 }
                 // Notify the Gate Array that VSYNC's rising edge just occured.
                 GetMachine()->GetGateArray()->OnVSyncBegin();
-            }
-
-            if (m_nCurrentVCharacter == nVerticalTotal)    // At start of new CRTC frame?
-            {
-                // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
-                // Re-enable display.
-                m_bDisplayEnabledV = true;
-                m_nCurrentVCharacter = 0;
-                m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
             }
         }
     }
