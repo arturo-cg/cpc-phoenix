@@ -11,77 +11,77 @@
 
 
 /**
-** 
+**
 */
 class Settings
 {
 public:
 
-  enum EModifierKeyState
-  {
-    MODIFIERKEY_ON  = 0x01,
-    MODIFIERKEY_OFF = 0x02,
-    MODIFIERKEY_ANY = 0x03 /*MODIFIERKEY_ON | MODIFIERKEY_OFF*/,
-  };
+    enum EModifierKeyState
+    {
+        MODIFIERKEY_ON = 0x01,
+        MODIFIERKEY_OFF = 0x02,
+        MODIFIERKEY_ANY = 0x03 /*MODIFIERKEY_ON | MODIFIERKEY_OFF*/,
+    };
 
-  struct SMappedKey
-  {
-    int               nWindowsKey;
-    EModifierKeyState eNumLock;
-  };
+    struct SMappedKey
+    {
+        int               nWindowsKey;
+        EModifierKeyState eNumLock;
+    };
 
 
-                            Settings                  ()  { m_bOk = false; }
-  virtual                  ~Settings                  ()  { End(); }
+    Settings() { m_bOk = false; }
+    virtual                  ~Settings() { End(); }
 
-  bool                      Init                      ();
-  virtual void              End                       ();
-  bool                      IsOk                      () const  { return m_bOk; }
+    bool                      Init();
+    virtual void              End();
+    bool                      IsOk() const { return m_bOk; }
 
-  /** Loads settings from the settings file. If it doesn't exist, it assigns default values. */
-  void                      LoadFromFile              ();
-  /** Saves settings to the settings file. */
-  void                      SaveToFile                ();
+    /** Loads settings from the settings file. If it doesn't exist, it assigns default values. */
+    void                      LoadFromFile();
+    /** Saves settings to the settings file. */
+    void                      SaveToFile();
 
-  /** Restores setting default values. */
-  void                      RestoreDefaultValues      ();
+    /** Restores setting default values. */
+    void                      RestoreDefaultValues();
 
-  void                      SetCpcModel               (CPC::CMachine::EModel eNewModel)  { m_eCpcModel = eNewModel; }
-  CPC::CMachine::EModel     GetCpcModel               () const                           { return m_eCpcModel; }
+    void                      SetCpcModel(CPC::CMachine::EModel eNewModel) { m_eCpcModel = eNewModel; }
+    CPC::CMachine::EModel     GetCpcModel() const { return m_eCpcModel; }
 
-  void                                     SetMonitorType (CPC::CGateArray::ERgbConversionTableType eType)  { m_eMonitorType = eType; }
-  CPC::CGateArray::ERgbConversionTableType GetMonitorType () const                                          { return m_eMonitorType; }
+    void                                     SetMonitorType(CPC::CGateArray::ERgbConversionTableType eType) { m_eMonitorType = eType; }
+    CPC::CGateArray::ERgbConversionTableType GetMonitorType() const { return m_eMonitorType; }
 
-  void                      SetDrawScanLines          (bool bScanLines)  { m_bDrawScanLines = bScanLines; }
-  bool                      GetDrawScanLines          () const           { return m_bDrawScanLines; }
+    void                      SetDrawScanLines(bool bScanLines) { m_bDrawScanLines = bScanLines; }
+    bool                      GetDrawScanLines() const { return m_bDrawScanLines; }
 
-  void                      SetEmulationSpeed         (float fSpeed)  { m_fEmulationSpeed = fSpeed; }
-  float                     GetEmulationSpeed         () const        { return m_fEmulationSpeed; }
+    void                      SetEmulationSpeed(float fSpeed) { m_fEmulationSpeed = fSpeed; }
+    float                     GetEmulationSpeed() const { return m_fEmulationSpeed; }
 
-  const SMappedKey&         GetCpcKeyMapping          (CPC::ECpcKey eCpcKey) const  { return m_aKeyMappings[eCpcKey]; }
+    const SMappedKey&         GetCpcKeyMapping(CPC::ECpcKey eCpcKey) const { return m_aKeyMappings[eCpcKey]; }
 
-  void                      SetDiskImage              (unsigned nDrive, const std::string& sDiskImageFileName)  { m_asDiskImages[nDrive] = sDiskImageFileName; }
-  const std::string&        GetDiskImage              (unsigned nDrive) const                                   { return m_asDiskImages[nDrive]; }
+    void                      SetDiskImage(unsigned nDrive, const std::string& sDiskImageFileName) { m_asDiskImages[nDrive] = sDiskImageFileName; }
+    const std::string&        GetDiskImage(unsigned nDrive) const { return m_asDiskImages[nDrive]; }
 
 
 private:
 
-  static const char*        SETTINGS_FILE_NAME;
-  static const SMappedKey   DEFAULT_KEY_MAPPINGS[CPC::CPCKEY_LAST];
+    static const char*        SETTINGS_FILE_NAME;
+    static const SMappedKey   DEFAULT_KEY_MAPPINGS[CPC::CPCKEY_LAST];
 
 
-  void                      ResetVars                 ();
-  void                      FreeVars                  ();
+    void                      ResetVars();
+    void                      FreeVars();
 
 
-  bool                      m_bOk;
+    bool                      m_bOk;
 
-  CPC::CMachine::EModel     m_eCpcModel;
-  CPC::CGateArray::ERgbConversionTableType m_eMonitorType;
-  bool                      m_bDrawScanLines;
-  float                     m_fEmulationSpeed;
-  SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];
-  std::string               m_asDiskImages[CPC::CMachine::DRIVE_COUNT];
+    CPC::CMachine::EModel     m_eCpcModel;
+    CPC::CGateArray::ERgbConversionTableType m_eMonitorType;
+    bool                      m_bDrawScanLines;
+    float                     m_fEmulationSpeed;
+    SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];
+    std::string               m_asDiskImages[CPC::CMachine::DRIVE_COUNT];
 
 };
 

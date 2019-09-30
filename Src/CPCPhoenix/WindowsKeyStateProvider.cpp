@@ -10,38 +10,38 @@
 
 //----------------------------------------------------------------------------
 /**
-** 
+**
 */
 /*virtual*/ CPC::ECpcKeyState WindowsKeyStateProvider::GetKeyState(CPC::ECpcKey eCpcKey)
 {
-  CPC::ECpcKeyState eRet = CPC::CPCKEYSTATE_RELEASED;
+    CPC::ECpcKeyState eRet = CPC::CPCKEYSTATE_RELEASED;
 
-  // Look whether the application has the input focus
-  if (::GetFocus() == Application::Singleton()->GetAppWindow()->GetHWnd())
-  {
-    // Get the Windows key the CPC key is mapped to
-    const Settings::SMappedKey& mappedKey = Application::Singleton()->GetSettings()->GetCpcKeyMapping( eCpcKey );
-
-    // Get the current state of the Windows key
-    if (::GetAsyncKeyState(mappedKey.nWindowsKey) & 0x8000)      // If the key is pressed...
+    // Look whether the application has the input focus
+    if (::GetFocus() == Application::Singleton()->GetAppWindow()->GetHWnd())
     {
-      // Check NUM LOCK key state
-      Settings::EModifierKeyState eNumLockState;
-      if (::GetKeyState(VK_NUMLOCK) & 0x0001)
-      {
-        eNumLockState = Settings::MODIFIERKEY_ON;
-      }
-      else
-      {
-        eNumLockState = Settings::MODIFIERKEY_OFF;
-      }
+        // Get the Windows key the CPC key is mapped to
+        const Settings::SMappedKey& mappedKey = Application::Singleton()->GetSettings()->GetCpcKeyMapping(eCpcKey);
 
-      if (mappedKey.eNumLock & eNumLockState)
-      {
-        eRet = CPC::CPCKEYSTATE_PRESSED;
-      }
+        // Get the current state of the Windows key
+        if (::GetAsyncKeyState(mappedKey.nWindowsKey) & 0x8000)      // If the key is pressed...
+        {
+            // Check NUM LOCK key state
+            Settings::EModifierKeyState eNumLockState;
+            if (::GetKeyState(VK_NUMLOCK) & 0x0001)
+            {
+                eNumLockState = Settings::MODIFIERKEY_ON;
+            }
+            else
+            {
+                eNumLockState = Settings::MODIFIERKEY_OFF;
+            }
+
+            if (mappedKey.eNumLock & eNumLockState)
+            {
+                eRet = CPC::CPCKEYSTATE_PRESSED;
+            }
+        }
     }
-  }
 
-  return eRet;
+    return eRet;
 }

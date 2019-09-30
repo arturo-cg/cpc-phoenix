@@ -9,46 +9,46 @@ class kmbWindow;
 
 
 /**
-** 
+**
 */
 class StatusBar
 {
 public:
 
-                            StatusBar                 ()  { m_bOk = false; }
-  virtual                  ~StatusBar                 ()  { End(); }
+    StatusBar() { m_bOk = false; }
+    virtual                  ~StatusBar() { End(); }
 
-  bool                      Init                      (kmbWindow* pParentWnd);
-  virtual void              End                       ();
-  bool                      IsOk                      () const  { return m_bOk; }
+    bool                      Init(kmbWindow* pParentWnd);
+    virtual void              End();
+    bool                      IsOk() const { return m_bOk; }
 
-  HWND                      GetHWnd                   () const  { return m_hWnd; }
-  long                      GetHeight                 () const;
+    HWND                      GetHWnd() const { return m_hWnd; }
+    long                      GetHeight() const;
 
-  void                      SetInsertedDiskNames      (const string& sDiskNameA, const string& sDiskNameB);
-  void                      SetEmulationSpeed         (float fSpeed);
+    void                      SetInsertedDiskNames(const string& sDiskNameA, const string& sDiskNameB);
+    void                      SetEmulationSpeed(float fSpeed);
 
 
 private:
 
-  enum EPart
-  {
-    PART_DRIVE_A = 0,
-    PART_DRIVE_B,
-    PART_EMULATIONSPEED,
+    enum EPart
+    {
+        PART_DRIVE_A = 0,
+        PART_DRIVE_B,
+        PART_EMULATIONSPEED,
 
-    PART_LAST,
-    PART_INVALID = 0x7FFFFFFF
-  };
-
-
-  void                      ResetVars                 ();
-  void                      FreeVars                  ();
+        PART_LAST,
+        PART_INVALID = 0x7FFFFFFF
+    };
 
 
-  bool                      m_bOk;
+    void                      ResetVars();
+    void                      FreeVars();
 
-  HWND                      m_hWnd;
+
+    bool                      m_bOk;
+
+    HWND                      m_hWnd;
 
 };
 

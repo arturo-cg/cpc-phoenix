@@ -15,8 +15,8 @@ class WindowsKeyStateProvider : public CPC::CKeyStateProvider
 {
 public:
 
-  /** Called by the emulator to know the current released/pressed state of the given CPC key. */
-  virtual CPC::ECpcKeyState  GetKeyState               (CPC::ECpcKey eCpcKey);
+    /** Called by the emulator to know the current released/pressed state of the given CPC key. */
+    virtual CPC::ECpcKeyState  GetKeyState(CPC::ECpcKey eCpcKey);
 
 };
 

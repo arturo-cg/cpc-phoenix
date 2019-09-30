@@ -18,34 +18,34 @@
 */
 bool DisplayWindow::Init(const RECT& placement, kmbWindow* pParent)
 {
-  bool bRet = true;
+    bool bRet = true;
 
-  End( false );
-  ResetVars();
+    End(false);
+    ResetVars();
 
-  // Initialize base class
-  if (bRet)
-  {
-    DWORD dwStyles;
-    dwStyles = (WS_CHILD | WS_VISIBLE);
+    // Initialize base class
+    if (bRet)
+    {
+        DWORD dwStyles;
+        dwStyles = (WS_CHILD | WS_VISIBLE);
 
-    bRet = Super::Init( "", dwStyles, placement.left, placement.top, placement.right, placement.bottom, pParent->GetHWnd() );
-  }
+        bRet = Super::Init("", dwStyles, placement.left, placement.top, placement.right, placement.bottom, pParent->GetHWnd());
+    }
 
-  // Check parameters
-  if (bRet)
-  {
-    //...
-  }
+    // Check parameters
+    if (bRet)
+    {
+        //...
+    }
 
 
-  if (!bRet)
-  {
-    FreeVars();
-    m_bOk = false;
-  }
+    if (!bRet)
+    {
+        FreeVars();
+        m_bOk = false;
+    }
 
-  return bRet;
+    return bRet;
 }
 
 //----------------------------------------------------------------------------
@@ -54,15 +54,15 @@ bool DisplayWindow::Init(const RECT& placement, kmbWindow* pParent)
 */
 /*virtual*/ void DisplayWindow::End(bool bIncludedSuper/* = true*/)
 {
-  if ( IsOk() )
-  {
-    FreeVars();
-
-    if (bIncludedSuper)
+    if (IsOk())
     {
-      Super::End();
+        FreeVars();
+
+        if (bIncludedSuper)
+        {
+            Super::End();
+        }
     }
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ bool DisplayWindow::Init(const RECT& placement, kmbWindow* pParent)
 */
 void DisplayWindow::ResetVars()
 {
-  //...
+    //...
 }
 
 //----------------------------------------------------------------------------
@@ -80,26 +80,26 @@ void DisplayWindow::ResetVars()
 */
 void DisplayWindow::FreeVars()
 {
-  //...
+    //...
 }
 
 //----------------------------------------------------------------------------
 /**
-** 
+**
 */
 /*virtual*/ LRESULT DisplayWindow::_OnPaint(HDC hDc)
 {
-  // Get current video output.
-  CWinVideoOutput* pVideoOutput = Application::Singleton()->GetWinVideoOutput();
-  CWinVideoOutput::SOutput output;
-  pVideoOutput->GetOutput( &output );
+    // Get current video output.
+    CWinVideoOutput* pVideoOutput = Application::Singleton()->GetWinVideoOutput();
+    CWinVideoOutput::SOutput output;
+    pVideoOutput->GetOutput(&output);
 
-  // Copy the back-buffer DIB to the window DC
-  RECT rClientArea;
-  GetClientRect( &rClientArea );
+    // Copy the back-buffer DIB to the window DC
+    RECT rClientArea;
+    GetClientRect(&rClientArea);
 
-  ::StretchDIBits( hDc, 0, 0, rClientArea.right - rClientArea.left, rClientArea.bottom - rClientArea.top,
-                   0, 0, output.nWidth, output.nHeight, output.pDibBits, output.pDibInfo, DIB_RGB_COLORS, SRCCOPY );
+    ::StretchDIBits(hDc, 0, 0, rClientArea.right - rClientArea.left, rClientArea.bottom - rClientArea.top,
+                    0, 0, output.nWidth, output.nHeight, output.pDibBits, output.pDibInfo, DIB_RGB_COLORS, SRCCOPY);
 
-  return 0;
+    return 0;
 }

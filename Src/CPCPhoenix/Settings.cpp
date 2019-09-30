@@ -99,40 +99,40 @@
 */
 bool Settings::Init()
 {
-  bool bRet = true;
+    bool bRet = true;
 
-  End();
-  ResetVars();
+    End();
+    ResetVars();
 
-  // Check parameters
-  if (bRet)
-  {
-    //...
-  }
+    // Check parameters
+    if (bRet)
+    {
+        //...
+    }
 
-  // Set default values to all settings
-  if (bRet)
-  {
-    RestoreDefaultValues();
-  }
+    // Set default values to all settings
+    if (bRet)
+    {
+        RestoreDefaultValues();
+    }
 
-  // Initialize class members
-  if (bRet)
-  {
-    //...
-  }
+    // Initialize class members
+    if (bRet)
+    {
+        //...
+    }
 
 
-  if (bRet)
-  {
-    m_bOk = true;
-  }
-  else
-  {
-    FreeVars();
-  }
+    if (bRet)
+    {
+        m_bOk = true;
+    }
+    else
+    {
+        FreeVars();
+    }
 
-  return bRet;
+    return bRet;
 }
 
 //----------------------------------------------------------------------------
@@ -141,11 +141,11 @@ bool Settings::Init()
 */
 /*virtual*/ void Settings::End()
 {
-  if ( IsOk() )
-  {
-    FreeVars();
-    m_bOk = false;
-  }
+    if (IsOk())
+    {
+        FreeVars();
+        m_bOk = false;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -154,12 +154,12 @@ bool Settings::Init()
 */
 void Settings::ResetVars()
 {
-  m_eCpcModel       = CPC::CMachine::MODEL_INVALID;
-  m_eMonitorType    = CPC::CGateArray::RGBCONVERSIONTABLE_INVALID;
-  m_bDrawScanLines  = false;
-  m_fEmulationSpeed = 0.f;
-  m_asDiskImages[0].clear();
-  m_asDiskImages[1].clear();
+    m_eCpcModel = CPC::CMachine::MODEL_INVALID;
+    m_eMonitorType = CPC::CGateArray::RGBCONVERSIONTABLE_INVALID;
+    m_bDrawScanLines = false;
+    m_fEmulationSpeed = 0.f;
+    m_asDiskImages[0].clear();
+    m_asDiskImages[1].clear();
 }
 
 //----------------------------------------------------------------------------
@@ -168,46 +168,46 @@ void Settings::ResetVars()
 */
 void Settings::FreeVars()
 {
-  //...
+    //...
 }
 
 //----------------------------------------------------------------------------
 /**
-** 
+**
 */
 void Settings::LoadFromFile()
 {
-//************************************** TODO - TODO - TODO ********************************************
-//************************************** TODO - TODO - TODO ********************************************
-  // TODO - For now, just set default values
-  RestoreDefaultValues();
-//************************************** TODO - TODO - TODO ********************************************
-//************************************** TODO - TODO - TODO ********************************************
+    //************************************** TODO - TODO - TODO ********************************************
+    //************************************** TODO - TODO - TODO ********************************************
+      // TODO - For now, just set default values
+    RestoreDefaultValues();
+    //************************************** TODO - TODO - TODO ********************************************
+    //************************************** TODO - TODO - TODO ********************************************
 }
 
 //----------------------------------------------------------------------------
 /**
-** 
+**
 */
 void Settings::SaveToFile()
 {
-//************************************** TODO - TODO - TODO ********************************************
-//************************************** TODO - TODO - TODO ********************************************
-//************************************** TODO - TODO - TODO ********************************************
-//************************************** TODO - TODO - TODO ********************************************
+    //************************************** TODO - TODO - TODO ********************************************
+    //************************************** TODO - TODO - TODO ********************************************
+    //************************************** TODO - TODO - TODO ********************************************
+    //************************************** TODO - TODO - TODO ********************************************
 }
 
 //----------------------------------------------------------------------------
 /**
-** 
+**
 */
 void Settings::RestoreDefaultValues()
 {
-  m_eCpcModel       = CPC::CMachine::MODEL_6128;
-  m_eMonitorType    = CPC::CGateArray::RGBCONVERSIONTABLE_COLOR;
-  m_bDrawScanLines  = false;
-  m_fEmulationSpeed = 1.f;
-  m_asDiskImages[0].clear();
-  m_asDiskImages[1].clear();
-  ::memcpy( m_aKeyMappings, DEFAULT_KEY_MAPPINGS, sizeof(m_aKeyMappings) );
+    m_eCpcModel = CPC::CMachine::MODEL_6128;
+    m_eMonitorType = CPC::CGateArray::RGBCONVERSIONTABLE_COLOR;
+    m_bDrawScanLines = false;
+    m_fEmulationSpeed = 1.f;
+    m_asDiskImages[0].clear();
+    m_asDiskImages[1].clear();
+    ::memcpy(m_aKeyMappings, DEFAULT_KEY_MAPPINGS, sizeof(m_aKeyMappings));
 }

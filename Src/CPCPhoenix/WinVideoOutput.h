@@ -15,50 +15,50 @@ class CWinVideoOutput : public CPC::CVideoOutput
 {
 public:
 
-  struct SOutput
-  {
-    unsigned nWidth;
-    unsigned nHeight;
-    const BITMAPINFO* pDibInfo;
-    const unsigned char* pDibBits;
-  };
+    struct SOutput
+    {
+        unsigned nWidth;
+        unsigned nHeight;
+        const BITMAPINFO* pDibInfo;
+        const unsigned char* pDibBits;
+    };
 
 
-                          CWinVideoOutput           (CPC::CMachine* pMachine);
-  virtual                ~CWinVideoOutput           ()  { FreeVars(); }
+    CWinVideoOutput(CPC::CMachine* pMachine);
+    virtual                ~CWinVideoOutput() { FreeVars(); }
 
-  bool                    Init                      ();
-  void                    End                       ();
+    bool                    Init();
+    void                    End();
 
-  void                    GetOutput                 (SOutput* pOutput) const;
+    void                    GetOutput(SOutput* pOutput) const;
 
 
 protected:
 
-  /** From CPC::CVideoOutput */
-  virtual const SBufferProperties& GetBufferProperties () const;
-  virtual unsigned char*  GetBuffer                 ();
-  virtual void            OnBufferComplete          ();
+    /** From CPC::CVideoOutput */
+    virtual const SBufferProperties& GetBufferProperties() const;
+    virtual unsigned char*  GetBuffer();
+    virtual void            OnBufferComplete();
 
 
 private:
 
-  typedef                 CPC::CVideoOutput         inherited;
+    typedef                 CPC::CVideoOutput         inherited;
 
-  static const unsigned   BUFFER_COUNT = 2;
-  static const unsigned   DEBUG_COLOR_ARGB = 0x00FF00FF/*Magenta*/;
+    static const unsigned   BUFFER_COUNT = 2;
+    static const unsigned   DEBUG_COLOR_ARGB = 0x00FF00FF/*Magenta*/;
 
-  void                    ResetVars                 ();
-  void                    FreeVars                  ();
+    void                    ResetVars();
+    void                    FreeVars();
 
-  void                    ClearBackBuffer           (unsigned nRgb);
+    void                    ClearBackBuffer(unsigned nRgb);
 
 
-  SBufferProperties       m_bufferProperties;
-  BITMAPINFO              m_bufferDibInfo[BUFFER_COUNT];
-  unsigned char*          m_pBufferDibBits[BUFFER_COUNT];
-  unsigned                m_nBackBuffer;
-  unsigned                m_nFrontBuffer;
+    SBufferProperties       m_bufferProperties;
+    BITMAPINFO              m_bufferDibInfo[BUFFER_COUNT];
+    unsigned char*          m_pBufferDibBits[BUFFER_COUNT];
+    unsigned                m_nBackBuffer;
+    unsigned                m_nFrontBuffer;
 
 };
 

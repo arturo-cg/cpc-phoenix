@@ -9,38 +9,38 @@
 
 
 /**
-** 
+**
 */
 class DisplayWindow : public kmbWindow
 {
 public:
 
-                            DisplayWindow             ()  { }
-  virtual                  ~DisplayWindow             ()  { End( false ); }
+    DisplayWindow() { }
+    virtual                  ~DisplayWindow() { End(false); }
 
-  bool                      Init                      (const RECT& placement, kmbWindow* pParent);
-  virtual void              End                       (bool bIncludedSuper = true);
-
-
-  /** Updates the window with the current content of the emulated video output. */
-  void                      DrawVideoOutput           ();
+    bool                      Init(const RECT& placement, kmbWindow* pParent);
+    virtual void              End(bool bIncludedSuper = true);
 
 
-  //
-  // Message handlers (INTERNAL USE ONLY)
-  //
+    /** Updates the window with the current content of the emulated video output. */
+    void                      DrawVideoOutput();
 
-  // Returns 0 to continue the window creation, or -1 to cancel it.
-  virtual LRESULT           _OnPaint                  (HDC hDc);
+
+    //
+    // Message handlers (INTERNAL USE ONLY)
+    //
+
+    // Returns 0 to continue the window creation, or -1 to cancel it.
+    virtual LRESULT           _OnPaint(HDC hDc);
 
 
 private:
 
-  typedef                   kmbWindow                 Super;
+    typedef                   kmbWindow                 Super;
 
 
-  void                      ResetVars                 ();
-  void                      FreeVars                  ();
+    void                      ResetVars();
+    void                      FreeVars();
 
 };
 
