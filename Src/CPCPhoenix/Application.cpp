@@ -348,12 +348,8 @@ void Application::Run()
     // Enter the main loop
     while (!m_bExitApp)
     {
-        // Process Windows messages
-        ProcessWindowsMessages();
-
         // Run the emulated machine
         static const unsigned TIME_STEP_USECS = 1;
-
         m_pMachine->Run(TIME_STEP_USECS);
 
         // Has the emulated machine completed a new video frame?
@@ -362,6 +358,11 @@ void Application::Run()
             // Draw new video output.
             m_pAppWindow->DrawVideoOutput();
             m_uFrameCount = m_pVideoOutput->GetFrameCount();
+
+            // Process Windows messages.
+            // Note: ideally, this wouldn't be tied to a frame of the emulated frame, but rather it would have its own real time counter that triggered Windows message processing
+            //       at regular real time intervals. In practice, the emulator runs at full speed in most scenarios (or fast enough in Debug) so this will do.
+            ProcessWindowsMessages();
 
             // Limit the emulation speed
             double dDeltaTimeSecs;
