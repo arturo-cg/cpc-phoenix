@@ -7,6 +7,7 @@
 #include "cpcMemoryBlock.h"
 #include "cpcCpu.h"
 #include "cpcVideoOutput.h"
+//#include <Windows.h>
 
 
 #define GET_MEMORY_BLOCK_FROM_ADDRESS(addr)   ((addr & 0xC000) >> 14)
@@ -377,12 +378,13 @@ namespace CPC {
         // RAM configuration port?
         if (!(nPort & 0x8000))      // If bit 15 is cleared...
         {
-            if (((nValue & 0xC0) >> 6) == 4)
+            if (((nValue & 0xC0) >> 6) == 3)
             {
                 // Bits 2-0 define one of the eight possible RAM configurations
                 // Note: If we wanted to emulate expansion RAMs other than the CPC6128 built-in one, we would have
-                //       to look into bits 4,3 which contain the secondary 64k page to use.
-                SetRamConfiguration(1/*nSecondaryRamPage*/, (ERamConfig)(nValue & 0x03));
+                //       to look into bits 5-3 which contain the secondary 64k page to use.
+                ERamConfig ramConfig = (ERamConfig)(nValue & 0x07);
+                SetRamConfiguration(1/*nSecondaryRamPage*/, ramConfig);
             }
         }
 
