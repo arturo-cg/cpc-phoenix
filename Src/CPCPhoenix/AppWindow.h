@@ -49,6 +49,8 @@ public:
     /** Returns the status bar (const version). */
     const StatusBar*          GetStatusBar() const { return m_pStatusBar; }
 
+    /** Resizes the app window and the display window to fit the specified scale level. */
+    void                      ResizeToScale(float scale);
 
     //
     // Message handlers (INTERNAL USE ONLY)

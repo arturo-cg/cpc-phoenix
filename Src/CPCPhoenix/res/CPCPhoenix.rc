@@ -15,20 +15,18 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Spanish (Castilian) resources
+// Spanish (Spain, Traditional Sort) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESP)
-#ifdef _WIN32
 LANGUAGE LANG_SPANISH, SUBLANG_SPANISH
 #pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
 //
 
-IDR_MAINMENU MENU 
+IDR_MAINMENU MENU
 BEGIN
     POPUP "File"
     BEGIN
@@ -59,6 +57,11 @@ BEGIN
             MENUITEM "Color",                       ID_SETTINGS_MONITORTYPE_COLOR
             MENUITEM "Green",                       ID_SETTINGS_MONITORTYPE_GREEN
         END
+        POPUP "Scale"
+        BEGIN
+            MENUITEM "1x",                          ID_SETTINGS_SCALE_1X
+            MENUITEM "1.5x",                        ID_SETTINGS_SCALE_1_5X
+        END
         MENUITEM "Draw Scan Lines\tF1",         ID_SETTINGS_DRAWSCANLINES
         POPUP "Emulation Speed"
         BEGIN
@@ -72,18 +75,16 @@ BEGIN
     END
 END
 
-#endif    // Spanish (Castilian) resources
+#endif    // Spanish (Spain, Traditional Sort) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Spanish resources
+// Spanish (Spain, International Sort) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESN)
-#ifdef _WIN32
 LANGUAGE LANG_SPANISH, SUBLANG_SPANISH_MODERN
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -130,12 +131,13 @@ END
 // remains consistent on all systems.
 IDR_APPWINDOW           ICON                    "CPCPhoenix.ico"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Accelerator
 //
 
-IDR_APPWINDOWACCELERATORS ACCELERATORS 
+IDR_APPWINDOWACCELERATORS ACCELERATORS
 BEGIN
     VK_F1,          ID_SETTINGS_DRAWSCANLINES, VIRTKEY, NOINVERT
     VK_F5,          ID_SETTINGS_RESET,      VIRTKEY, SHIFT, NOINVERT
@@ -188,83 +190,12 @@ END
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDR_MAINFRAME           "CPC Phoenix"
 END
 
-// STRINGTABLE 
-// BEGIN
-//     AFX_IDS_APP_TITLE       "CPCPhoenix"
-//     AFX_IDS_IDLEMESSAGE     "Ready"
-// END
-
-// STRINGTABLE 
-// BEGIN
-//     ID_INDICATOR_EXT        "EXT"
-//     ID_INDICATOR_CAPS       "CAP"
-//     ID_INDICATOR_NUM        "NUM"
-//     ID_INDICATOR_SCRL       "SCRL"
-//     ID_INDICATOR_OVR        "OVR"
-//     ID_INDICATOR_REC        "REC"
-// END
-
-// STRINGTABLE 
-// BEGIN
-//     ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
-//     ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
-// END
-
-// STRINGTABLE 
-// BEGIN
-//     ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
-//     ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
-// END
-
-// STRINGTABLE 
-// BEGIN
-//     ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
-// END
-
-// STRINGTABLE 
-// BEGIN
-//     ID_EDIT_CLEAR           "Erase the selection\nErase"
-//     ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
-//     ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
-//     ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
-//     ID_EDIT_FIND            "Find the specified text\nFind"
-//     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
-//     ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
-//     ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
-//     ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
-//     ID_EDIT_UNDO            "Undo the last action\nUndo"
-//     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
-// END
-
-// STRINGTABLE 
-// BEGIN
-//     ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
-//     ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
-// END
-
-// STRINGTABLE 
-// BEGIN
-//     AFX_IDS_SCSIZE          "Change the window size"
-//     AFX_IDS_SCMOVE          "Change the window position"
-//     AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
-//     AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
-//     AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
-//     AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
-//     AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
-// END
-
-// STRINGTABLE 
-// BEGIN
-//     AFX_IDS_SCRESTORE       "Restore the window to normal size"
-//     AFX_IDS_SCTASKLIST      "Activate Task List"
-// END
-
-#endif    // Spanish resources
+#endif    // Spanish (Spain, International Sort) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

@@ -52,6 +52,9 @@ public:
     void                                     SetMonitorType(CPC::CGateArray::ERgbConversionTableType eType) { m_eMonitorType = eType; }
     CPC::CGateArray::ERgbConversionTableType GetMonitorType() const { return m_eMonitorType; }
 
+    void                      SetScale(float scale) { m_scale = scale; }
+    float                     GetScale() const { return m_scale; }
+
     void                      SetDrawScanLines(bool bScanLines) { m_bDrawScanLines = bScanLines; }
     bool                      GetDrawScanLines() const { return m_bDrawScanLines; }
 
@@ -78,6 +81,7 @@ private:
 
     CPC::CMachine::EModel     m_eCpcModel;
     CPC::CGateArray::ERgbConversionTableType m_eMonitorType;
+    float                     m_scale;
     bool                      m_bDrawScanLines;
     float                     m_fEmulationSpeed;
     SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];

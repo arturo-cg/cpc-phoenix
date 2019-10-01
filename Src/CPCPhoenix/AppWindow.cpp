@@ -72,21 +72,7 @@ bool AppWindow::Init()
     // Resize application window
     if (bRet)
     {
-        // Calculate the window rectangle
-        DWORD dwStyles;
-        dwStyles = (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
-
-        RECT rWndRect;
-        static const float SCALE = 1.5f;
-        int nNewWidth = int(CPC::CVideoOutput::BUFFER_WIDTH * SCALE);
-        int nNewHeight = int(CPC::CVideoOutput::BUFFER_HEIGHT * 2 * SCALE) + m_pStatusBar->GetHeight();
-
-        ::SetRect(&rWndRect, 0, 0, nNewWidth, nNewHeight);
-        ::AdjustWindowRect(&rWndRect, dwStyles, TRUE/*bMenu*/);
-        ::OffsetRect(&rWndRect, -rWndRect.left, -rWndRect.top);
-
-        // Resize it
-        SetRect(rWndRect);
+        ResizeToScale(Application::Singleton()->GetSettings()->GetScale());
     }
 
     // Key accelerators
@@ -154,6 +140,28 @@ void AppWindow::FreeVars()
 /**
 **
 */
+void AppWindow::ResizeToScale(float scale)
+{
+    // Calculate the window rectangle
+    DWORD dwStyles;
+    dwStyles = (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+
+    RECT rWndRect;
+    int nNewWidth = int(CPC::CVideoOutput::BUFFER_WIDTH * scale);
+    int nNewHeight = int(CPC::CVideoOutput::BUFFER_HEIGHT * 2 * scale) + m_pStatusBar->GetHeight();
+
+    ::SetRect(&rWndRect, 0, 0, nNewWidth, nNewHeight);
+    ::AdjustWindowRect(&rWndRect, dwStyles, TRUE/*bMenu*/);
+    ::OffsetRect(&rWndRect, -rWndRect.left, -rWndRect.top);
+
+    // Resize it
+    SetRect(rWndRect);
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
 void AppWindow::OnApplicationSettingsChanged()
 {
     const Settings* pSettings;
@@ -178,6 +186,20 @@ void AppWindow::OnApplicationSettingsChanged()
         default:                                         KMASSERT(false); nItem = ID_SETTINGS_MONITORTYPE_COLOR; break;
     }
     ::CheckMenuRadioItem(m_hMainMenu, ID_SETTINGS_MONITORTYPE_COLOR, ID_SETTINGS_MONITORTYPE_GREEN, nItem, MF_BYCOMMAND);
+
+    if (pSettings->GetScale() == 1.0f)
+    {
+        nItem = ID_SETTINGS_SCALE_1X;
+    }
+    else if (pSettings->GetScale() == 1.5f)
+    {
+        nItem = ID_SETTINGS_SCALE_1_5X;
+    }
+    else
+    {
+        nItem = ID_SETTINGS_SCALE_1X;
+    }
+    ::CheckMenuRadioItem(m_hMainMenu, ID_SETTINGS_SCALE_1X, ID_SETTINGS_SCALE_1_5X, nItem, MF_BYCOMMAND);
 
     ::CheckMenuItem(m_hMainMenu, ID_SETTINGS_DRAWSCANLINES, /*MF_BYCOMMAND | */ pSettings->GetDrawScanLines() ? MF_CHECKED : MF_UNCHECKED);
 
@@ -318,9 +340,9 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
         case ID_FILE_EXIT:  RequestClose(); break;
 
 
-            //
-            // Settings Menu
-            //
+        //
+        // Settings Menu
+        //
 
         case ID_SETTINGS_CPCMODEL_CPC464:         pApplication->ChangeCpcModelSetting(CPC::CMachine::MODEL_464); break;
         case ID_SETTINGS_CPCMODEL_CPC664:         pApplication->ChangeCpcModelSetting(CPC::CMachine::MODEL_664); break;
@@ -329,6 +351,9 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
 
         case ID_SETTINGS_MONITORTYPE_COLOR:  pApplication->ChangeMonitorTypeSetting(CPC::CGateArray::RGBCONVERSIONTABLE_COLOR); break;
         case ID_SETTINGS_MONITORTYPE_GREEN:  pApplication->ChangeMonitorTypeSetting(CPC::CGateArray::RGBCONVERSIONTABLE_GREEN); break;
+
+        case ID_SETTINGS_SCALE_1X:    pApplication->ChangeScaleSetting(1.0f); break;
+        case ID_SETTINGS_SCALE_1_5X:  pApplication->ChangeScaleSetting(1.5f); break;
 
         case ID_SETTINGS_DRAWSCANLINES:  pApplication->ChangeDrawScanLinesSetting(!pApplication->GetSettings()->GetDrawScanLines()); break;
 

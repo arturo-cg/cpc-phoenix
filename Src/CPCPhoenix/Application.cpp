@@ -219,6 +219,22 @@ void Application::ChangeMonitorTypeSetting(CPC::CGateArray::ERgbConversionTableT
 /**
 **
 */
+void Application::ChangeScaleSetting(float scale)
+{
+    // Change application settings
+    GetSettings()->SetScale(scale);
+
+    // Resize the window.
+    m_pAppWindow->ResizeToScale(scale);
+
+    // Notify the application window
+    m_pAppWindow->OnApplicationSettingsChanged();
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
 void Application::ChangeDrawScanLinesSetting(bool bDrawScanLines)
 {
     // Change application settings

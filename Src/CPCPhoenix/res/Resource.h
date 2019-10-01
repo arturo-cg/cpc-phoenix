@@ -39,13 +39,16 @@
 #define ID_SETTINGS_CPCMODEL_CPC664     32811
 #define ID_SETTINGS_CPCMODEL_CPC6128    32812
 #define ID_SETTINGS_CPCMODEL_CPC6128_MAXAM 32813
+#define ID_SETTINGS_SCALE               32817
+#define ID_SETTINGS_SCALE_1X            32818
+#define ID_SETTINGS_SCALE_1_5X          32819
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
-#define _APS_NEXT_COMMAND_VALUE         32817
+#define _APS_NEXT_COMMAND_VALUE         32820
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
