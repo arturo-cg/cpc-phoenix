@@ -208,24 +208,37 @@ void AppWindow::OnApplicationSettingsChanged()
         nItem = ID_SETTINGS_EMULATIONSPEED_UNLIMITED;
     }
     else
+    {
         if (pSettings->GetEmulationSpeed() <= 0.251f)
         {
             nItem = ID_SETTINGS_EMULATIONSPEED_25;
         }
         else
+        {
             if (pSettings->GetEmulationSpeed() <= 0.51f)
             {
                 nItem = ID_SETTINGS_EMULATIONSPEED_50;
             }
             else
-                if (pSettings->GetEmulationSpeed() <= 1.1f)
+            {
+                if (pSettings->GetEmulationSpeed() <= 1.01f)
                 {
                     nItem = ID_SETTINGS_EMULATIONSPEED_100;
                 }
                 else
                 {
-                    nItem = ID_SETTINGS_EMULATIONSPEED_UNLIMITED;
+                    if (pSettings->GetEmulationSpeed() <= 1.21f)
+                    {
+                        nItem = ID_SETTINGS_EMULATIONSPEED_120;
+                    }
+                    else
+                    {
+                        nItem = ID_SETTINGS_EMULATIONSPEED_UNLIMITED;
+                    }
                 }
+            }
+        }
+    }
     ::CheckMenuRadioItem(m_hMainMenu, ID_SETTINGS_EMULATIONSPEED_25, ID_SETTINGS_EMULATIONSPEED_UNLIMITED, nItem, MF_BYCOMMAND);
 
     // Update the status bar
@@ -357,9 +370,10 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
 
         case ID_SETTINGS_DRAWSCANLINES:  pApplication->ChangeDrawScanLinesSetting(!pApplication->GetSettings()->GetDrawScanLines()); break;
 
-        case ID_SETTINGS_EMULATIONSPEED_25:         pApplication->ChangeEmulationSpeedSetting(0.25); break;
-        case ID_SETTINGS_EMULATIONSPEED_50:         pApplication->ChangeEmulationSpeedSetting(0.5); break;
+        case ID_SETTINGS_EMULATIONSPEED_25:         pApplication->ChangeEmulationSpeedSetting(0.25f); break;
+        case ID_SETTINGS_EMULATIONSPEED_50:         pApplication->ChangeEmulationSpeedSetting(0.5f); break;
         case ID_SETTINGS_EMULATIONSPEED_100:        pApplication->ChangeEmulationSpeedSetting(1.f); break;
+        case ID_SETTINGS_EMULATIONSPEED_120:        pApplication->ChangeEmulationSpeedSetting(1.2f); break;
         case ID_SETTINGS_EMULATIONSPEED_UNLIMITED:  pApplication->ChangeEmulationSpeedSetting(-1.f); break;
 
         case ID_SETTINGS_RESET:  pEmulatedMachine->Reset(); break;

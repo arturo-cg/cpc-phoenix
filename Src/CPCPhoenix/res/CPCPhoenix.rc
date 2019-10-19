@@ -68,6 +68,7 @@ BEGIN
             MENUITEM "25%",                         ID_SETTINGS_EMULATIONSPEED_25
             MENUITEM "50%",                         ID_SETTINGS_EMULATIONSPEED_50
             MENUITEM "100%\tF3",                    ID_SETTINGS_EMULATIONSPEED_100
+            MENUITEM "120%",                        ID_SETTINGS_EMULATIONSPEED_120
             MENUITEM "Unlimited\tF4",               ID_SETTINGS_EMULATIONSPEED_UNLIMITED
         END
         MENUITEM SEPARATOR
