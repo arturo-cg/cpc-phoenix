@@ -80,6 +80,13 @@ LRESULT CALLBACK kmbWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     }
     break;
 
+  case WM_ERASEBKGND:
+    {
+      pWindow = EXTRACT_APPWINDOW_PTR( hWnd );
+      return pWindow->_OnEraseBkgnd();
+    }
+  break;
+
   case WM_SIZING:
     {
       pWindow = EXTRACT_APPWINDOW_PTR( hWnd );
@@ -560,6 +567,15 @@ LRESULT kmbWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
 LRESULT kmbWindow::_OnPaint(HDC hDc)
 {
   return 1; ////0
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+LRESULT kmbWindow::_OnEraseBkgnd()
+{
+    return 0;  // Default message behavior.
 }
 
 //----------------------------------------------------------------------------

@@ -82,6 +82,7 @@ public:
   virtual LRESULT           _OnControlCommand         (WORD nCommand, WORD nCtrlId, HWND hCtrl);
   virtual LRESULT           _OnMenuCommand            (WORD nItemId, bool bFromAccelerator);
   virtual LRESULT           _OnPaint                  (HDC hDc);
+  virtual LRESULT           _OnEraseBkgnd             ();
   // prRect is in screen coordinates.
   virtual LRESULT           _OnSizing                 (LPRECT prRect);
   virtual LRESULT           _OnSize                   (int iWidth, int iHeight);

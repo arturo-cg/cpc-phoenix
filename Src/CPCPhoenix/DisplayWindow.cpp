@@ -103,3 +103,12 @@ void DisplayWindow::FreeVars()
 
     return 0;
 }
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+/*virtual*/ LRESULT DisplayWindow::_OnEraseBkgnd()
+{
+    return 1;   // Prevent default window procedure from filling the window with the background color.
+}

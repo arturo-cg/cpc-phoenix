@@ -32,6 +32,7 @@ public:
 
     // Returns 0 to continue the window creation, or -1 to cancel it.
     virtual LRESULT           _OnPaint(HDC hDc);
+    virtual LRESULT           _OnEraseBkgnd();
 
 
 private:
