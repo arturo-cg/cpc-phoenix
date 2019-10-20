@@ -360,6 +360,9 @@ void Application::Run()
     // Initialize the execution timer, which is used to control the execution of the emulator
     m_executionTimer.Init();
     m_executionTimer.Read(&m_currentTimerValue);
+    m_previousTimerValue = m_currentTimerValue;
+
+    double dLeftOverDeltaTimeUsecs = 0.0;
 
     // Enter the main loop
     while (!m_bExitApp)
@@ -380,29 +383,36 @@ void Application::Run()
             //       at regular real time intervals. In practice, the emulator runs at full speed in most scenarios (or fast enough in Debug) so this will do.
             ProcessWindowsMessages();
 
-            // Limit the emulation speed
-            double dDeltaTimeSecs;
-            double dDeltaTimeUSecs;
+            // Limit the emulation speed.
+            double deltaTimeUsecs;
+            double adjustedDeltaTimeUsecs;
             do
             {
                 m_executionTimer.Read(&m_currentTimerValue);
-                dDeltaTimeSecs = m_executionTimer.ComputeElapsedSecs(m_previousTimerValue, m_currentTimerValue);
-                dDeltaTimeUSecs = dDeltaTimeSecs * 1000000.0;
-            } while ((GetSettings()->GetEmulationSpeed() > 0.f) && ((dDeltaTimeUSecs * GetSettings()->GetEmulationSpeed()) < double(FRAME_DURATION_USECS)));
+                deltaTimeUsecs = m_executionTimer.ComputeElapsedUsecs(m_previousTimerValue, m_currentTimerValue);   // Actual elapsed time during this frame so far.
+                adjustedDeltaTimeUsecs = (dLeftOverDeltaTimeUsecs + deltaTimeUsecs) * GetSettings()->GetEmulationSpeed();   // Carry over timing error from the previous frame, and scale by the desired emulation speed.
+            } while ((GetSettings()->GetEmulationSpeed() > 0.f) && (adjustedDeltaTimeUsecs < FRAME_DURATION_USECS));
 
+            m_previousTimerValue = m_currentTimerValue;
+
+            // Measure timing error in this frame and remember it for the next frame.
+            dLeftOverDeltaTimeUsecs = adjustedDeltaTimeUsecs - FRAME_DURATION_USECS;
+            static const double MAX_LEFT_OVER_DELTA_TIME_USECS = FRAME_DURATION_USECS * 0.2;
+            if (dLeftOverDeltaTimeUsecs > MAX_LEFT_OVER_DELTA_TIME_USECS)
+            {
+                dLeftOverDeltaTimeUsecs = MAX_LEFT_OVER_DELTA_TIME_USECS;
+            }
 
             // Measure the emulation speed
             static unsigned s_nStatusBarUpdateDelay = 0;
             if (s_nStatusBarUpdateDelay == 0)
             {
                 float fEmulationSpeed;
-                fEmulationSpeed = (float)((double(FRAME_DURATION_USECS) * 100.0) / dDeltaTimeUSecs);
+                fEmulationSpeed = (float)((FRAME_DURATION_USECS * 100.0) / deltaTimeUsecs);
                 GetAppWindow()->GetStatusBar()->SetEmulationSpeed(fEmulationSpeed);
                 s_nStatusBarUpdateDelay = 25;
             }
             s_nStatusBarUpdateDelay--;
-
-            m_previousTimerValue = m_currentTimerValue;
         }
     }
 

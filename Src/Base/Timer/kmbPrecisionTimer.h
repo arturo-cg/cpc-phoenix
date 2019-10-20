@@ -49,6 +49,8 @@ public:
   double                    ComputeElapsedSecs        (const Value& from, const Value& to) const;
   /** Computes the elapsed time in milliseconds between the two kmbPrecisionTimer values. */
   double                    ComputeElapsedMsecs       (const Value& from, const Value& to) const;
+  /** Computes the elapsed time in microseconds between the two kmbPrecisionTimer values. */
+  double                    ComputeElapsedUsecs       (const Value& from, const Value& to) const;
 
 
 private:

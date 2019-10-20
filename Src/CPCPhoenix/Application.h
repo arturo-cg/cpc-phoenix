@@ -70,7 +70,7 @@ public:
 
 private:
 
-    static const unsigned     FRAME_DURATION_USECS = 20000;
+    static constexpr double   FRAME_DURATION_USECS = 20000.0;
 
 
     void                      ResetVars();
