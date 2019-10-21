@@ -32,6 +32,7 @@ namespace CPC {
         m_nCurrentHCharacter = 0;
         m_nCurrentVCharacter = 0;
         m_nCurrentScanLine = 0;
+        m_nExtraScanLinesCounter = 0;
         m_nScanLinesForVSyncOff = 0;
         m_bDisplayEnabledH = true;
         m_bDisplayEnabledV = true;
@@ -83,6 +84,9 @@ namespace CPC {
     */
     void CCrtc::WriteSelectedRegister(cpcByte nValue)
     {
+        //
+        // TODO - Use masks to limit the number of bits of each register (e.g. R4 is a 7-bit register, R5 is a 5-bit register, etc.).
+        //
         KMASSERT(m_eSelectedRegister < NUM_REGISTERS);
         m_anRegisters[m_eSelectedRegister] = nValue;
     }
@@ -159,66 +163,74 @@ namespace CPC {
     */
     void CCrtc::UpdateVertical()
     {
-        KMASSERTM(m_anRegisters[VERTICAL_TOTAL_ADJUST] == 0, ("TODO - CRTC's register 5 (VERTICAL_TOTAL_ADJUST) is not 0. We are ignoring it for now."));
-
-        // Advance 1 scan line.
-        m_nCurrentScanLine++;
-        m_currentAddress.RA++;
-
-        // If VSYNC is active, check whether it is time for it to go inactive.
-        if (m_bVSyncState)
+        if (m_nExtraScanLinesCounter <= 0)
         {
-            m_nScanLinesForVSyncOff--;
-            if (m_nScanLinesForVSyncOff == 0)
+            // Advance 1 scan line.
+            m_nCurrentScanLine++;
+            m_currentAddress.RA++;
+
+            // If VSYNC is active, check whether it is time for it to go inactive.
+            if (m_bVSyncState)
             {
-                // Monitor starts rasterizing top raster line (note that CRTC doesn't reset character row count yet).
-                // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
-                m_bVSyncState = false;
-                // Notify the Gate Array that VSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
-                GetMachine()->GetGateArray()->OnVSyncEnd();
-            }
-        }
-
-        // Is it time to advance to the next character row?
-        cpcByte nMaximumScanLineAddress = m_anRegisters[MAXIMUM_SCAN_LINE_ADDRESS] + 1;
-        if (m_nCurrentScanLine == nMaximumScanLineAddress)
-        {
-            cpcByte nVerticalTotal = m_anRegisters[VERTICAL_TOTAL] + 1;
-
-            // Advance 1 character row.
-            m_nCurrentVCharacter++;
-            m_currentAddress.MA += m_anRegisters[HORIZONTAL_DISPLAYED];
-            m_currentAddress.RA = 0;
-            m_nCurrentScanLine = 0;
-
-            // Update signals depending on where we are in the frame.
-            if (m_nCurrentVCharacter == nVerticalTotal)    // At start of new CRTC frame?
-            {
-                // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
-                // Re-enable display.
-                m_bDisplayEnabledV = true;
-                m_nCurrentVCharacter = 0;
-                m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
-            }
-
-            if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_DISPLAYED])
-            {
-                // Disable display.
-                m_bDisplayEnabledV = false;
-            }
-
-            if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION])    // At VSYNC rising edge?
-            {
-                // Monitor starts moving its beam to the beginning of top raster line.
-                m_bVSyncState = true;
-                m_nScanLinesForVSyncOff = (m_anRegisters[SYNC_WIDTHS] & 0xF0) >> 4;
+                m_nScanLinesForVSyncOff--;
                 if (m_nScanLinesForVSyncOff == 0)
                 {
-                    m_nScanLinesForVSyncOff = 16;
+                    // Monitor starts rasterizing top raster line (note that CRTC doesn't reset character row count yet).
+                    // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
+                    m_bVSyncState = false;
+                    // Notify the Gate Array that VSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
+                    GetMachine()->GetGateArray()->OnVSyncEnd();
+                    // Add extra scan lines, if requested.
+                    m_nExtraScanLinesCounter = m_anRegisters[VERTICAL_TOTAL_ADJUST] & 0x1F;
                 }
-                // Notify the Gate Array that VSYNC's rising edge just occured.
-                GetMachine()->GetGateArray()->OnVSyncBegin();
             }
+
+            // Is it time to advance to the next character row?
+            cpcByte nMaximumScanLineAddress = m_anRegisters[MAXIMUM_SCAN_LINE_ADDRESS] + 1;
+            if (m_nCurrentScanLine == nMaximumScanLineAddress)
+            {
+                cpcByte nVerticalTotal = m_anRegisters[VERTICAL_TOTAL] + 1;
+
+                // Advance 1 character row.
+                m_nCurrentVCharacter++;
+                m_currentAddress.MA += m_anRegisters[HORIZONTAL_DISPLAYED];
+                m_currentAddress.RA = 0;
+                m_nCurrentScanLine = 0;
+
+                // Update signals depending on where we are in the frame.
+                if (m_nCurrentVCharacter == nVerticalTotal)    // At start of new CRTC frame?
+                {
+                    // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
+                    // Re-enable display.
+                    m_bDisplayEnabledV = true;
+                    m_nCurrentVCharacter = 0;
+                    m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
+                }
+
+                if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_DISPLAYED])
+                {
+                    // Disable display.
+                    m_bDisplayEnabledV = false;
+                }
+
+                if (m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION])    // At VSYNC rising edge?
+                {
+                    // Monitor starts moving its beam to the beginning of top raster line.
+                    m_bVSyncState = true;
+                    m_nScanLinesForVSyncOff = (m_anRegisters[SYNC_WIDTHS] & 0xF0) >> 4;
+                    if (m_nScanLinesForVSyncOff == 0)
+                    {
+                        m_nScanLinesForVSyncOff = 16;
+                    }
+                    // Notify the Gate Array that VSYNC's rising edge just occured.
+                    GetMachine()->GetGateArray()->OnVSyncBegin();
+                }
+            }
+        }
+        else
+        {
+            // We are adding extra scan lines at the start of the frame (i.e. right after VSYNC goes off) as per the value contained in R5 (VERTICAL TOTAL ADJUST).
+            m_nExtraScanLinesCounter--;
         }
     }
 
