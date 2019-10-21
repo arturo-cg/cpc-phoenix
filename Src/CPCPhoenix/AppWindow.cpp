@@ -373,7 +373,7 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
         case ID_SETTINGS_EMULATIONSPEED_25:         pApplication->ChangeEmulationSpeedSetting(0.25f); break;
         case ID_SETTINGS_EMULATIONSPEED_50:         pApplication->ChangeEmulationSpeedSetting(0.5f); break;
         case ID_SETTINGS_EMULATIONSPEED_100:        pApplication->ChangeEmulationSpeedSetting(1.f); break;
-        case ID_SETTINGS_EMULATIONSPEED_120:        pApplication->ChangeEmulationSpeedSetting(1.2f); break;
+        case ID_SETTINGS_EMULATIONSPEED_120:        pApplication->ChangeEmulationSpeedSetting(1.19808f); break;     // = 19968.0 (50.08 fps) / 16666.6667 (60 fps)  <- It speeds up the emulation so that it completes a new frame at a 60 Hz rate.
         case ID_SETTINGS_EMULATIONSPEED_UNLIMITED:  pApplication->ChangeEmulationSpeedSetting(-1.f); break;
 
         case ID_SETTINGS_RESET:  pEmulatedMachine->Reset(); break;

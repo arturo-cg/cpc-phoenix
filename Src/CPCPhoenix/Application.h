@@ -70,7 +70,8 @@ public:
 
 private:
 
-    static constexpr double   FRAME_DURATION_USECS = 20000.0;
+    // 64 us per scan line * 312 scan lines = 19968 us per frame (50.08 frames/s)
+    static constexpr double   FRAME_DURATION_USECS = 19968.0;
 
 
     void                      ResetVars();
