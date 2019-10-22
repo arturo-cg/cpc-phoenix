@@ -27,14 +27,17 @@ namespace CPC {
     {
     public:
 
-        // Minimum buffer dimensions.
-        // Given by the *theoretical* maximum resolution that the Amstrad CPC monitor could display, including borders and ignoring HSYNC & VSYNC active times.
-        // The CRTC can be programmed to give other timings (i.e. resolutions) but in practice they are almost never changed as it would cause (some) Amstrad CPC monitors
-        // to go out of sync.
-        // Horizontal: 64 (CRTC::HORIZONTAL_TOTAL) * 16 (# of mode 2 pixels per CRTC character).
-        // Vertical: 39 (CRTC::VERTICAL_TOTAL) * 8 (CRTC::MAXIMUM_RASTER_ADDRESS+1)
-        static const unsigned   BUFFER_WIDTH = 1024;////832;
-        static const unsigned   BUFFER_HEIGHT = 312;////288;
+        // Minimum buffer dimensions. The actual buffer can be any size equal to or larger than this.
+        // The CPC video hardware emulation writes pixels into this buffer.
+        static const unsigned BUFFER_WIDTH = 832;
+        static const unsigned BUFFER_HEIGHT = 312;
+        // The CTM monitor is calibrated to display only a subset of the video information that the CPC generates.
+        // This determines what is actually shown to the user.
+        // TODO: Check these numbers.
+        static const unsigned VIEWPORT_LEFT = 1;
+        static const unsigned VIEWPORT_TOP = 23;
+        static const unsigned VIEWPORT_WIDTH = 768;
+        static const unsigned VIEWPORT_HEIGHT = 270;
 
         enum EPixelFormat
         {

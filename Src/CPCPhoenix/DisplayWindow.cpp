@@ -5,6 +5,7 @@
 #include "DisplayWindow.h"
 #include "Application.h"
 #include "WinVideoOutput.h"
+#include "cpcVideoOutput.h"
 #include "cpcMachine.h"
 
 #include <Windows.h>
@@ -98,8 +99,20 @@ void DisplayWindow::FreeVars()
     RECT rClientArea;
     GetClientRect(&rClientArea);
 
+    // Use these values to display the entire buffer.
+    //int srcX = 0;
+    //int srcY = 0;
+    //int srcWidth = output.nWidth;
+    //int srcHeight = output.nHeight;
+
+    // Use these values to display the area that a CPC monitor would actually display.
+    int srcX = CPC::CVideoOutput::VIEWPORT_LEFT;
+    int srcY = CPC::CVideoOutput::BUFFER_HEIGHT - CPC::CVideoOutput::VIEWPORT_TOP - CPC::CVideoOutput::VIEWPORT_HEIGHT;
+    int srcWidth = CPC::CVideoOutput::VIEWPORT_WIDTH;
+    int srcHeight = CPC::CVideoOutput::VIEWPORT_HEIGHT;
+
     ::StretchDIBits(hDc, 0, 0, rClientArea.right - rClientArea.left, rClientArea.bottom - rClientArea.top,
-                    0, 0, output.nWidth, output.nHeight, output.pDibBits, output.pDibInfo, DIB_RGB_COLORS, SRCCOPY);
+                    srcX, srcY, srcWidth, srcHeight, output.pDibBits, output.pDibInfo, DIB_RGB_COLORS, SRCCOPY);
 
     return 0;
 }

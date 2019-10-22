@@ -56,7 +56,7 @@ bool AppWindow::Init()
     if (bRet)
     {
         RECT rWndRect;
-        ::SetRect(&rWndRect, 0, 0, CPC::CVideoOutput::BUFFER_WIDTH, CPC::CVideoOutput::BUFFER_HEIGHT);
+        ::SetRect(&rWndRect, 0, 0, CPC::CVideoOutput::VIEWPORT_WIDTH, CPC::CVideoOutput::VIEWPORT_HEIGHT);
 
         m_pDisplayWindow = new DisplayWindow;
         m_pDisplayWindow->Init(rWndRect, this);
@@ -147,8 +147,8 @@ void AppWindow::ResizeToScale(float scale)
     dwStyles = (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
     RECT rWndRect;
-    int nNewWidth = int(CPC::CVideoOutput::BUFFER_WIDTH * scale);
-    int nNewHeight = int(CPC::CVideoOutput::BUFFER_HEIGHT * 2 * scale) + m_pStatusBar->GetHeight();
+    int nNewWidth = int(CPC::CVideoOutput::VIEWPORT_WIDTH * scale);
+    int nNewHeight = int(CPC::CVideoOutput::VIEWPORT_HEIGHT * 2 * scale) + m_pStatusBar->GetHeight();
 
     ::SetRect(&rWndRect, 0, 0, nNewWidth, nNewHeight);
     ::AdjustWindowRect(&rWndRect, dwStyles, TRUE/*bMenu*/);
