@@ -52,13 +52,14 @@ bool CWinVideoOutput::Init()
             m_bufferProperties.nWidth = CPC::CVideoOutput::BUFFER_WIDTH;
             m_bufferProperties.nStride = 0;
             m_bufferProperties.eFormat = CPC::CVideoOutput::PIXELFORMAT_B8G8R8X8;
+
+            // Fill it with the debug color.
+            ClearBuffer(i, DEBUG_COLOR_ARGB);
         }
 
         m_nBackBuffer = 0;
         m_nFrontBuffer = m_nBackBuffer;
         m_nBackBuffer = (m_nBackBuffer + 1) % BUFFER_COUNT;
-
-        ClearBackBuffer(DEBUG_COLOR_ARGB);
     }
 
     return bRet;
@@ -127,7 +128,7 @@ void CWinVideoOutput::FreeVars()
     m_nFrontBuffer = m_nBackBuffer;
     m_nBackBuffer = (m_nBackBuffer + 1) % BUFFER_COUNT;
 
-    ClearBackBuffer(DEBUG_COLOR_ARGB);
+    //ClearBuffer(m_nBackBuffer, DEBUG_COLOR_ARGB);
 }
 
 //----------------------------------------------------------------------------
@@ -149,11 +150,11 @@ void CWinVideoOutput::GetOutput(SOutput* pOutput) const
 /**
 **
 */
-void CWinVideoOutput::ClearBackBuffer(unsigned nRgb)
+void CWinVideoOutput::ClearBuffer(unsigned bufferIndex, unsigned nRgb)
 {
     unsigned nBackBufferPixelCount;
     nBackBufferPixelCount = CPC::CVideoOutput::BUFFER_WIDTH * CPC::CVideoOutput::BUFFER_HEIGHT;
-    unsigned* pPixels = (unsigned*)m_pBufferDibBits[m_nBackBuffer];
+    unsigned* pPixels = (unsigned*)m_pBufferDibBits[bufferIndex];
     for (unsigned i = 0; i < nBackBufferPixelCount; i++)
     {
         *pPixels++ = nRgb;

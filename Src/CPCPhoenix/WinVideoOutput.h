@@ -51,7 +51,7 @@ private:
     void                    ResetVars();
     void                    FreeVars();
 
-    void                    ClearBackBuffer(unsigned nRgb);
+    void                    ClearBuffer(unsigned bufferIndex, unsigned nRgb);
 
 
     SBufferProperties       m_bufferProperties;
