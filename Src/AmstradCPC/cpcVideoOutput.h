@@ -29,8 +29,8 @@ namespace CPC {
 
         // Minimum buffer dimensions. The actual buffer can be any size equal to or larger than this.
         // The CPC video hardware emulation writes pixels into this buffer.
-        static const unsigned BUFFER_WIDTH = 832;
-        static const unsigned BUFFER_HEIGHT = 312;
+        static const unsigned BUFFER_WIDTH = 912;   // 57 CRTC characters * 16 mode 2 pixels. When this config is used, HSYNC width must be 7 CRTC characters to have 64 characters per scan line.
+        static const unsigned BUFFER_HEIGHT = 312;  // 64 CRTC characters per scan line * 312 scan lines = 19968 microsecs per frame = 50.08 Hz
         // The CTM monitor is calibrated to display only a subset of the video information that the CPC generates.
         // This determines what is actually shown to the user.
         // TODO: Check these numbers.
