@@ -386,12 +386,33 @@ void Application::Run()
             // Limit the emulation speed.
             double deltaTimeUsecs;
             double adjustedDeltaTimeUsecs;
-            do
+            bool wait = true;
+            while (wait)
             {
                 m_executionTimer.Read(&m_currentTimerValue);
                 deltaTimeUsecs = m_executionTimer.ComputeElapsedUsecs(m_previousTimerValue, m_currentTimerValue);   // Actual elapsed time during this frame so far.
                 adjustedDeltaTimeUsecs = (dLeftOverDeltaTimeUsecs + deltaTimeUsecs) * GetSettings()->GetEmulationSpeed();   // Carry over timing error from the previous frame, and scale by the desired emulation speed.
-            } while ((GetSettings()->GetEmulationSpeed() > 0.f) && (adjustedDeltaTimeUsecs < FRAME_DURATION_USECS));
+                if ((GetSettings()->GetEmulationSpeed() <= 0.f) ||       // If Emulation Speed is set to Unlimited...
+                    (adjustedDeltaTimeUsecs >= FRAME_DURATION_USECS))    // If enough time has already passed...
+                {
+                    wait = false;
+                }
+                else
+                {
+                    // Block the thread for a while to free up the CPU.
+                    // Due to the inaccuracy of Sleep, we'll only sleep for a fraction of the total time we need to wait and then do an active wait the rest of the way.
+                    // Note: Windows timer resolution (which determines the accuracy of the sleep interval, among other things) is a system-wide setting. Any application
+                    //       can change it, affecting all the processes in the system. More testing is needed on different systems to see if this timing code is accurate
+                    //       enough; if not, we'll need to change the timer resolution.
+                    double waitTimeMsecs = (FRAME_DURATION_USECS - adjustedDeltaTimeUsecs) / 1000.0;
+                    static const double SLEEP_THRESHOLD_MSECS = 2.5;
+                    if (waitTimeMsecs > SLEEP_THRESHOLD_MSECS)
+                    {
+                        DWORD sleepDuration = (DWORD) (waitTimeMsecs - SLEEP_THRESHOLD_MSECS);
+                        Sleep(sleepDuration);
+                    }
+                }
+            }
 
             m_previousTimerValue = m_currentTimerValue;
 
