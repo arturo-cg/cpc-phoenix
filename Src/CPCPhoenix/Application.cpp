@@ -357,6 +357,11 @@ void Application::ProcessWindowsMessages()
 */
 void Application::Run()
 {
+    // Set Windows timer resolution.
+    // This improves the accuracy of the Sleep function.
+    static const UINT WINDOWS_TIMER_RESOLUTION = 1;
+    timeBeginPeriod(WINDOWS_TIMER_RESOLUTION);
+
     // Initialize the execution timer, which is used to control the execution of the emulator
     m_executionTimer.Init();
     m_executionTimer.Read(&m_currentTimerValue);
@@ -400,15 +405,11 @@ void Application::Run()
                 else
                 {
                     // Block the thread for a while to free up the CPU.
-                    // Due to the inaccuracy of Sleep, we'll only sleep for a fraction of the total time we need to wait and then do an active wait the rest of the way.
-                    // Note: Windows timer resolution (which determines the accuracy of the sleep interval, among other things) is a system-wide setting. Any application
-                    //       can change it, affecting all the processes in the system. More testing is needed on different systems to see if this timing code is accurate
-                    //       enough; if not, we'll need to change the timer resolution.
+                    // Due to the limited resolution of Sleep, we'll only sleep for a fraction of the total time we need to wait and then do an active wait the rest of the way.
                     double waitTimeMsecs = (FRAME_DURATION_USECS - adjustedDeltaTimeUsecs) / 1000.0;
-                    static const double SLEEP_THRESHOLD_MSECS = 2.5;
-                    if (waitTimeMsecs > SLEEP_THRESHOLD_MSECS)
+                    if (waitTimeMsecs > WINDOWS_TIMER_RESOLUTION)
                     {
-                        DWORD sleepDuration = (DWORD) (waitTimeMsecs - SLEEP_THRESHOLD_MSECS);
+                        DWORD sleepDuration = (DWORD) (waitTimeMsecs - WINDOWS_TIMER_RESOLUTION);
                         Sleep(sleepDuration);
                     }
                 }
@@ -436,6 +437,9 @@ void Application::Run()
             s_nStatusBarUpdateDelay--;
         }
     }
+
+    // Restore previous Windows timer resolution.
+    timeEndPeriod(WINDOWS_TIMER_RESOLUTION);
 
     // TODO - Save application settings
     // TODO - Save application settings
