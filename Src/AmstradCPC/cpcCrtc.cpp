@@ -12,6 +12,27 @@
 
 namespace CPC {
 
+    /*static*/ const cpcByte CCrtc::s_registerMasks[NUM_REGISTERS] = {
+        0xFF,   // R0
+        0xFF,   // R1
+        0xFF,   // R2
+        0xFF,   // R3
+        0x7F,   // R4
+        0x1F,   // R5
+        0x7F,   // R6
+        0x7F,   // R7
+        0x03,   // R8
+        0x1F,   // R9
+        0x7F,   // R10
+        0x1F,   // R11
+        0x3F,   // R12
+        0xFF,   // R13
+        0x3F,   // R14
+        0xFF,   // R15
+        0x3F,   // R16
+        0xFF,   // R17
+    };
+
 
     //----------------------------------------------------------------------------
     /**
@@ -84,11 +105,8 @@ namespace CPC {
     */
     void CCrtc::WriteSelectedRegister(cpcByte nValue)
     {
-        //
-        // TODO - Use masks to limit the number of bits of each register (e.g. R4 is a 7-bit register, R5 is a 5-bit register, etc.).
-        //
         KMASSERT(m_eSelectedRegister < NUM_REGISTERS);
-        m_anRegisters[m_eSelectedRegister] = nValue;
+        m_anRegisters[m_eSelectedRegister] = nValue & s_registerMasks[m_eSelectedRegister];
     }
 
     //----------------------------------------------------------------------------

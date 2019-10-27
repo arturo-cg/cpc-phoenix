@@ -93,7 +93,7 @@ namespace CPC {
 
         typedef                 CSubSystem                inherited;
 
-        static const unsigned   MAX_SCAN_LINE_COUNT = 300/*200*/;    // TODO - Determine the actual maximum value
+        static const cpcByte    s_registerMasks[NUM_REGISTERS];
 
 
         void                    ResetVars();
