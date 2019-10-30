@@ -162,7 +162,7 @@ namespace CPC {
             // Monitor starts moving its beam to the beginning of next raster line.
             m_bHSyncState = true;
             // Notify the Gate Array that HSYNC's rising edge just occured.
-            GetMachine()->GetGateArray()->OnHSyncBegin();
+            GetMachine()->GetGateArray()->OnCrtcHSyncBegin();
         }
 
         if (m_nCurrentHCharacter == nHorizontalSyncOff)    // At HSYNC's falling edge?
@@ -171,7 +171,7 @@ namespace CPC {
             // DISPLAY_ENABLED signal is still OFF, which means the left border is starting to be rasterized.
             m_bHSyncState = false;
             // Notify the Gate Array that HSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
-            GetMachine()->GetGateArray()->OnHSyncEnd();
+            GetMachine()->GetGateArray()->OnCrtcHSyncEnd();
         }
     }
 
@@ -197,7 +197,7 @@ namespace CPC {
                     // Also, DISPLAY_ENABLED signal is still OFF, which means the top border is starting to be rasterized.
                     m_bVSyncState = false;
                     // Notify the Gate Array that VSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
-                    GetMachine()->GetGateArray()->OnVSyncEnd();
+                    GetMachine()->GetGateArray()->OnCrtcVSyncEnd();
                     // Add extra scan lines, if requested.
                     m_nExtraScanLinesCounter = m_anRegisters[VERTICAL_TOTAL_ADJUST] & 0x1F;
                 }
@@ -241,7 +241,7 @@ namespace CPC {
                         m_nScanLinesForVSyncOff = 16;
                     }
                     // Notify the Gate Array that VSYNC's rising edge just occured.
-                    GetMachine()->GetGateArray()->OnVSyncBegin();
+                    GetMachine()->GetGateArray()->OnCrtcVSyncBegin();
                 }
             }
         }

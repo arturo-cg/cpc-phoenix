@@ -12,7 +12,7 @@
 namespace CPC {
 
     /**
-    ** This class provides video output functionality to the emulator. It is a mix of monitor emulation and Gate Array's video signal generation.
+    ** This class represents the emulated monitor and provides video output functionality to the emulator.
     ** It is a pure virtual class. The front-end must implement a class derived from this one and register it via the method CMachine::SetVideoOutput.
     **
     ** As the emulator runs, it calls methods in this class periodically. When a new frame has been drawn, the method CVideoOutput::OnBufferComplete
@@ -29,12 +29,12 @@ namespace CPC {
 
         // Minimum buffer dimensions. The actual buffer can be any size equal to or larger than this.
         // The CPC video hardware emulation writes pixels into this buffer.
-        static const unsigned BUFFER_WIDTH = 912;   // 57 CRTC characters * 16 mode 2 pixels. When this config is used, HSYNC width must be 7 CRTC characters to have 64 characters per scan line.
+        static const unsigned BUFFER_WIDTH = 1024;//912;   // 57 CRTC characters * 16 mode 2 pixels. When this config is used, HSYNC width must be 7 CRTC characters to have 64 characters per scan line.
         static const unsigned BUFFER_HEIGHT = 312;  // 64 CRTC characters per scan line * 312 scan lines = 19968 microsecs per frame = 50.08 Hz
         // The CTM monitor is calibrated to display only a subset of the video information that the CPC generates.
         // This determines what is actually shown to the user.
         // TODO: Check these numbers.
-        static const unsigned VIEWPORT_LEFT = 1;
+        static const unsigned VIEWPORT_LEFT = 128;
         static const unsigned VIEWPORT_TOP = 23;
         static const unsigned VIEWPORT_WIDTH = 768;
         static const unsigned VIEWPORT_HEIGHT = 270;

@@ -194,8 +194,10 @@ namespace CPC {
         m_bLowerRomVisible = true;
         m_bUpperRomVisible = false;
         m_nSelectedUpperRom = 0;
-        m_nHSyncCounter = 0;
-        m_nHSyncCountSinceVSync = 0;
+        m_nCrtcHSyncCounter = 0;
+        m_nCrtcHSyncCountSinceVSync = 0;
+        m_bGateArrayHSyncState = false;
+        m_nTicksSinceStartOfCrtcHSync = 0;
     }
 
     //----------------------------------------------------------------------------
@@ -224,43 +226,46 @@ namespace CPC {
     /**
     **
     */
-    void CGateArray::OnHSyncBegin()
+    void CGateArray::OnCrtcHSyncBegin()
     {
         // Set requested screen mode.
         // Note that if a new screen mode has not been requested, this call won't have any effect.
         SetScreenMode(m_eRequestedScreenMode);
-        // Pass it on to the video output.
-        GetMachine()->GetVideoOutput()->OnHSyncBegin();
+
+        // Note about HSYNC:
+        // The Gate-Array modifies the signal from the CRTC before sending it to the monitor. See Run() function.
+        m_nTicksSinceStartOfCrtcHSync = -1;    // Initialize to -1 so that, in the next call to Run (in this same clock tick),
+                                               // it will be incremented to 0, which is the value we actually want.
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    void CGateArray::OnHSyncEnd()
+    void CGateArray::OnCrtcHSyncEnd()
     {
         // Pass it on to the video output.
         GetMachine()->GetVideoOutput()->OnHSyncEnd();
         // Interrupt generation logic.
         // +- Increment the 6-bit counter
-        m_nHSyncCounter = (m_nHSyncCounter + 1) & 0x3F;
-        m_nHSyncCountSinceVSync++;
+        m_nCrtcHSyncCounter = (m_nCrtcHSyncCounter + 1) & 0x3F;
+        m_nCrtcHSyncCountSinceVSync++;
         // +- Is it time to generate an interrupt?
-        if (m_nHSyncCountSinceVSync == 2)   // If it is the 2nd HSYNC after the last VSYNC...
+        if (m_nCrtcHSyncCountSinceVSync == 2)   // If it is the 2nd HSYNC after the last VSYNC...
         {
-            if (m_nHSyncCounter >= 32)
+            if (m_nCrtcHSyncCounter >= 32)
             {
                 // Request interrupt.
                 GetMachine()->GetCpu()->SetInterruptRequestActive(true);
             }
             // Reset counter.
-            m_nHSyncCounter = 0;
+            m_nCrtcHSyncCounter = 0;
         }
-        else if (m_nHSyncCountSinceVSync > 2)
+        else if (m_nCrtcHSyncCountSinceVSync > 2)
         {
-            if (m_nHSyncCounter >= 52)
+            if (m_nCrtcHSyncCounter >= 52)
             {
-                m_nHSyncCounter = 0;
+                m_nCrtcHSyncCounter = 0;
                 GetMachine()->GetCpu()->SetInterruptRequestActive(true);
             }
         }
@@ -270,18 +275,18 @@ namespace CPC {
     /**
     **
     */
-    void CGateArray::OnVSyncBegin()
+    void CGateArray::OnCrtcVSyncBegin()
     {
         // Pass it on to the video output.
         GetMachine()->GetVideoOutput()->OnVSyncBegin();
-        m_nHSyncCountSinceVSync = 0;
+        m_nCrtcHSyncCountSinceVSync = 0;
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    void CGateArray::OnVSyncEnd()
+    void CGateArray::OnCrtcVSyncEnd()
     {
         // Pass it on to the video output.
         GetMachine()->GetVideoOutput()->OnVSyncEnd();
@@ -296,7 +301,7 @@ namespace CPC {
         // Clear the interrupt request.
         GetMachine()->GetCpu()->SetInterruptRequestActive(false);
         // Clear top bit (bit 5) of the internal HSYNC counter - This prevents the next interrupt from occuring sooner than 32 HSYNCs.
-        m_nHSyncCounter = (m_nHSyncCounter & 0x1F);
+        m_nCrtcHSyncCounter = (m_nCrtcHSyncCounter & 0x1F);
     }
 
     //----------------------------------------------------------------------------
@@ -305,9 +310,38 @@ namespace CPC {
     */
     void CGateArray::Run(unsigned nMinNumCycles)
     {
+        // Process HSYNC and VSYNC from the CRTC and generate the signals sent to the monitor.
+        ProcessHSync();
         // Generate the RGB output for the next 16 cycles of a 16MHz clock.
         // These 16 physical pixels will then be fed to the monitor and displayed.
         GeneratePhysicalPixels();
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CGateArray::ProcessHSync()
+    {
+        // Determine new activation state of HSYNC.
+        m_nTicksSinceStartOfCrtcHSync++;
+        bool newHSyncState = GetMachine()->GetCrtc()->GetHSyncState() &&
+                             (m_nTicksSinceStartOfCrtcHSync >= GATE_ARRAY_HSYNC_DELAY) &&
+                             (m_nTicksSinceStartOfCrtcHSync < (GATE_ARRAY_HSYNC_DELAY + GATE_ARRAY_HSYNC_LENGTH));
+        // Signal the start/end of HSYNC to the monitor, if required.
+        if (newHSyncState != m_bGateArrayHSyncState)
+        {
+            m_bGateArrayHSyncState = newHSyncState;
+            // Notify the monitor.
+            if (m_bGateArrayHSyncState)
+            {
+                GetMachine()->GetVideoOutput()->OnHSyncBegin();
+            }
+            else
+            {
+                GetMachine()->GetVideoOutput()->OnHSyncEnd();
+            }
+        }
     }
 
     //----------------------------------------------------------------------------
@@ -364,10 +398,10 @@ namespace CPC {
                     SetRomVisibility((nValue & 0x04) == 0, (nValue & 0x08) == 0);
 
                     // Interrupt control (bit 4).
-                    // If set to 1, the m_nHSyncCounter counter is reset to 0 and the interrupt request is cleared.
+                    // If set to 1, the m_nCrtcHSyncCounter counter is reset to 0 and the interrupt request is cleared.
                     if (nValue & 0x10)
                     {
-                        m_nHSyncCounter = 0;
+                        m_nCrtcHSyncCounter = 0;
                         GetMachine()->GetCpu()->SetInterruptRequestActive(false);
                     }
                 }
@@ -602,10 +636,12 @@ namespace CPC {
         else
         {
             // Currently drawing the border.
-            unsigned borderRgb = m_paCurrentRgbConversionTable[m_nBorderColor];
+            // While HSYNC from the CRTC is active, it outputs black color; otherwise, it outputs the normal border color.
+            unsigned colorRgb = GetMachine()->GetCrtc()->GetHSyncState() ? 0 :      // Black output while CRTC's HSYNC is active.
+                                m_paCurrentRgbConversionTable[m_nBorderColor];      // Border color.
             for (unsigned i = 0; i < NUM_PHYSICAL_PIXELS_PER_CYCLE; i++)
             {
-                m_aPhysicalPixels[i] = borderRgb;
+                m_aPhysicalPixels[i] = colorRgb;
             }
         }
     }
