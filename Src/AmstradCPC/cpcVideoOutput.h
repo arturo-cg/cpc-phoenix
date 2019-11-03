@@ -35,7 +35,7 @@ namespace CPC {
         // This determines what is actually shown to the user.
         // TODO: Check these numbers.
         static const unsigned VIEWPORT_LEFT = 128;
-        static const unsigned VIEWPORT_TOP = 23;
+        static const unsigned VIEWPORT_TOP = 28;
         static const unsigned VIEWPORT_WIDTH = 768;
         static const unsigned VIEWPORT_HEIGHT = 270;
 

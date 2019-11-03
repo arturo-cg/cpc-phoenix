@@ -196,7 +196,9 @@ namespace CPC {
         m_nSelectedUpperRom = 0;
         m_nCrtcHSyncCounter = 0;
         m_nCrtcHSyncCountSinceVSync = 0;
-        m_bGateArrayHSyncState = false;
+        m_nMonitorHSyncCountSinceVSync = 0;
+        m_bMonitorHSyncState = false;
+        m_bMonitorVSyncState = false;
         m_nTicksSinceStartOfCrtcHSync = 0;
     }
 
@@ -244,8 +246,6 @@ namespace CPC {
     */
     void CGateArray::OnCrtcHSyncEnd()
     {
-        // Pass it on to the video output.
-        GetMachine()->GetVideoOutput()->OnHSyncEnd();
         // Interrupt generation logic.
         // +- Increment the 6-bit counter
         m_nCrtcHSyncCounter = (m_nCrtcHSyncCounter + 1) & 0x3F;
@@ -277,9 +277,10 @@ namespace CPC {
     */
     void CGateArray::OnCrtcVSyncBegin()
     {
-        // Pass it on to the video output.
-        GetMachine()->GetVideoOutput()->OnVSyncBegin();
+        // Note about VSYNC:
+        // The Gate-Array modifies the signal from the CRTC before sending it to the monitor. See Run() function.
         m_nCrtcHSyncCountSinceVSync = 0;
+        m_nMonitorHSyncCountSinceVSync = 0;
     }
 
     //----------------------------------------------------------------------------
@@ -288,7 +289,47 @@ namespace CPC {
     */
     void CGateArray::OnCrtcVSyncEnd()
     {
-        // Pass it on to the video output.
+        // Nothing to do.
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CGateArray::OnMonitorHSyncBegin()
+    {
+        m_nMonitorHSyncCountSinceVSync++;
+        // Send the signal to the monitor.
+        GetMachine()->GetVideoOutput()->OnHSyncBegin();
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CGateArray::OnMonitorHSyncEnd()
+    {
+        // Send the signal to the monitor.
+        GetMachine()->GetVideoOutput()->OnHSyncEnd();
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CGateArray::OnMonitorVSyncBegin()
+    {
+        // Send the signal to the monitor.
+        GetMachine()->GetVideoOutput()->OnVSyncBegin();
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CGateArray::OnMonitorVSyncEnd()
+    {
+        // Send the signal to the monitor.
         GetMachine()->GetVideoOutput()->OnVSyncEnd();
     }
 
@@ -312,6 +353,7 @@ namespace CPC {
     {
         // Process HSYNC and VSYNC from the CRTC and generate the signals sent to the monitor.
         ProcessHSync();
+        ProcessVSync();
         // Generate the RGB output for the next 16 cycles of a 16MHz clock.
         // These 16 physical pixels will then be fed to the monitor and displayed.
         GeneratePhysicalPixels();
@@ -329,17 +371,41 @@ namespace CPC {
                              (m_nTicksSinceStartOfCrtcHSync >= GATE_ARRAY_HSYNC_DELAY) &&
                              (m_nTicksSinceStartOfCrtcHSync < (GATE_ARRAY_HSYNC_DELAY + GATE_ARRAY_HSYNC_LENGTH));
         // Signal the start/end of HSYNC to the monitor, if required.
-        if (newHSyncState != m_bGateArrayHSyncState)
+        if (newHSyncState != m_bMonitorHSyncState)
         {
-            m_bGateArrayHSyncState = newHSyncState;
-            // Notify the monitor.
-            if (m_bGateArrayHSyncState)
+            m_bMonitorHSyncState = newHSyncState;
+            if (newHSyncState)
             {
-                GetMachine()->GetVideoOutput()->OnHSyncBegin();
+                OnMonitorHSyncBegin();
             }
             else
             {
-                GetMachine()->GetVideoOutput()->OnHSyncEnd();
+                OnMonitorHSyncEnd();
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CGateArray::ProcessVSync()
+    {
+        // Determine new activation state of VSYNC.
+        bool newVSyncState = GetMachine()->GetCrtc()->GetVSyncState() &&
+                             (m_nMonitorHSyncCountSinceVSync >= GATE_ARRAY_VSYNC_DELAY) &&
+                             (m_nMonitorHSyncCountSinceVSync < (GATE_ARRAY_VSYNC_DELAY + GATE_ARRAY_VSYNC_LENGTH));
+        // Signal the start/end of VSYNC to the monitor, if required.
+        if (newVSyncState != m_bMonitorVSyncState)
+        {
+            m_bMonitorVSyncState = newVSyncState;
+            if (newVSyncState)
+            {
+                OnMonitorVSyncBegin();
+            }
+            else
+            {
+                OnMonitorVSyncEnd();
             }
         }
     }
@@ -636,9 +702,10 @@ namespace CPC {
         else
         {
             // Currently drawing the border.
-            // While HSYNC from the CRTC is active, it outputs black color; otherwise, it outputs the normal border color.
-            unsigned colorRgb = GetMachine()->GetCrtc()->GetHSyncState() ? 0 :      // Black output while CRTC's HSYNC is active.
-                                m_paCurrentRgbConversionTable[m_nBorderColor];      // Border color.
+            // While HSYNC or VSYNC from the CRTC is active, it outputs black color; otherwise, it outputs the normal border color.
+            const CCrtc* pCrtc = GetMachine()->GetCrtc();
+            unsigned colorRgb = (pCrtc->GetHSyncState() || pCrtc->GetVSyncState()) ? 0 :    // Black output while CRTC's HSYNC or VSYNC active.
+                                m_paCurrentRgbConversionTable[m_nBorderColor];              // Border color.
             for (unsigned i = 0; i < NUM_PHYSICAL_PIXELS_PER_CYCLE; i++)
             {
                 m_aPhysicalPixels[i] = colorRgb;
