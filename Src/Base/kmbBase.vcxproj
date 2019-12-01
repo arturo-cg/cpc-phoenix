@@ -75,10 +75,17 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Misc\kmbRefCounted.h" />
+    <ClInclude Include="Misc\kmbRefCountedObject.h" />
     <ClInclude Include="Misc\kmbSingleton.h" />
     <ClInclude Include="Debug\kmbAsserts.h" />
     <ClInclude Include="File\kmbFile.h" />
+    <ClInclude Include="Misc\kmbSmartPtr.h" />
+    <ClInclude Include="Msb\kmbBinaryMsbReader.h" />
+    <ClInclude Include="Msb\kmbBinaryMsbWriter.h" />
+    <ClInclude Include="Msb\kmbMsb.h" />
+    <ClInclude Include="Msb\kmbMsbManager.h" />
+    <ClInclude Include="Msb\kmbTextMsbReader.h" />
+    <ClInclude Include="Msb\kmbTextMsbWriter.h" />
     <ClInclude Include="Timer\kmbPrecisionTimer.h" />
     <ClInclude Include="Window\kmbDialogBox.h" />
     <ClInclude Include="Window\kmbWindow.h" />
@@ -97,6 +104,12 @@
   <ItemGroup>
     <ClCompile Include="Debug\kmbAsserts.cpp" />
     <ClCompile Include="File\kmbFile.cpp" />
+    <ClCompile Include="Msb\kmbBinaryMsbReader.cpp" />
+    <ClCompile Include="Msb\kmbBinaryMsbWriter.cpp" />
+    <ClCompile Include="Msb\kmbMsb.cpp" />
+    <ClCompile Include="Msb\kmbMsbManager.cpp" />
+    <ClCompile Include="Msb\kmbTextMsbReader.cpp" />
+    <ClCompile Include="Msb\kmbTextMsbWriter.cpp" />
     <ClCompile Include="Timer\kmbPrecisionTimer.cpp" />
     <ClCompile Include="Window\kmbDialogBox.cpp" />
     <ClCompile Include="Window\kmbWindow.cpp" />

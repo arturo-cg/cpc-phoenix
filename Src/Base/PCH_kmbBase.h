@@ -21,6 +21,7 @@
 #include <vector>
 #include <list>
 #include <algorithm>
+#include <unordered_map>
 
 using namespace std;    // No need to specify std:: for STL symbols
 

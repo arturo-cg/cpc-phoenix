@@ -35,6 +35,14 @@ public:
   /** Writes the given number of bytes. */
   virtual bool              Write                     (const void* pBuffer, unsigned uNumBytes) = 0;
 
+  /** Writes the specified number of characters of a string.
+  *** Note: Characters are written one by one as they appear in the string (i.e. no charset or end-of-line character conversion are performed)
+  ***       and they are assumed to be encoded in ASCII. */
+  bool                      WriteString               (const char* pszString, unsigned nCharCount);
+
+  /** Writes a std::string. No special end-of-string character is written. See additional note in WriteString(const char*, unsigned) method. */
+  bool                      WriteString               (const string& sString);
+
 
 protected:
 

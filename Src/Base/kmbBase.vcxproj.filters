@@ -19,11 +19,11 @@
     <Filter Include="Stream">
       <UniqueIdentifier>{5c7f950a-48e3-48fc-9195-43e0ee30c1fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Msb">
+      <UniqueIdentifier>{64cb934f-cf5f-4556-a358-12a414320845}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Misc\kmbRefCounted.h">
-      <Filter>Misc</Filter>
-    </ClInclude>
     <ClInclude Include="Misc\kmbSingleton.h">
       <Filter>Misc</Filter>
     </ClInclude>
@@ -67,6 +67,30 @@
     <ClInclude Include="kmbGlobalOptions_Debug.h" />
     <ClInclude Include="kmbGlobalOptions_Release.h" />
     <ClInclude Include="PCH_kmbBase.h" />
+    <ClInclude Include="Msb\kmbBinaryMsbReader.h">
+      <Filter>Msb</Filter>
+    </ClInclude>
+    <ClInclude Include="Msb\kmbBinaryMsbWriter.h">
+      <Filter>Msb</Filter>
+    </ClInclude>
+    <ClInclude Include="Msb\kmbMsb.h">
+      <Filter>Msb</Filter>
+    </ClInclude>
+    <ClInclude Include="Msb\kmbMsbManager.h">
+      <Filter>Msb</Filter>
+    </ClInclude>
+    <ClInclude Include="Msb\kmbTextMsbReader.h">
+      <Filter>Msb</Filter>
+    </ClInclude>
+    <ClInclude Include="Msb\kmbTextMsbWriter.h">
+      <Filter>Msb</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\kmbRefCountedObject.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\kmbSmartPtr.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Debug\kmbAsserts.cpp">
@@ -103,6 +127,24 @@
       <Filter>Stream</Filter>
     </ClCompile>
     <ClCompile Include="PCH_kmbBase.cpp" />
+    <ClCompile Include="Msb\kmbBinaryMsbReader.cpp">
+      <Filter>Msb</Filter>
+    </ClCompile>
+    <ClCompile Include="Msb\kmbBinaryMsbWriter.cpp">
+      <Filter>Msb</Filter>
+    </ClCompile>
+    <ClCompile Include="Msb\kmbMsb.cpp">
+      <Filter>Msb</Filter>
+    </ClCompile>
+    <ClCompile Include="Msb\kmbMsbManager.cpp">
+      <Filter>Msb</Filter>
+    </ClCompile>
+    <ClCompile Include="Msb\kmbTextMsbReader.cpp">
+      <Filter>Msb</Filter>
+    </ClCompile>
+    <ClCompile Include="Msb\kmbTextMsbWriter.cpp">
+      <Filter>Msb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="File\kmbFile.inl">

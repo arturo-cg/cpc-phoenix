@@ -41,6 +41,13 @@ public:
   /** Reads the given number of bytes. */
   virtual bool              Read                      (void* pBuffer, unsigned uNumBytes) = 0;
 
+  /** Reads a ASCII character.
+  *** Note: The character is read as-is (i.e. no charset or end-of-line character conversion are performed)
+  ***       and it is assumed to be encoded in ASCII (one byte). */
+  bool                      ReadChar                  (char* pChar);
+  /** Reads ASCII characters until it finds a new line character/sequence (supports both Unix and Windows styles). */
+  bool                      ReadLine                  (string* psLine);
+
 
 protected:
 

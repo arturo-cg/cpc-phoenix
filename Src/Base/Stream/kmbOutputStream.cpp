@@ -72,3 +72,28 @@ void kmbOutputStream::FreeVars()
 {
   //...
 }
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+bool kmbOutputStream::WriteString(const char* pszString, unsigned nCharCount)
+{
+  if (pszString != NULL)
+  {
+    return Write( pszString, nCharCount );    // 1 byte per character (ASCII encoding)
+  }
+  else
+  {
+    return false;
+  }
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+bool kmbOutputStream::WriteString(const string& sString)
+{
+  return WriteString( sString.c_str(), sString.length() );
+}

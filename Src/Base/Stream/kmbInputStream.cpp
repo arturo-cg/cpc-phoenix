@@ -72,3 +72,51 @@ void kmbInputStream::FreeVars()
 {
   //...
 }
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+bool kmbInputStream::ReadChar(char* pChar)
+{
+  if (pChar != NULL)
+  {
+    return Read( pChar, 1 );   // 1 byte per character (ASCII encoding)
+  }
+  else
+  {
+    return false;
+  }
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+bool kmbInputStream::ReadLine(string* psLine)
+{
+  bool bRet = false;
+  if (psLine != NULL)
+  {
+    bRet = true;
+    psLine->clear();
+
+    // Read characters until new line or EOF
+    char currChar;
+    bRet = ReadChar( &currChar );
+    while ( bRet && !IsAtEnd() && (currChar != '\n'/*Unix style*/) && (currChar != '\r'/*Windows style*/) )
+    {
+      *psLine += currChar;
+      bRet = ReadChar( &currChar );
+    }
+
+    if ( bRet && !IsAtEnd() && (currChar == '\r'/*Windows style*/) )
+    {
+      // Windows uses the sequence \r\n to mark new lines so we still need to read the \n
+      ReadChar( &currChar );
+      ASSERT( currChar == '\n' );
+    }
+  }
+
+  return bRet;
+}
