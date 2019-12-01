@@ -288,6 +288,7 @@ void AppWindow::OpenLoadDiskImageDialog(unsigned nDrive)
     if (::GetOpenFileName(&openFileName) != FALSE)
     {
         Application::Singleton()->SetDisk(nDrive, szFileFullPath);
+        OnApplicationSettingsChanged();
     }
 
     // Restore the working directory, changed by the Open File Dialog
@@ -346,9 +347,9 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
         //
 
         case ID_DRIVEA_INSERTDISK:  OpenLoadDiskImageDialog(0); break;
-        case ID_DRIVEA_EJECTDISK:   pApplication->SetDisk(0, ""); break;
+        case ID_DRIVEA_EJECTDISK:   pApplication->SetDisk(0, ""); OnApplicationSettingsChanged(); break;
         case ID_DRIVEB_INSERTDISK:  OpenLoadDiskImageDialog(1); break;
-        case ID_DRIVEB_EJECTDISK:   pApplication->SetDisk(1, ""); break;
+        case ID_DRIVEB_EJECTDISK:   pApplication->SetDisk(1, ""); OnApplicationSettingsChanged(); break;
 
         case ID_FILE_EXIT:  RequestClose(); break;
 

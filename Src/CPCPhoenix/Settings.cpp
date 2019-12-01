@@ -3,6 +3,10 @@
 
 #include "stdafx.h"
 #include "Settings.h"
+#include "Stream/kmbFileInputStream.h"
+#include "Stream/kmbFileOutputStream.h"
+#include "Msb/kmbMsbManager.h"
+#include "Msb/kmbTextMsbWriter.h"
 
 
 
@@ -178,12 +182,25 @@ void Settings::FreeVars()
 */
 void Settings::LoadFromFile()
 {
-    //************************************** TODO - TODO - TODO ********************************************
-    //************************************** TODO - TODO - TODO ********************************************
-      // TODO - For now, just set default values
+    kmbMsbPtr settingsMsb;
+    // Read the settings file.
+    kmbFileInputStream stream;
+    if (stream.Init(SettingsFileName))
+    {
+        settingsMsb = kmbMsbManager::Singleton()->CreateMsbFromStream(&stream);
+    }
+    else
+    {
+        // The settings file doesn't exist -> Use an empty MSB and let the code below assign the default values.
+        settingsMsb = kmbMsbManager::Singleton()->GetUniqueNullMsb();
+    }
+    // Set default values.
+    // Not all the settings are saved to the file so this ensures that all our variables get sensible values.
     RestoreDefaultValues();
-    //************************************** TODO - TODO - TODO ********************************************
-    //************************************** TODO - TODO - TODO ********************************************
+    // Get values from the MSB.
+    m_scale = settingsMsb["Scale"]->GetFloat(m_scale);
+    m_asDiskImages[0] = settingsMsb["DriveA"]->GetString(m_asDiskImages[0]);
+    m_asDiskImages[1] = settingsMsb["DriveB"]->GetString(m_asDiskImages[1]);
 }
 
 //----------------------------------------------------------------------------
@@ -192,10 +209,23 @@ void Settings::LoadFromFile()
 */
 void Settings::SaveToFile()
 {
-    //************************************** TODO - TODO - TODO ********************************************
-    //************************************** TODO - TODO - TODO ********************************************
-    //************************************** TODO - TODO - TODO ********************************************
-    //************************************** TODO - TODO - TODO ********************************************
+    // Store settings in a new MSB.
+    kmbMsbPtr settingsMsb = kmbMsbManager::Singleton()->CreateTaggedMsb();
+    settingsMsb->AddChild("Scale", kmbMsbManager::Singleton()->CreateRealMsb(m_scale));
+    settingsMsb->AddChild("DriveA", kmbMsbManager::Singleton()->CreateStringMsb(m_asDiskImages[0]));
+    settingsMsb->AddChild("DriveB", kmbMsbManager::Singleton()->CreateStringMsb(m_asDiskImages[1]));
+    // Write the MSB to file.
+    kmbFileOutputStream stream;
+    if (stream.Init(SettingsFileName))
+    {
+        kmbTextMsbWriter msbWriter;
+        msbWriter.Init(settingsMsb, &stream);
+        msbWriter.Write();
+    }
+    else
+    {
+        KMASSERTM( false, ("Could not open the settings file ('%s') for writing.\n", SettingsFileName));
+    }
 }
 
 //----------------------------------------------------------------------------

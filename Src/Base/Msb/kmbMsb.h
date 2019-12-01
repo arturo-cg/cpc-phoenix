@@ -10,6 +10,7 @@
 
 #include "Misc/kmbRefCountedObject.h"
 #include "Misc/kmbSmartPtr.h"
+#include <unordered_map>
 
 
 class kmbMsb;

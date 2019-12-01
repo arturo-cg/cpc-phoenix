@@ -114,7 +114,7 @@ bool kmbInputStream::ReadLine(string* psLine)
     {
       // Windows uses the sequence \r\n to mark new lines so we still need to read the \n
       ReadChar( &currChar );
-      ASSERT( currChar == '\n' );
+      KMASSERT( currChar == '\n' );
     }
   }
 

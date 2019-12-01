@@ -13,6 +13,7 @@
 #include "WinVideoOutput.h"
 #include "WinSoundOutput.h"
 #include "Window/kmbWindow.h"
+#include "Msb/kmbMsbManager.h"
 #include "Stream/kmbFileInputStream.h"
 
 #include <CommCtrl.h>
@@ -33,16 +34,18 @@ bool Application::Init(HINSTANCE hInstance)
     End();
     ResetVars();
 
-    // Check parameters
+    // Initialize MSB manager.
     if (bRet)
     {
-        //...
+        new kmbMsbManager;
+        bRet = kmbMsbManager::Singleton()->Init();
     }
 
-    // Load the application settings
+    // Load the user settings
     if (bRet)
     {
         m_settings.Init();
+        m_settings.LoadFromFile();
     }
 
     // Key state provider, video and sound output
@@ -147,6 +150,10 @@ void Application::CreateMachine()
 
     // Add sound output.
     m_pMachine->SetSoundOutput(m_pSoundOutput);
+
+    // Insert disks into the drives, if required.
+    SetDisk(0, m_settings.GetDiskImage(0));
+    SetDisk(1, m_settings.GetDiskImage(1));
 
     m_pMachine->Reset();
 }
@@ -307,9 +314,6 @@ void Application::SetDisk(unsigned nDrive, const std::string& sDiskImageFileName
                 ::MessageBox(NULL, "Could not open the disk image.", "Disk image error", MB_OK | MB_ICONEXCLAMATION);
             }
         }
-
-        // Notify the application window
-        m_pAppWindow->OnApplicationSettingsChanged();
     }
 }
 
@@ -441,7 +445,6 @@ void Application::Run()
     // Restore previous Windows timer resolution.
     timeEndPeriod(WINDOWS_TIMER_RESOLUTION);
 
-    // TODO - Save application settings
-    // TODO - Save application settings
-    // TODO - Save application settings
+    // Save user settings.
+    m_settings.SaveToFile();
 }

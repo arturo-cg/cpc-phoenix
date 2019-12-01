@@ -17,6 +17,8 @@ class Settings
 {
 public:
 
+    static constexpr char* SettingsFileName = "Settings.msb";
+
     enum EModifierKeyState
     {
         MODIFIERKEY_ON = 0x01,

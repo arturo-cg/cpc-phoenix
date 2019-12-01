@@ -122,10 +122,10 @@ bool kmbFile::Open(EAccessFlags eAccessFlags, EFileMode eFileMode)
     m_eAccessFlags = eAccessFlags;
     m_eFileMode    = eFileMode;
     bRet           = (m_pFile != NULL);
-    KMASSERTM( bRet, ("Could not open the file '%s' with %s access in %s mode.",
-                    m_sFileName.c_str(),
-                    ( eAccessFlags==ACCESS_READ_WRITE ? "READ&WRITE" : ( eAccessFlags==ACCESS_READ ? "READ" : "WRITE" ) ),
-                    ( eFileMode==FILEMODE_BINARY ? "BINARY" : "TEXT" ) ) );
+    //KMASSERTM( bRet, ("Could not open the file '%s' with %s access in %s mode.",
+    //                m_sFileName.c_str(),
+    //                ( eAccessFlags==ACCESS_READ_WRITE ? "READ&WRITE" : ( eAccessFlags==ACCESS_READ ? "READ" : "WRITE" ) ),
+    //                ( eFileMode==FILEMODE_BINARY ? "BINARY" : "TEXT" ) ) );
   }
 
   return bRet;
