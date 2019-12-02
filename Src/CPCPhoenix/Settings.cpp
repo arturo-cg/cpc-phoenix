@@ -198,6 +198,8 @@ void Settings::LoadFromFile()
     // Not all the settings are saved to the file so this ensures that all our variables get sensible values.
     RestoreDefaultValues();
     // Get values from the MSB.
+    m_eCpcModel = (CPC::CMachine::EModel) settingsMsb["CpcModel"]->GetInt(CPC::CMachine::MODEL_6128);
+    m_eMonitorType = (CPC::CGateArray::ERgbConversionTableType) settingsMsb["MonitorColorOutput"]->GetInt(CPC::CGateArray::RGBCONVERSIONTABLE_COLOR);
     m_scale = settingsMsb["Scale"]->GetFloat(m_scale);
     m_asDiskImages[0] = settingsMsb["DriveA"]->GetString(m_asDiskImages[0]);
     m_asDiskImages[1] = settingsMsb["DriveB"]->GetString(m_asDiskImages[1]);
@@ -211,6 +213,8 @@ void Settings::SaveToFile()
 {
     // Store settings in a new MSB.
     kmbMsbPtr settingsMsb = kmbMsbManager::Singleton()->CreateTaggedMsb();
+    settingsMsb->AddChild("CpcModel", kmbMsbManager::Singleton()->CreateIntegerMsb(m_eCpcModel));
+    settingsMsb->AddChild("MonitorColorOutput", kmbMsbManager::Singleton()->CreateIntegerMsb(m_eMonitorType));
     settingsMsb->AddChild("Scale", kmbMsbManager::Singleton()->CreateRealMsb(m_scale));
     settingsMsb->AddChild("DriveA", kmbMsbManager::Singleton()->CreateStringMsb(m_asDiskImages[0]));
     settingsMsb->AddChild("DriveB", kmbMsbManager::Singleton()->CreateStringMsb(m_asDiskImages[1]));

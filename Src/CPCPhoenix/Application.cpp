@@ -143,13 +143,16 @@ void Application::CreateMachine()
     // Create new machine.
     m_pMachine = new CPC::CMachine(GetSettings()->GetCpcModel(), m_pKeyStateProvider);
 
-    // Add video output.
+    // Video output.
     m_pVideoOutput = new CWinVideoOutput(m_pMachine);
     m_pVideoOutput->Init();
     m_pMachine->SetVideoOutput(m_pVideoOutput);
 
-    // Add sound output.
+    // Sound output.
     m_pMachine->SetSoundOutput(m_pSoundOutput);
+
+    // Monitor color output type (color, green).
+    m_pMachine->GetGateArray()->SetRgbConversionTable(GetSettings()->GetMonitorType());
 
     // Insert disks into the drives, if required.
     SetDisk(0, m_settings.GetDiskImage(0));

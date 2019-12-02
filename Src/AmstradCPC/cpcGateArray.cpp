@@ -217,10 +217,12 @@ namespace CPC {
     */
     /*virtual*/ void CGateArray::Reset()
     {
-        // Reset members
+        // Reset members, preserving the values that should not be affected by a machine reset.
+        const unsigned* savedRgbConversionTable = m_paCurrentRgbConversionTable;
         ResetVars();
+        m_paCurrentRgbConversionTable = savedRgbConversionTable;
 
-        // Determine visible read/write blocks
+        // Determine visible read/write blocks.
         UpdateVisibleMemoryBlocks();
     }
 
