@@ -5,12 +5,13 @@
 #define _CPCMACHINE_H_
 
 
+#include "cpcMemory.h"
+
 namespace CPC {
 
 
     class CCpu;
     class CCpuToCpcInterface;
-    class CMemory;
     class CGateArray;
     class CCrtc;
     class CPpi;
@@ -23,6 +24,13 @@ namespace CPC {
     class CSoundOutput;
 
 
+    struct MachineSpecifications
+    {
+        //unsigned numDiskDrives;       // TODO - Number of disk drives connected to the machine.
+        MemorySpecifications memorySpecifications;   // Memory specifications (number of additional 64KB RAM pages, ROM banks that are present).
+    };
+
+
     /**
     ** This is the main class in the emulator. It represents the emulated machine (Amstrad CPC)
     ** and contains all the sub-systems (CPU, memory, Gate Array, etc.) that make up the machine.
@@ -31,25 +39,11 @@ namespace CPC {
     {
     public:
 
-        enum EModel
-        {
-            MODEL_464 = 0,      // 64Kb RAM, 32Kb ROM (OS v1, BASIC 1.0), tape drive
-            MODEL_664,          // 64Kb RAM, 48Kb ROM (OS v2, BASIC 1.1, AMSDOS), disc drive
-            MODEL_6128,         // 128Kb RAM, 48Kb ROM (OS v3, BASIC 1.1, AMSDOS), disc drive
-            MODEL_6128_MAXAM,   // MODEL_6128 + MAXAM ROM
-
-            MODEL_LAST,
-            MODEL_INVALID = 0xFFFFFFFF
-        };
-
         static const unsigned DRIVE_COUNT = 2;
 
 
-        CMachine(EModel eType, CKeyStateProvider* pKeyStateProvider);
+                                CMachine(const MachineSpecifications& machineSpecifications, CKeyStateProvider* pKeyStateProvider);
         virtual                ~CMachine() { FreeVars(); }
-
-        /** Returns the model of the emulated machine. */
-        EModel                  GetModel() const { return m_eModel; }
 
         /** Returns the CPU subsystem. */
         CCpu*                   GetCpu() { return m_pCpu; }
@@ -101,14 +95,19 @@ namespace CPC {
         *** Time is in microseconds. */
         void                    Run(unsigned nMicroSecs);
 
+        /** Static utility method that fills in the specs for a standard Amstrad CPC 464. */
+        static void             GetStandardCpc464Specifications(MachineSpecifications* outSpecifications);
+        /** Static utility method that fills in the specs for a standard Amstrad CPC 664. */
+        static void             GetStandardCpc664Specifications(MachineSpecifications* outSpecifications);
+        /** Static utility method that fills in the specs for a standard Amstrad CPC 6128. */
+        static void             GetStandardCpc6128Specifications(MachineSpecifications* outSpecifications);
+
 
     private:
 
         void                    ResetVars();
         void                    FreeVars();
 
-
-        EModel                  m_eModel;
 
         CCpu*                   m_pCpu;
         CCpuToCpcInterface*     m_pCpuToCpcInterface;

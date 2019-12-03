@@ -18,75 +18,46 @@
 namespace CPC {
 
 
-  struct SMemoryProfile
-  {
-    unsigned nRamBlockCount;                                      // How many 16Kb RAM blocks are present. It must be 4 (64Kb) or 8 (128Kb).
-    string   sLowerRomFileName;                                   // Lower ROM file.
-    string   sUpperRomFileNames[CMemory::UPPER_ROM_BLOCK_COUNT];  // Upper ROM files.
-  };
-
-  static SMemoryProfile s_aMemoryProfiles[CMachine::MODEL_LAST] =
-  {
-    { 4/*64Kb RAM*/,  "OS_464.ROM",  { "BASIC_464.ROM",  "",            "", "", "", "", "", "AMSDOS_664.ROM",  "", "", "", "", "", "", "", "" } },    // MODEL_464
-    { 4/*64Kb RAM*/,  "OS_664.ROM",  { "BASIC_664.ROM",  "",            "", "", "", "", "", "AMSDOS_664.ROM",  "", "", "", "", "", "", "", "" } },    // MODEL_664
-    { 8/*128Kb RAM*/, "OS_6128.ROM", { "BASIC_6128.ROM", "",            "", "", "", "", "", "AMSDOS_6128.ROM", "", "", "", "", "", "", "", "" } },    // MODEL_6128
-    { 8/*128Kb RAM*/, "OS_6128.ROM", { "BASIC_6128.ROM", "maxam15.rom", "", "", "", "", "", "AMSDOS_6128.ROM", "", "", "", "", "", "", "", "" } },    // MODEL_6128_MAXAM
-  };
-
-
   //----------------------------------------------------------------------------
   /**
   ** 
   */
-  CMemory::CMemory(CMachine *pMachine) : inherited( pMachine )
+  CMemory::CMemory(CMachine *pMachine, const MemorySpecifications& memorySpecifications) : inherited( pMachine )
   {
-    // Reset members
+    // Reset members.
     ResetVars();
 
-    // Get the memory profile for the current machine model
-    const SMemoryProfile& memoryProfile = s_aMemoryProfiles[pMachine->GetModel()];
+    // Create and load the lower ROM bank.
+    m_pLowerRomBlock = CreateRomBankFromFile(memorySpecifications.lowerRomFileName);
+    KMASSERTM(m_pLowerRomBlock != NULL, ("Could not load lower ROM bank file '%s'.", memorySpecifications.lowerRomFileName.c_str()) );
 
-    // Create the lower ROM block
-    kmbFileInputStream romStream;
-    if ( romStream.Init("Roms/" + memoryProfile.sLowerRomFileName) )
+    // Create and load the upper ROM banks.
+    KMASSERT(m_upperRomBlocks.empty());
+    for (const MemorySpecifications::IntToStringMap::value_type& kvp : memorySpecifications.upperRomFileNames)
     {
-      m_pLowerRomBlock = new CMemoryBlock( memoryProfile.sLowerRomFileName, &romStream );
-    }
-    else
-    {
-      m_pLowerRomBlock = NULL;
-      KMASSERTM( m_pLowerRomBlock != NULL, ("Could not load lower ROM block file '%s'.", memoryProfile.sLowerRomFileName.c_str()) );
-    }
-
-    // Create the upper ROM blocks
-    unsigned i;
-    for (i = 0; i < UPPER_ROM_BLOCK_COUNT; i++)
-    {
-      if ( !memoryProfile.sUpperRomFileNames[i].empty() )
-      {
-        if ( romStream.Init("Roms/" + memoryProfile.sUpperRomFileNames[i]) )
+        int id = kvp.first;
+        string fileName = kvp.second;
+        // Load the ROM file.
+        CMemoryBlock* romBank = CreateRomBankFromFile(fileName);
+        KMASSERTM(romBank != NULL, ("Could not load ROM file '%s' for Upper ROM ID '%d'.", fileName.c_str(), id));
+        if (romBank != nullptr)
         {
-          m_apUpperRomBlocks[i] = new CMemoryBlock( memoryProfile.sUpperRomFileNames[i], &romStream );
+            // Add the ROM bank.
+            m_upperRomBlocks.insert({ id, romBank });
         }
-        else
-        {
-          m_apUpperRomBlocks[i] = NULL;
-          KMASSERTM( m_apUpperRomBlocks[i] != NULL, ("Could not load upper ROM block file '%s'.", memoryProfile.sUpperRomFileNames[i].c_str()) );
-        }
-      }
-      else
-      {
-        // Put the same as Upper ROM 0 (usually Basic)
-        m_apUpperRomBlocks[i] = m_apUpperRomBlocks[0];
-      }
     }
 
-    // Create the RAM blocks
-    for (i = 0; i < memoryProfile.nRamBlockCount; i++)
+    KMASSERTM(m_upperRomBlocks.find(0) != m_upperRomBlocks.end(), ("The machine must have the BASIC ROM at ID 0."));
+
+    // Create the RAM banks.
+    // Each 64KB RAM page contains 4 x 16KB RAM banks.
+    int numRamBanks = (1/*built-in RAM page*/ + memorySpecifications.numAdditionalRamPages) * 4/*banks per page*/;
+    m_ramBlocks.reserve(numRamBanks);
+    for (int i = 0; i < numRamBanks; i++)
     {
-      char szLabel[10];
-      _snprintf_s( szLabel, sizeof(szLabel), "RAM%d", i );
-      m_apRamBlocks[i] = new CMemoryBlock( szLabel );
+      char label[10];
+      _snprintf_s( label, sizeof(label), "RAM%d", i );
+      m_ramBlocks.push_back(new CMemoryBlock(label));
     }
   }
 
@@ -96,19 +67,9 @@ namespace CPC {
   */
   void CMemory::ResetVars()
   {
-    unsigned i;
-
     m_pLowerRomBlock = NULL;
-
-    for(i=0; i < UPPER_ROM_BLOCK_COUNT; i++)
-    {
-      m_apUpperRomBlocks[i] = NULL;
-    }
-
-    for(i=0; i < MAX_NUM_RAM_BLOCKS; i++)
-    {
-      m_apRamBlocks[i] = NULL;
-    }
+    m_upperRomBlocks.clear();
+    m_ramBlocks.clear();
   }
 
   //----------------------------------------------------------------------------
@@ -120,20 +81,17 @@ namespace CPC {
     delete m_pLowerRomBlock;
     m_pLowerRomBlock = NULL;
 
-    unsigned i;
-    for (i = UPPER_ROM_BLOCK_COUNT-1; i < UPPER_ROM_BLOCK_COUNT; i--)   // Note: Delete from back to front
+    for (IntToMemoryBlockMap::value_type& kvp : m_upperRomBlocks)
     {
-      if ( (i == 0) || (m_apUpperRomBlocks[i] != m_apUpperRomBlocks[0]) )     // To avoid deleting Basic ROM multiple times
-      {
-        delete m_apUpperRomBlocks[i];
-        m_apUpperRomBlocks[i] = NULL;
-      }
+        delete kvp.second;
     }
+    m_upperRomBlocks.clear();
 
-    for (i = 0; i < MAX_NUM_RAM_BLOCKS; i++)
+    for (CMemoryBlock* ramBlock : m_ramBlocks)
     {
-      delete m_apRamBlocks[i];
+      delete ramBlock;
     }
+    m_ramBlocks.clear();
   }
 
   //----------------------------------------------------------------------------
@@ -149,10 +107,34 @@ namespace CPC {
   /**
   ** 
   */
-  CMemoryBlock* CMemory::GetUpperRomBlock(cpcByte nIndex)
+  CMemoryBlock* CMemory::CreateRomBankFromFile(string fileName) const
   {
-    KMASSERT( (nIndex >= 0) && (nIndex < UPPER_ROM_BLOCK_COUNT) );
-    return ( (nIndex >= 0) && (nIndex < UPPER_ROM_BLOCK_COUNT) ? m_apUpperRomBlocks[nIndex] : m_apUpperRomBlocks[0] );
+      CMemoryBlock* ret = nullptr;
+      // Open the ROM file.
+      kmbFileInputStream romStream;
+      if (romStream.Init("Roms/" + fileName))
+      {
+          // Read the ROM data.
+          ret = new CMemoryBlock(fileName, &romStream);
+      }
+
+      return ret;
+  }
+
+  //----------------------------------------------------------------------------
+  /**
+  ** 
+  */
+  const CMemoryBlock* CMemory::GetUpperRomBlock(cpcByte nIndex) const
+  {
+      // Returns the Upper ROM with the specified ID. If it doesn't exist, the ROM with ID 0 (which is supposed to be BASIC) is returned.
+      IntToMemoryBlockMap::const_iterator iterUpperRom = m_upperRomBlocks.find(nIndex);
+      if (iterUpperRom == m_upperRomBlocks.end())
+      {
+          iterUpperRom = m_upperRomBlocks.find(0);
+      }
+
+      return iterUpperRom->second;
   }
 
   //----------------------------------------------------------------------------
@@ -161,8 +143,8 @@ namespace CPC {
   */
   CMemoryBlock* CMemory::GetRamBlock(int i)
   {
-    KMASSERT( (i >= 0) && (i < MAX_NUM_RAM_BLOCKS) );
-    return m_apRamBlocks[i];
+      KMASSERT((i >= 0) && (i < (int)m_ramBlocks.size()));
+      return m_ramBlocks[i];
   }
 
   //----------------------------------------------------------------------------
@@ -171,8 +153,8 @@ namespace CPC {
   */
   const CMemoryBlock* CMemory::GetRamBlock(int i) const
   {
-    KMASSERT( (i >= 0) && (i < MAX_NUM_RAM_BLOCKS) );
-    return m_apRamBlocks[i];
+      KMASSERT((i >= 0) && (i < (int)m_ramBlocks.size()));
+      return m_ramBlocks[i];
   }
 
 } //namespace CPC

@@ -169,14 +169,7 @@ void AppWindow::OnApplicationSettingsChanged()
 
     // Update the menu
     UINT nItem;
-    switch (pSettings->GetCpcModel())
-    {
-        case CPC::CMachine::MODEL_464:         nItem = ID_SETTINGS_CPCMODEL_CPC464; break;
-        case CPC::CMachine::MODEL_664:         nItem = ID_SETTINGS_CPCMODEL_CPC664; break;
-        case CPC::CMachine::MODEL_6128:        nItem = ID_SETTINGS_CPCMODEL_CPC6128; break;
-        case CPC::CMachine::MODEL_6128_MAXAM:  nItem = ID_SETTINGS_CPCMODEL_CPC6128_MAXAM; break;
-        default:                               KMASSERT(false); nItem = ID_SETTINGS_CPCMODEL_CPC464; break;
-    }
+    nItem = ID_SETTINGS_CPCMODEL_CPC464/*first item*/ + Application::Singleton()->FindMachineSpecificationsOrderedPosition(pSettings->GetMachineSpecificationName());
     ::CheckMenuRadioItem(m_hMainMenu, ID_SETTINGS_CPCMODEL_CPC464, ID_SETTINGS_CPCMODEL_CPC6128_MAXAM, nItem, MF_BYCOMMAND);
 
     switch (pSettings->GetMonitorType())
@@ -358,10 +351,16 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
         // Settings Menu
         //
 
-        case ID_SETTINGS_CPCMODEL_CPC464:         pApplication->ChangeCpcModelSetting(CPC::CMachine::MODEL_464); break;
-        case ID_SETTINGS_CPCMODEL_CPC664:         pApplication->ChangeCpcModelSetting(CPC::CMachine::MODEL_664); break;
-        case ID_SETTINGS_CPCMODEL_CPC6128:        pApplication->ChangeCpcModelSetting(CPC::CMachine::MODEL_6128); break;
-        case ID_SETTINGS_CPCMODEL_CPC6128_MAXAM:  pApplication->ChangeCpcModelSetting(CPC::CMachine::MODEL_6128_MAXAM); break;
+        case ID_SETTINGS_CPCMODEL_CPC464:
+        case ID_SETTINGS_CPCMODEL_CPC664:
+        case ID_SETTINGS_CPCMODEL_CPC6128:
+        case ID_SETTINGS_CPCMODEL_CPC6128_MAXAM:
+        {
+            unsigned position = nItemId - ID_SETTINGS_CPCMODEL_CPC464/*first item*/;
+            const string* name = pApplication->GetMachineSpecificationsNameAtPosition(position);
+            pApplication->ChangeMachineSpecificationName(*name);
+            break;
+        }
 
         case ID_SETTINGS_MONITORTYPE_COLOR:  pApplication->ChangeMonitorTypeSetting(CPC::CGateArray::RGBCONVERSIONTABLE_COLOR); break;
         case ID_SETTINGS_MONITORTYPE_GREEN:  pApplication->ChangeMonitorTypeSetting(CPC::CGateArray::RGBCONVERSIONTABLE_GREEN); break;

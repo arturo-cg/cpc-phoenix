@@ -48,8 +48,8 @@ public:
     /** Restores setting default values. */
     void                      RestoreDefaultValues();
 
-    void                      SetCpcModel(CPC::CMachine::EModel eNewModel) { m_eCpcModel = eNewModel; }
-    CPC::CMachine::EModel     GetCpcModel() const { return m_eCpcModel; }
+    void                      SetMachineSpecificationName(string name) { m_machineSpecificationName = name; }
+    string                    GetMachineSpecificationName() const { return m_machineSpecificationName; }
 
     void                                     SetMonitorType(CPC::CGateArray::ERgbConversionTableType eType) { m_eMonitorType = eType; }
     CPC::CGateArray::ERgbConversionTableType GetMonitorType() const { return m_eMonitorType; }
@@ -81,7 +81,7 @@ private:
 
     bool                      m_bOk;
 
-    CPC::CMachine::EModel     m_eCpcModel;
+    string                    m_machineSpecificationName;
     CPC::CGateArray::ERgbConversionTableType m_eMonitorType;
     float                     m_scale;
     bool                      m_bDrawScanLines;

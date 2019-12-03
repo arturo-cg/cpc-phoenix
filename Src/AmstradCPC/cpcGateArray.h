@@ -170,7 +170,7 @@ namespace CPC {
         EScreenMode             m_eScreenMode;
 
         /** The blocks that are visible for read operations (can be either ROM or RAM blocks). */
-        CMemoryBlock           *m_apVisibleReadBlocks[4];
+        const CMemoryBlock     *m_apVisibleReadBlocks[4];
         /** The blocks that are visible for write operations (always RAM blocks). */
         CMemoryBlock           *m_apVisibleWriteBlocks[4];
 

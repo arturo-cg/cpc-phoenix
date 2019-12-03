@@ -21,6 +21,10 @@
 
 template<> Application* kmbSingleton<Application>::m_pSingleton = NULL;
 
+/*static*/ const string Application::StandardCpc464SpecificationsName = "cpc_464";
+/*static*/ const string Application::StandardCpc664SpecificationsName = "cpc_664";
+/*static*/ const string Application::StandardCpc6128SpecificationsName = "cpc_6128";
+
 
 
 //----------------------------------------------------------------------------
@@ -39,6 +43,12 @@ bool Application::Init(HINSTANCE hInstance)
     {
         new kmbMsbManager;
         bRet = kmbMsbManager::Singleton()->Init();
+    }
+
+    // Machine specifications.
+    if (bRet)
+    {
+        InitializeMachineSpecifications();
     }
 
     // Load the user settings
@@ -135,30 +145,69 @@ void Application::FreeVars()
 /**
 **
 */
+void Application::InitializeMachineSpecifications()
+{
+    m_machineSpecifications.clear();
+    m_orderedMachineSpecificationsNames.clear();
+
+    //
+    // Built-in machine specifications.
+    //
+    CPC::MachineSpecifications machineSpecifications;
+    // +- Standard CPC 464.
+    CPC::CMachine::GetStandardCpc464Specifications(&machineSpecifications);
+    m_machineSpecifications.insert({ StandardCpc464SpecificationsName, machineSpecifications });
+    m_orderedMachineSpecificationsNames.push_back(StandardCpc464SpecificationsName);
+    // +- Standard CPC 664.
+    CPC::CMachine::GetStandardCpc664Specifications(&machineSpecifications);
+    m_machineSpecifications.insert({ StandardCpc664SpecificationsName, machineSpecifications });
+    m_orderedMachineSpecificationsNames.push_back(StandardCpc664SpecificationsName);
+    // +- Standard CPC 6128.
+    CPC::CMachine::GetStandardCpc6128Specifications(&machineSpecifications);
+    m_machineSpecifications.insert({ StandardCpc6128SpecificationsName, machineSpecifications });
+    m_orderedMachineSpecificationsNames.push_back(StandardCpc6128SpecificationsName);
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
 void Application::CreateMachine()
 {
     // Destroy current machine, if any
     DestroyMachine();
 
     // Create new machine.
-    m_pMachine = new CPC::CMachine(GetSettings()->GetCpcModel(), m_pKeyStateProvider);
+    // +- Look up the machine specifications.
+    const CPC::MachineSpecifications* machineSpecifications = FindMachineSpecificationsByName(GetSettings()->GetMachineSpecificationName());
+    if (machineSpecifications != nullptr)
+    {
+        // +- Create the machine.
+        m_pMachine = new CPC::CMachine(*machineSpecifications, m_pKeyStateProvider);
 
-    // Video output.
-    m_pVideoOutput = new CWinVideoOutput(m_pMachine);
-    m_pVideoOutput->Init();
-    m_pMachine->SetVideoOutput(m_pVideoOutput);
+        // Video output.
+        m_pVideoOutput = new CWinVideoOutput(m_pMachine);
+        m_pVideoOutput->Init();
+        m_pMachine->SetVideoOutput(m_pVideoOutput);
 
-    // Sound output.
-    m_pMachine->SetSoundOutput(m_pSoundOutput);
+        // Sound output.
+        m_pMachine->SetSoundOutput(m_pSoundOutput);
 
-    // Monitor color output type (color, green).
-    m_pMachine->GetGateArray()->SetRgbConversionTable(GetSettings()->GetMonitorType());
+        // Monitor color output type (color, green).
+        m_pMachine->GetGateArray()->SetRgbConversionTable(GetSettings()->GetMonitorType());
 
-    // Insert disks into the drives, if required.
-    SetDisk(0, m_settings.GetDiskImage(0));
-    SetDisk(1, m_settings.GetDiskImage(1));
+        // Insert disks into the drives, if required.
+        SetDisk(0, m_settings.GetDiskImage(0));
+        SetDisk(1, m_settings.GetDiskImage(1));
 
-    m_pMachine->Reset();
+        m_pMachine->Reset();
+    }
+    else
+    {
+        // Machine specifications doesn't exist. Change it to one of the built-in specifications.
+        // This causes this method to be called again.
+        ChangeMachineSpecificationName(StandardCpc6128SpecificationsName);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -196,10 +245,48 @@ void Application::_OnAppWindowCloseRequest(AppWindow* pAppWindow)
 /**
 **
 */
-void Application::ChangeCpcModelSetting(CPC::CMachine::EModel eNewModel)
+const CPC::MachineSpecifications* Application::FindMachineSpecificationsByName(string name) const
+{
+    StringToMachineSpecificationsMap::const_iterator iter = m_machineSpecifications.find(name);
+    return (iter != m_machineSpecifications.end() ? &iter->second : nullptr);
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+const string* Application::GetMachineSpecificationsNameAtPosition(unsigned position) const
+{
+    return (position < m_orderedMachineSpecificationsNames.size() ? &m_orderedMachineSpecificationsNames[position] : nullptr);
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+unsigned Application::FindMachineSpecificationsOrderedPosition(string name) const
+{
+    unsigned ret;
+    for (ret = 0; ret < m_orderedMachineSpecificationsNames.size(); ret++)
+    {
+        if (name == m_orderedMachineSpecificationsNames[ret])
+        {
+            // Found.
+            break;
+        }
+    }
+
+    return ret;
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+void Application::ChangeMachineSpecificationName(string machineSpecificationName)
 {
     // Change application settings
-    GetSettings()->SetCpcModel(eNewModel);
+    GetSettings()->SetMachineSpecificationName(machineSpecificationName);
 
     // Delete the current machine and create the new one
     CreateMachine();

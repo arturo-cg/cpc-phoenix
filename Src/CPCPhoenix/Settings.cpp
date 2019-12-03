@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "Settings.h"
+#include "Application.h"
 #include "Stream/kmbFileInputStream.h"
 #include "Stream/kmbFileOutputStream.h"
 #include "Msb/kmbMsbManager.h"
@@ -158,7 +159,7 @@ bool Settings::Init()
 */
 void Settings::ResetVars()
 {
-    m_eCpcModel = CPC::CMachine::MODEL_INVALID;
+    m_machineSpecificationName.clear();
     m_eMonitorType = CPC::CGateArray::RGBCONVERSIONTABLE_INVALID;
     m_scale = 0.0f;
     m_bDrawScanLines = false;
@@ -198,8 +199,8 @@ void Settings::LoadFromFile()
     // Not all the settings are saved to the file so this ensures that all our variables get sensible values.
     RestoreDefaultValues();
     // Get values from the MSB.
-    m_eCpcModel = (CPC::CMachine::EModel) settingsMsb["CpcModel"]->GetInt(CPC::CMachine::MODEL_6128);
-    m_eMonitorType = (CPC::CGateArray::ERgbConversionTableType) settingsMsb["MonitorColorOutput"]->GetInt(CPC::CGateArray::RGBCONVERSIONTABLE_COLOR);
+    m_machineSpecificationName = settingsMsb["MachineSpecificationsName"]->GetString(m_machineSpecificationName);
+    m_eMonitorType = (CPC::CGateArray::ERgbConversionTableType) settingsMsb["MonitorColorOutput"]->GetInt(m_eMonitorType);
     m_scale = settingsMsb["Scale"]->GetFloat(m_scale);
     m_asDiskImages[0] = settingsMsb["DriveA"]->GetString(m_asDiskImages[0]);
     m_asDiskImages[1] = settingsMsb["DriveB"]->GetString(m_asDiskImages[1]);
@@ -213,7 +214,7 @@ void Settings::SaveToFile()
 {
     // Store settings in a new MSB.
     kmbMsbPtr settingsMsb = kmbMsbManager::Singleton()->CreateTaggedMsb();
-    settingsMsb->AddChild("CpcModel", kmbMsbManager::Singleton()->CreateIntegerMsb(m_eCpcModel));
+    settingsMsb->AddChild("MachineSpecificationsName", kmbMsbManager::Singleton()->CreateStringMsb(m_machineSpecificationName));
     settingsMsb->AddChild("MonitorColorOutput", kmbMsbManager::Singleton()->CreateIntegerMsb(m_eMonitorType));
     settingsMsb->AddChild("Scale", kmbMsbManager::Singleton()->CreateRealMsb(m_scale));
     settingsMsb->AddChild("DriveA", kmbMsbManager::Singleton()->CreateStringMsb(m_asDiskImages[0]));
@@ -238,7 +239,7 @@ void Settings::SaveToFile()
 */
 void Settings::RestoreDefaultValues()
 {
-    m_eCpcModel = CPC::CMachine::MODEL_6128;
+    m_machineSpecificationName = Application::StandardCpc6128SpecificationsName;
     m_eMonitorType = CPC::CGateArray::RGBCONVERSIONTABLE_COLOR;
     m_scale = 1.5f;
     m_bDrawScanLines = false;
