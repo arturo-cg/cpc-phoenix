@@ -176,6 +176,9 @@
       <Project>{8e18f230-3ccd-469d-aeff-6b453862059a}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\Gui\Gui.vcxproj">
+      <Project>{c6b9cd9b-2edd-411a-87fe-0b2fddb9a70b}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
