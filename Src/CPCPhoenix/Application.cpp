@@ -38,53 +38,26 @@ bool Application::Init(HINSTANCE hInstance)
     End();
     ResetVars();
 
-    // Initialize MSB manager.
-    if (bRet)
-    {
-        new kmbMsbManager;
-        bRet = kmbMsbManager::Singleton()->Init();
-    }
-
+    // MSB manager.
+    new kmbMsbManager;
+    kmbMsbManager::Singleton()->Init();
     // Machine specifications.
-    if (bRet)
-    {
-        InitializeMachineSpecifications();
-    }
-
-    // Load the user settings
-    if (bRet)
-    {
-        m_settings.Init();
-        m_settings.LoadFromFile();
-    }
-
-    // Key state provider, video and sound output
-    if (bRet)
-    {
-        m_pKeyStateProvider = new WindowsKeyStateProvider();
-
-        m_pSoundOutput = new CWinSoundOutput();
-        m_pSoundOutput->Init();
-        m_pSoundOutput->SetVolume(0.1f);   // TODO - Move volume to CSettings
-    }
-
-    // Emulated machine (emulator)
-    if (bRet)
-    {
-        CreateMachine();
-    }
-
-    // Application main window
-    if (bRet)
-    {
-        // Register window classes
-        kmbWindow::RegisterWindowClass();    // This must be called only once, before creating any kmbWindow
-
-        // Create the application window
-        m_pAppWindow = new AppWindow;
-        m_pAppWindow->Init();
-    }
-
+    InitializeMachineSpecifications();
+    // Load user settings.
+    m_settings.Init();
+    m_settings.LoadFromFile();
+    // Key state provider.
+    m_pKeyStateProvider = new WindowsKeyStateProvider();
+    // Sound output.
+    m_pSoundOutput = new CWinSoundOutput();
+    m_pSoundOutput->Init();
+    m_pSoundOutput->SetVolume(0.1f);   // TODO - Move volume to CSettings
+    // Emulated machine (emulator).
+    CreateMachine();
+    // Application main window.
+    kmbWindow::RegisterWindowClass();    // This must be called only once, before creating any kmbWindow
+    m_pAppWindow = new AppWindow;
+    m_pAppWindow->Init();
 
     if (bRet)
         m_bOk = true;
