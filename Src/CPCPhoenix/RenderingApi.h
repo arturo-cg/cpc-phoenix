@@ -9,12 +9,20 @@ class RenderingApi
 {
 public:
 
+    static const float COLOR_BLACK[4];
+    static const float COLOR_WHITE[4];
+    static const float COLOR_MAGENTA[4];
+
+
     RenderingApi() { m_bOk = false; }
     virtual ~RenderingApi() { End(); }
 
     bool Init(HWND hWnd);
     virtual void End();
     bool IsOk() const { return m_bOk; }
+
+    void PrepareForRender(const float clearColor[4] = COLOR_BLACK);
+    void Present(bool vsync);
 
 
 private:

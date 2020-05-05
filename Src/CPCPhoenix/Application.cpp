@@ -512,6 +512,11 @@ void Application::Run()
                 s_nStatusBarUpdateDelay = 25;
             }
             s_nStatusBarUpdateDelay--;
+
+            // Render.
+            //// *** Commented out for now until the emulator uses Direct3D for rendering. ***
+            ////m_renderingApi->PrepareForRender(RenderingApi::COLOR_MAGENTA);
+            ////m_renderingApi->Present(false/*vsync*/);
         }
     }
 

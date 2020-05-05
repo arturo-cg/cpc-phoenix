@@ -3,6 +3,11 @@
 #include <d3d11.h>
 
 
+/*static*/ const float RenderingApi::COLOR_BLACK[4] = { 0.f, 0.f, 0.f, 1.f };
+/*static*/ const float RenderingApi::COLOR_WHITE[4] = { 1.f, 1.f, 1.f, 1.f };
+/*static*/ const float RenderingApi::COLOR_MAGENTA[4] = { 1.f, 0.f, 1.f, 1.f };
+
+
 bool RenderingApi::Init(HWND hWnd)
 {
     bool bRet = true;
@@ -119,4 +124,16 @@ void RenderingApi::DestroyRenderTarget()
         m_mainRenderTargetView->Release();
         m_mainRenderTargetView = nullptr;
     }
+}
+
+void RenderingApi::PrepareForRender(const float clearColor[4])
+{
+    m_deviceContext->OMSetRenderTargets(1, &m_mainRenderTargetView, NULL);
+    m_deviceContext->ClearRenderTargetView(m_mainRenderTargetView, clearColor);
+}
+
+void RenderingApi::Present(bool vsync)
+{
+    UINT syncInterval = (vsync ? 1 : 0);
+    m_swapChain->Present(syncInterval, 0);
 }
