@@ -10,6 +10,7 @@
 #include "Timer/kmbPrecisionTimer.h"
 
 class AppWindow;
+class RenderingApi;
 class WindowsKeyStateProvider;
 class CWinVideoOutput;
 class CWinSoundOutput;
@@ -70,6 +71,11 @@ public:
     /** Returns the application window. */
     AppWindow*                GetAppWindow() { return m_pAppWindow; }
 
+    /** Returns the RenderingApi object. */
+    RenderingApi*             GetRenderingApi() { return m_renderingApi; }
+    /** Returns the RenderingApi object (const version. */
+    const RenderingApi*       GetRenderingApi() const { return m_renderingApi; }
+
 
     /** Runs the application. */
     void                      Run();
@@ -96,7 +102,6 @@ private:
     void                      DestroyMachine();
 
     void                      ProcessWindowsMessages();
-    void                      UpdateMenu();
 
 
     bool                      m_bOk;
@@ -106,6 +111,7 @@ private:
     StringList                m_orderedMachineSpecificationsNames;
     Settings                  m_settings;
     AppWindow*                m_pAppWindow;
+    RenderingApi*             m_renderingApi;
 
     CPC::CMachine*            m_pMachine;
     unsigned                  m_uFrameCount;

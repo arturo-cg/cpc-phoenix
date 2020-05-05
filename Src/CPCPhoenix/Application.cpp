@@ -8,6 +8,7 @@
 #include "cpcDiskDrive.h"
 #include "cpcDskDisk.h"
 #include "AppWindow.h"
+#include "RenderingApi.h"
 #include "StatusBar.h"
 #include "WindowsKeyStateProvider.h"
 #include "WinVideoOutput.h"
@@ -58,6 +59,13 @@ bool Application::Init(HINSTANCE hInstance)
     kmbWindow::RegisterWindowClass();    // This must be called only once, before creating any kmbWindow
     m_pAppWindow = new AppWindow;
     m_pAppWindow->Init();
+    // Rendering API (Direct3D 11).
+    m_renderingApi = new RenderingApi();
+    bRet = m_renderingApi->Init(m_pAppWindow->GetHWnd());
+    if (!bRet)
+    {
+        ::MessageBox(nullptr, "Failed to initialize Direct3D.", "Error", MB_OK | MB_ICONERROR);
+    }
 
     if (bRet)
         m_bOk = true;
@@ -88,6 +96,7 @@ void Application::ResetVars()
 {
     m_bExitApp = false;
     m_pAppWindow = NULL;
+    m_renderingApi = nullptr;
     m_pMachine = NULL;
     m_uFrameCount = 0;
     m_pKeyStateProvider = NULL;
@@ -109,6 +118,7 @@ void Application::FreeVars()
     }
 
     delete m_pKeyStateProvider;
+    delete m_renderingApi;
     delete m_pAppWindow;
     DestroyMachine();
     m_settings.End();

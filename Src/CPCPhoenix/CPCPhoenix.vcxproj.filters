@@ -35,6 +35,7 @@
     <ClInclude Include="res\Resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="RenderingApi.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -47,5 +48,6 @@
     <ClCompile Include="WindowsKeyStateProvider.cpp" />
     <ClCompile Include="WinSoundOutput.cpp" />
     <ClCompile Include="WinVideoOutput.cpp" />
+    <ClCompile Include="RenderingApi.cpp" />
   </ItemGroup>
 </Project>
