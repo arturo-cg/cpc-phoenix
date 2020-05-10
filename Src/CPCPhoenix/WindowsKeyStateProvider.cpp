@@ -2,6 +2,7 @@
 //------------------------------------------------------------------------------
 
 #include "stdafx.h"
+#include "imgui.h"
 #include "WindowsKeyStateProvider.h"
 #include "Application.h"
 #include "AppWindow.h"
@@ -16,8 +17,8 @@
 {
     CPC::ECpcKeyState eRet = CPC::CPCKEYSTATE_RELEASED;
 
-    // Look whether the application has the input focus
-    if (::GetFocus() == Application::Singleton()->GetAppWindow()->GetHWnd())
+    if ((::GetFocus() == Application::Singleton()->GetAppWindow()->GetHWnd()) &&        // If our app window has the input focus...
+        !ImGui::GetIO().WantCaptureKeyboard)                                            // If Dear ImGui does *not* want the keyboard for itself...
     {
         // Get the Windows key the CPC key is mapped to
         const Settings::SMappedKey& mappedKey = Application::Singleton()->GetSettings()->GetCpcKeyMapping(eCpcKey);

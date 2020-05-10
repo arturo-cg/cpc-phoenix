@@ -24,6 +24,18 @@ LRESULT CALLBACK kmbWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
   bool       bCallDefWindowProc = false;
   kmbWindow* pWindow            = NULL;
 
+  // Derived class-defined prolog.
+  pWindow = EXTRACT_APPWINDOW_PTR( hWnd );
+  if (pWindow != nullptr)
+  {
+      bool skipMessage;
+      skipMessage = pWindow->_OnWindowProcedureProlog(uMsg, wParam, lParam);
+      if (skipMessage)
+      {
+          return 1;
+      }
+  }
+
   switch (uMsg)
   {
   case WM_CREATE:
@@ -491,6 +503,15 @@ void kmbWindow::InvalidateRect(const RECT& rRect, bool bEraseBackground)
 void kmbWindow::InvalidateAll(bool bEraseBackground)
 {
   ::InvalidateRect( GetHWnd(), NULL, bEraseBackground ? TRUE : FALSE );
+}
+
+//----------------------------------------------------------------------------
+/**
+** 
+*/
+bool kmbWindow::_OnWindowProcedureProlog(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    return false;       // Continue with the normal message handler.
 }
 
 //----------------------------------------------------------------------------

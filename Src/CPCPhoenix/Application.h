@@ -97,12 +97,13 @@ private:
     void                      FreeVars();
 
     void                      InitializeMachineSpecifications();
-
     void                      CreateMachine();
     void                      DestroyMachine();
+    void                      InitializeGui();
+    void                      ShutdownGui();
 
     void                      ProcessWindowsMessages();
-
+    void                      Render();
 
     bool                      m_bOk;
 

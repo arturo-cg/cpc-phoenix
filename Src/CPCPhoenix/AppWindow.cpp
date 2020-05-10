@@ -2,6 +2,7 @@
 //------------------------------------------------------------------------------
 
 #include "stdafx.h"
+#include "imgui.h"
 #include "AppWindow.h"
 #include "Application.h"
 #include "DisplayWindow.h"
@@ -12,6 +13,10 @@
 
 #include <Windows.h>
 #include "resource.h"
+
+
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
 
@@ -286,6 +291,17 @@ void AppWindow::OpenLoadDiskImageDialog(unsigned nDrive)
 
     // Restore the working directory, changed by the Open File Dialog
     ::SetCurrentDirectory(szCurrentDir);
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+/*virtual*/ bool AppWindow::_OnWindowProcedureProlog(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    // Let Dear ImGui process every message.
+    bool skipMessage = (ImGui_ImplWin32_WndProcHandler(GetHWnd(), uMsg, wParam, lParam) != 0);
+    return skipMessage;
 }
 
 //----------------------------------------------------------------------------

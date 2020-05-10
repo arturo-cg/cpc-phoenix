@@ -3,11 +3,15 @@
 
 #include "stdafx.h"
 #include "Application.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
 #include "cpcMachine.h"
 #include "cpcGateArray.h"
 #include "cpcDiskDrive.h"
 #include "cpcDskDisk.h"
 #include "AppWindow.h"
+#include "DisplayWindow.h"
 #include "RenderingApi.h"
 #include "StatusBar.h"
 #include "WindowsKeyStateProvider.h"
@@ -56,15 +60,21 @@ bool Application::Init(HINSTANCE hInstance)
     // Emulated machine (emulator).
     CreateMachine();
     // Application main window.
+    ImGui_ImplWin32_EnableDpiAwareness();
     kmbWindow::RegisterWindowClass();    // This must be called only once, before creating any kmbWindow
     m_pAppWindow = new AppWindow;
     m_pAppWindow->Init();
     // Rendering API (Direct3D 11).
     m_renderingApi = new RenderingApi();
-    bRet = m_renderingApi->Init(m_pAppWindow->GetHWnd());
+    bRet = m_renderingApi->Init(m_pAppWindow->GetDisplayWindow()->GetHWnd());
     if (!bRet)
     {
         ::MessageBox(nullptr, "Failed to initialize Direct3D.", "Error", MB_OK | MB_ICONERROR);
+    }
+    // GUI (Dear ImGui).
+    if (bRet)
+    {
+        InitializeGui();
     }
 
     if (bRet)
@@ -110,6 +120,8 @@ void Application::ResetVars()
 */
 void Application::FreeVars()
 {
+    ShutdownGui();
+
     if (m_pSoundOutput != NULL)
     {
         m_pMachine->SetSoundOutput(NULL);
@@ -210,6 +222,51 @@ void Application::DestroyMachine()
         delete m_pVideoOutput;
         m_pVideoOutput = NULL;
     }
+}
+
+void Application::InitializeGui()
+{
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    //io.ConfigViewportsNoAutoMerge = true;
+    //io.ConfigViewportsNoTaskBarIcon = true;
+    //io.ConfigViewportsNoDefaultParent = true;
+    //io.ConfigDockingAlwaysTabBar = true;
+    //io.ConfigDockingTransparentPayload = true;
+//#if 1
+//    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;     // FIXME-DPI: THIS CURRENTLY DOESN'T WORK AS EXPECTED. DON'T USE IN USER APP!
+//    io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports; // FIXME-DPI
+//#endif
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    }
+
+    // Setup Platform/Renderer bindings
+    ImGui_ImplWin32_Init(m_pAppWindow->GetHWnd());
+    ImGui_ImplDX11_Init(m_renderingApi->GetDevice(), m_renderingApi->GetDeviceContext());
+}
+
+void Application::ShutdownGui()
+{
+    // Dear ImGuy.
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 }
 
 //----------------------------------------------------------------------------
@@ -456,14 +513,23 @@ void Application::Run()
         // Has the emulated machine completed a new video frame?
         if (m_uFrameCount < m_pVideoOutput->GetFrameCount())
         {
-            // Draw new video output.
-            m_pAppWindow->DrawVideoOutput();
-            m_uFrameCount = m_pVideoOutput->GetFrameCount();
-
             // Process Windows messages.
             // Note: ideally, this wouldn't be tied to a frame of the emulated frame, but rather it would have its own real time counter that triggered Windows message processing
             //       at regular real time intervals. In practice, the emulator runs at full speed in most scenarios (or fast enough in Debug) so this will do.
             ProcessWindowsMessages();
+
+            // Start the Dear ImGui frame.
+            ImGui_ImplDX11_NewFrame();
+            ImGui_ImplWin32_NewFrame();
+            ImGui::NewFrame();
+
+            // Show the big demo window (most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+            bool show_demo_window = true;
+            ImGui::ShowDemoWindow(&show_demo_window);
+
+            // Draw new video output.
+            m_pAppWindow->DrawVideoOutput();
+            m_uFrameCount = m_pVideoOutput->GetFrameCount();
 
             // Limit the emulation speed.
             double deltaTimeUsecs;
@@ -514,9 +580,7 @@ void Application::Run()
             s_nStatusBarUpdateDelay--;
 
             // Render.
-            //// *** Commented out for now until the emulator uses Direct3D for rendering. ***
-            ////m_renderingApi->PrepareForRender(RenderingApi::COLOR_MAGENTA);
-            ////m_renderingApi->Present(false/*vsync*/);
+            Render();
         }
     }
 
@@ -525,4 +589,20 @@ void Application::Run()
 
     // Save user settings.
     m_settings.SaveToFile();
+}
+
+void Application::Render()
+{
+    ImGui::Render();
+    m_renderingApi->PrepareForRender(RenderingApi::COLOR_MAGENTA);
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+    // Update and Render additional Platform Windows.
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
+
+    m_renderingApi->Present(false/*vsync*/);
 }

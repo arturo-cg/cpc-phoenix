@@ -56,6 +56,8 @@ public:
     // Message handlers (INTERNAL USE ONLY)
     //
 
+    // Return false to continue with the normal message handler, or true to exit the window procedure without processing the message.
+    virtual bool              _OnWindowProcedureProlog(UINT uMsg, WPARAM wParam, LPARAM lParam);
     // Returns 0 to continue the window creation, or -1 to cancel it.
     virtual LRESULT           _OnClose();
     virtual LRESULT           _OnSize(int iWidth, int iHeight);

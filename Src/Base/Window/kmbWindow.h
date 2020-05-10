@@ -75,6 +75,11 @@ public:
   // Message handlers (INTERNAL USE ONLY)
   //
 
+  // Window procedure prolog.
+  // This is always executed at the start of the window procedure before the message (*any* message) is processed.
+  // The return value means 'skip message'. Return false to continue with the normal message handler, or true to exit the window procedure without processing the message.
+  virtual bool              _OnWindowProcedureProlog  (UINT uMsg, WPARAM wParam, LPARAM lParam);
+
   // Returns 0 to continue the window creation, or -1 to cancel it.
   virtual LRESULT           _OnCreate                 (CREATESTRUCT *pCreateStruct);
   virtual LRESULT           _OnClose                  ();

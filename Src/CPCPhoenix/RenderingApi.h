@@ -21,6 +21,12 @@ public:
     virtual void End();
     bool IsOk() const { return m_bOk; }
 
+    ID3D11Device* GetDevice() { return m_device; }
+    const ID3D11Device* GetDevice() const { return m_device; }
+
+    ID3D11DeviceContext* GetDeviceContext() { return m_deviceContext; }
+    const ID3D11DeviceContext* GetDeviceContext() const { return m_deviceContext; }
+
     void PrepareForRender(const float clearColor[4] = COLOR_BLACK);
     void Present(bool vsync);
 
