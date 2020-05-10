@@ -126,6 +126,64 @@ void RenderingApi::DestroyRenderTarget()
     }
 }
 
+void RenderingApi::CreateDynamicTexture(unsigned width, unsigned height, DXGI_FORMAT format, ID3D11Texture2D** out_texture, ID3D11ShaderResourceView** out_textureSrv)
+{
+    // Create texture.
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory(&desc, sizeof(desc));
+    desc.Width = width;
+    desc.Height = height;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = format;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    HRESULT hr = m_device->CreateTexture2D(&desc, NULL/*pInitialData*/, out_texture);
+    KMASSERT(SUCCEEDED(hr));
+
+    // Create texture view.
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = desc.MipLevels;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    hr = m_device->CreateShaderResourceView(*out_texture, &srvDesc, out_textureSrv);
+    KMASSERT(SUCCEEDED(hr));
+}
+
+void RenderingApi::DestroyTexture(ID3D11Texture2D** inout_texture, ID3D11ShaderResourceView** inout_textureSrv)
+{
+    if (*inout_texture != nullptr)
+    {
+        (*inout_texture)->Release();
+        inout_texture = nullptr;
+    }
+
+    if (*inout_textureSrv != nullptr)
+    {
+        (*inout_textureSrv)->Release();
+        inout_textureSrv = nullptr;
+    }
+}
+
+void RenderingApi::MapResourceAsWriteDiscard(ID3D11Resource* resource, void** out_data, unsigned* out_rowPitch)
+{
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+    HRESULT hr = m_deviceContext->Map(resource, 0/*Subresource*/, D3D11_MAP_WRITE_DISCARD, 0/*MapFlags*/, &mappedResource);
+    KMASSERT(SUCCEEDED(hr));
+    *out_data = mappedResource.pData;
+    *out_rowPitch = mappedResource.RowPitch;
+}
+
+void RenderingApi::UnmapResource(ID3D11Resource* resource)
+{
+    m_deviceContext->Unmap(resource, 0/*Subresource*/);
+}
+
 void RenderingApi::PrepareForRender(const float clearColor[4])
 {
     m_deviceContext->OMSetRenderTargets(1, &m_mainRenderTargetView, NULL);

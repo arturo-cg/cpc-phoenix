@@ -22,10 +22,6 @@ public:
     virtual void              End(bool bIncludedSuper = true);
 
 
-    /** Updates the window with the current content of the emulated video output. */
-    void                      DrawVideoOutput();
-
-
     //
     // Message handlers (INTERNAL USE ONLY)
     //

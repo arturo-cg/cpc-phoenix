@@ -31,11 +31,11 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="WindowsKeyStateProvider.h" />
     <ClInclude Include="WinSoundOutput.h" />
-    <ClInclude Include="WinVideoOutput.h" />
     <ClInclude Include="res\Resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
     <ClInclude Include="RenderingApi.h" />
+    <ClInclude Include="TextureVideoOutput.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -47,7 +47,7 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="WindowsKeyStateProvider.cpp" />
     <ClCompile Include="WinSoundOutput.cpp" />
-    <ClCompile Include="WinVideoOutput.cpp" />
     <ClCompile Include="RenderingApi.cpp" />
+    <ClCompile Include="TextureVideoOutput.cpp" />
   </ItemGroup>
 </Project>

@@ -149,9 +149,9 @@
     <ClInclude Include="Settings.h" />
     <ClInclude Include="StatusBar.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TextureVideoOutput.h" />
     <ClInclude Include="WindowsKeyStateProvider.h" />
     <ClInclude Include="WinSoundOutput.h" />
-    <ClInclude Include="WinVideoOutput.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -165,9 +165,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TextureVideoOutput.cpp" />
     <ClCompile Include="WindowsKeyStateProvider.cpp" />
     <ClCompile Include="WinSoundOutput.cpp" />
-    <ClCompile Include="WinVideoOutput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AmstradCPC\AmstradCPC.vcxproj">

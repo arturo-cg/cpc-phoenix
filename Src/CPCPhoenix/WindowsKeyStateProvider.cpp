@@ -2,7 +2,6 @@
 //------------------------------------------------------------------------------
 
 #include "stdafx.h"
-#include "imgui.h"
 #include "WindowsKeyStateProvider.h"
 #include "Application.h"
 #include "AppWindow.h"

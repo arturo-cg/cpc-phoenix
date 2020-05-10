@@ -47,7 +47,7 @@ namespace CPC {
             static const unsigned BytesPerPixel = 4;
             const SBufferProperties& bufferProps = GetBufferProperties();
             unsigned bytesPerRow = (bufferProps.nWidth * BytesPerPixel) + bufferProps.nStride;
-            unsigned* destination = (unsigned*)(GetBuffer() + (m_beamY * bytesPerRow) + (m_beamX * BytesPerPixel));
+            unsigned* destination = (unsigned*)(bufferProps.data + (m_beamY * bytesPerRow) + (m_beamX * BytesPerPixel));
 
             KMASSERT(GetBufferProperties().eFormat == PIXELFORMAT_B8G8R8X8);
             if ((m_beamX + CGateArray::NUM_PHYSICAL_PIXELS_PER_CYCLE) <= BUFFER_WIDTH)     // Make sure we don't write outside of the buffer. TODO: write as many pixels as possible.

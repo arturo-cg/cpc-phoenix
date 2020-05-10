@@ -2,7 +2,6 @@
 //------------------------------------------------------------------------------
 
 #include "stdafx.h"
-#include "imgui.h"
 #include "AppWindow.h"
 #include "Application.h"
 #include "DisplayWindow.h"
@@ -241,15 +240,6 @@ void AppWindow::OnApplicationSettingsChanged()
 
     // Update the status bar
     m_pStatusBar->SetInsertedDiskNames(pSettings->GetDiskImage(0), pSettings->GetDiskImage(1));
-}
-
-//----------------------------------------------------------------------------
-/**
-**
-*/
-void AppWindow::DrawVideoOutput()
-{
-    m_pDisplayWindow->InvalidateAll(false);
 }
 
 //----------------------------------------------------------------------------

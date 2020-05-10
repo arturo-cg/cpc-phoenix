@@ -71,6 +71,12 @@ using namespace std;    // No need to specify std:: for STL symbols
 #include <CommCtrl.h>
 #include <Mmsystem.h>
 
+// Direct3D
+#include <d3d11.h>
+
+// Dear ImGui
+#include "imgui.h"
+
 // Own general purpose includes
 #include "kmbGlobalDefs.h"
 #include "Debug/kmbAsserts.h"

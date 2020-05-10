@@ -53,6 +53,7 @@ namespace CPC {
             //unsigned     nHeight;           // Height of the buffer in pixels.
             unsigned     nStride;           // Length of the gap in bytes between two consecutive scan lines.
             EPixelFormat eFormat;           // Pixel format.
+            unsigned char* data;            // Pointer to the buffer data.
         };
 
 
@@ -80,10 +81,8 @@ namespace CPC {
 
     protected:
 
-        /** Called by the emulator to get the properties of the buffer(s) provided by the derived class. These properties should never change. */
+        /** Called by the emulator to get the properties of the buffer(s) provided by the derived class. */
         virtual const SBufferProperties& GetBufferProperties() const = 0;
-        /** Called by the emulator to get a pointer to the buffer that it should write to. */
-        virtual unsigned char*  GetBuffer() = 0;
         /** Called by the emulator to indicate the current image buffer is complete and should be shown to the user, and a new one is going to be written.
         *** Notes:
         ***  - If the derived class uses a double buffer technique, this is when front and back buffers should be swapped.

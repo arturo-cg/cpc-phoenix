@@ -3,7 +3,6 @@
 
 #include "stdafx.h"
 #include "Application.h"
-#include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 #include "cpcMachine.h"
@@ -15,7 +14,7 @@
 #include "RenderingApi.h"
 #include "StatusBar.h"
 #include "WindowsKeyStateProvider.h"
-#include "WinVideoOutput.h"
+#include "TextureVideoOutput.h"
 #include "WinSoundOutput.h"
 #include "Window/kmbWindow.h"
 #include "Msb/kmbMsbManager.h"
@@ -76,6 +75,13 @@ bool Application::Init(HINSTANCE hInstance)
     {
         InitializeGui();
     }
+    // Video output.
+    if (bRet)
+    {
+        m_videoOutput = new TextureVideoOutput(m_pMachine);
+        m_videoOutput->Init();
+        m_pMachine->SetVideoOutput(m_videoOutput);
+    }
 
     if (bRet)
         m_bOk = true;
@@ -110,7 +116,7 @@ void Application::ResetVars()
     m_pMachine = NULL;
     m_uFrameCount = 0;
     m_pKeyStateProvider = NULL;
-    m_pVideoOutput = NULL;
+    m_videoOutput = NULL;
     m_pSoundOutput = NULL;
 }
 
@@ -180,10 +186,7 @@ void Application::CreateMachine()
         // +- Create the machine.
         m_pMachine = new CPC::CMachine(*machineSpecifications, m_pKeyStateProvider);
 
-        // Video output.
-        m_pVideoOutput = new CWinVideoOutput(m_pMachine);
-        m_pVideoOutput->Init();
-        m_pMachine->SetVideoOutput(m_pVideoOutput);
+        // Video output will be created and set later, after RenderingApi creation.
 
         // Sound output.
         m_pMachine->SetSoundOutput(m_pSoundOutput);
@@ -217,10 +220,10 @@ void Application::DestroyMachine()
         m_pMachine = NULL;
     }
 
-    if (m_pVideoOutput != NULL)
+    if (m_videoOutput != NULL)
     {
-        delete m_pVideoOutput;
-        m_pVideoOutput = NULL;
+        delete m_videoOutput;
+        m_videoOutput = NULL;
     }
 }
 
@@ -511,8 +514,10 @@ void Application::Run()
         m_pMachine->Run(TIME_STEP_USECS);
 
         // Has the emulated machine completed a new video frame?
-        if (m_uFrameCount < m_pVideoOutput->GetFrameCount())
+        if (m_uFrameCount < m_videoOutput->GetFrameCount())
         {
+            m_uFrameCount = m_videoOutput->GetFrameCount();
+
             // Process Windows messages.
             // Note: ideally, this wouldn't be tied to a frame of the emulated frame, but rather it would have its own real time counter that triggered Windows message processing
             //       at regular real time intervals. In practice, the emulator runs at full speed in most scenarios (or fast enough in Debug) so this will do.
@@ -523,13 +528,9 @@ void Application::Run()
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
 
-            // Show the big demo window (most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-            bool show_demo_window = true;
-            ImGui::ShowDemoWindow(&show_demo_window);
-
-            // Draw new video output.
-            m_pAppWindow->DrawVideoOutput();
-            m_uFrameCount = m_pVideoOutput->GetFrameCount();
+            // Draw all the GUI.
+            // This includes the emulator video output.
+            DrawGui();
 
             // Limit the emulation speed.
             double deltaTimeUsecs;
@@ -589,6 +590,18 @@ void Application::Run()
 
     // Save user settings.
     m_settings.SaveToFile();
+}
+
+void Application::DrawGui()
+{
+    // Show the big demo window (most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+    bool show_demo_window = true;
+    ImGui::ShowDemoWindow(&show_demo_window);
+
+    // Emulator video output.
+    ImGui::Begin("Amstrad CPC"/*, nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav*/);
+    m_videoOutput->DrawGui();
+    ImGui::End();
 }
 
 void Application::Render()
