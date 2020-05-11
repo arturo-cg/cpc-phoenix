@@ -116,5 +116,12 @@ void TextureVideoOutput::UnmapBackBufferTexture()
 
 void TextureVideoOutput::DrawGui()
 {
-    ImGui::Image(m_textureSrvs[m_frontBuffer], ImVec2((float)TEXTURE_SIZE, (float)TEXTURE_SIZE));
+    // Video output.
+    ImVec2 size = ImVec2(float(VIEWPORT_WIDTH),
+                         float(VIEWPORT_HEIGHT) * 2.f);
+    ImVec2 uv0 = ImVec2(float(VIEWPORT_LEFT) / float(TEXTURE_SIZE - 1),
+                        float(VIEWPORT_TOP) / float(TEXTURE_SIZE - 1));
+    ImVec2 uv1 = ImVec2(float(VIEWPORT_LEFT + VIEWPORT_WIDTH) / float(TEXTURE_SIZE),
+                        float(VIEWPORT_TOP + VIEWPORT_HEIGHT) / float(TEXTURE_SIZE));
+    ImGui::Image(m_textureSrvs[m_frontBuffer], size, uv0, uv1);
 }
