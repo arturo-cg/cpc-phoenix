@@ -105,7 +105,7 @@ void TextureVideoOutput::MapBackBufferTexture()
 {
     Application::Singleton()->GetRenderingApi()->MapResourceAsWriteDiscard(m_textures[m_backBuffer], (void**)&m_bufferProperties.data, &m_bufferProperties.nStride);
     m_bufferProperties.nWidth = TEXTURE_SIZE;
-    m_bufferProperties.eFormat = PIXELFORMAT_B8G8R8X8;
+    m_bufferProperties.eFormat = PIXELFORMAT_B8G8R8A8;
 }
 
 void TextureVideoOutput::UnmapBackBufferTexture()

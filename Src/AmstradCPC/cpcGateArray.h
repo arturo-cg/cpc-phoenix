@@ -64,9 +64,15 @@ namespace CPC {
         ERgbConversionTableType GetRgbConversionTable() const { return m_eRgbConversionTableType; }
 
         /** Returns the current RGB of the specified pen. */
-        unsigned                GetPenRgb(cpcByte nPen) const { return m_paCurrentRgbConversionTable[m_anPenColors[nPen]]; }
+        unsigned                GetPenRgb(cpcByte nPen) const { return m_paCurrentRgbConversionTable[m_anPenColors[nPen]] | m_alphaMask; }
         /** Returns the current RGB of the border. */
-        unsigned                GetBorderRgb() const { return m_paCurrentRgbConversionTable[m_nBorderColor]; }
+        unsigned                GetBorderRgb() const { return m_paCurrentRgbConversionTable[m_nBorderColor] | m_alphaMask; }
+
+        /** Sets the color alpha value. All the RGB values returned by the CGateArray will have this value in their alpha channel.
+        *** The emulator core doesn't use or care about this value; this is useful to the emulator front-end only. */
+        void                    SetColorAlpha(cpcByte alpha) { m_alphaMask = (unsigned(alpha) << 24); }
+        /** Returns the color alpha value. */
+        cpcByte                 GetColorAlpha(cpcByte alpha) const { return cpcByte(m_alphaMask >> 24); }
 
         /** Returns true if the HSYNC output from the Gate-Array is currently active, or false otherwise. */
         bool                    IsHSyncActive() const { return m_bMonitorHSyncState; }
@@ -164,6 +170,7 @@ namespace CPC {
         /** RGB conversion table. It allows to simulate a color or a green monitor. */
         ERgbConversionTableType m_eRgbConversionTableType;
         const unsigned*         m_paCurrentRgbConversionTable;
+        unsigned                m_alphaMask;
 
         /** Screen mode. When this value is changed, it won't take effect until the next HSYNC. */
         EScreenMode             m_eRequestedScreenMode;

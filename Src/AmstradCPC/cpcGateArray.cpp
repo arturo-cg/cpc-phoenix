@@ -187,6 +187,7 @@ namespace CPC {
 
         m_nBorderColor = 0;
         m_paCurrentRgbConversionTable = s_aRgbConversionTable_Color;
+        SetColorAlpha(0xFF);    // This sets m_alphaChannel.
         m_eRequestedScreenMode = SCREEN_MODE_1;
         m_eScreenMode = SCREEN_MODE_1;
         m_nSecondaryRamPage = 1;
@@ -707,7 +708,7 @@ namespace CPC {
             // While HSYNC or VSYNC from the CRTC is active, it outputs black color; otherwise, it outputs the normal border color.
             const CCrtc* pCrtc = GetMachine()->GetCrtc();
             unsigned colorRgb = (pCrtc->GetHSyncState() || pCrtc->GetVSyncState()) ? 0 :    // Black output while CRTC's HSYNC or VSYNC active.
-                                m_paCurrentRgbConversionTable[m_nBorderColor];              // Border color.
+                                GetBorderRgb();                                             // Border color.
             for (unsigned i = 0; i < NUM_PHYSICAL_PIXELS_PER_CYCLE; i++)
             {
                 m_aPhysicalPixels[i] = colorRgb;

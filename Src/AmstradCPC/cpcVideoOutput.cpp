@@ -46,10 +46,9 @@ namespace CPC {
             // +- Calculate the pointer to the buffer that corresponds to the current beam position.
             static const unsigned BytesPerPixel = 4;
             const SBufferProperties& bufferProps = GetBufferProperties();
-            unsigned bytesPerRow = (bufferProps.nWidth * BytesPerPixel) + bufferProps.nStride;
-            unsigned* destination = (unsigned*)(bufferProps.data + (m_beamY * bytesPerRow) + (m_beamX * BytesPerPixel));
+            unsigned char* destination = bufferProps.data + (m_beamY * bufferProps.nStride) + (m_beamX * BytesPerPixel);
 
-            KMASSERT(GetBufferProperties().eFormat == PIXELFORMAT_B8G8R8X8);
+            KMASSERT(GetBufferProperties().eFormat == PIXELFORMAT_B8G8R8A8);
             if ((m_beamX + CGateArray::NUM_PHYSICAL_PIXELS_PER_CYCLE) <= BUFFER_WIDTH)     // Make sure we don't write outside of the buffer. TODO: write as many pixels as possible.
             {
                 memcpy(destination, pixelRGBs, CGateArray::NUM_PHYSICAL_PIXELS_PER_CYCLE * BytesPerPixel);

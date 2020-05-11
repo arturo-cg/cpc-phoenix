@@ -41,7 +41,7 @@ namespace CPC {
 
         enum EPixelFormat
         {
-            PIXELFORMAT_B8G8R8X8 = 0,      // 32-bit pixel with four 8-bit channels: Blue, green, red and another unused one.
+            PIXELFORMAT_B8G8R8A8 = 0,      // 32-bit pixel with four 8-bit channels: Blue, green, red and alpha.
 
             PIXELFORMAT_LAST,
             PIXELFORMAT_INVALID = 0x7FFFFFFF
