@@ -184,6 +184,13 @@ void RenderingApi::UnmapResource(ID3D11Resource* resource)
     m_deviceContext->Unmap(resource, 0/*Subresource*/);
 }
 
+void RenderingApi::ResizeRenderTarget(int width, int height)
+{
+    DestroyRenderTarget();
+    m_swapChain->ResizeBuffers(0, (UINT)width, (UINT)height, DXGI_FORMAT_UNKNOWN, 0);
+    CreateRenderTarget();
+}
+
 void RenderingApi::PrepareForRender(const float clearColor[4])
 {
     m_deviceContext->OMSetRenderTargets(1, &m_mainRenderTargetView, NULL);

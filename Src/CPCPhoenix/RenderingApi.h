@@ -37,6 +37,8 @@ public:
     void MapResourceAsWriteDiscard(ID3D11Resource* resource, void** out_data, unsigned* out_rowPitch);
     void UnmapResource(ID3D11Resource* resource);
 
+    void ResizeRenderTarget(int width, int height);
+
     void PrepareForRender(const float clearColor[4] = COLOR_BLACK);
     void Present(bool vsync);
 

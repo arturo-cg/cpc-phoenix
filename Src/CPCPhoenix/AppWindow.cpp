@@ -7,6 +7,7 @@
 #include "DisplayWindow.h"
 #include "StatusBar.h"
 #include "WinVideoOutput.h"
+#include "RenderingApi.h"
 #include "cpcMachine.h"
 #include "cpcKeyboard.h"
 
@@ -322,6 +323,12 @@ void AppWindow::OpenLoadDiskImageDialog(unsigned nDrive)
     {
         m_pDisplayWindow->SetSize(iWidth, iHeight - m_pStatusBar->GetHeight());
         m_pDisplayWindow->InvalidateAll(FALSE);
+    }
+
+    // Resize rendering buffers.
+    if ((Application::Singleton()->GetRenderingApi() != NULL)/* && (wParam != SIZE_MINIMIZED)*/)
+    {
+        Application::Singleton()->GetRenderingApi()->ResizeRenderTarget(iWidth, iHeight);
     }
 
     return 0;
