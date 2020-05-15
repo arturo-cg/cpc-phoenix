@@ -123,5 +123,7 @@ void TextureVideoOutput::DrawGui()
                         float(VIEWPORT_TOP) / float(TEXTURE_SIZE - 1));
     ImVec2 uv1 = ImVec2(float(VIEWPORT_LEFT + VIEWPORT_WIDTH) / float(TEXTURE_SIZE),
                         float(VIEWPORT_TOP + VIEWPORT_HEIGHT) / float(TEXTURE_SIZE));
+    ImGui::PushAllowKeyboardFocus(false);
     ImGui::Image(m_textureSrvs[m_frontBuffer], size, uv0, uv1);
+    ImGui::PopAllowKeyboardFocus();
 }

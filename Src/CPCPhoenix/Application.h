@@ -101,6 +101,7 @@ private:
 
     void                      ProcessWindowsMessages();
     void                      DrawGui();
+    void                      DrawMainWindowGui();
     void                      Render();
 
     bool                      m_bOk;

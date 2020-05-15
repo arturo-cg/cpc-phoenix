@@ -235,10 +235,10 @@ void Application::InitializeGui()
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    //io.ConfigViewportsNoAutoMerge = true;
-    //io.ConfigViewportsNoTaskBarIcon = true;
+    io.ConfigViewportsNoAutoMerge = true;
+    io.ConfigViewportsNoTaskBarIcon = true;
     //io.ConfigViewportsNoDefaultParent = true;
     //io.ConfigDockingAlwaysTabBar = true;
     //io.ConfigDockingTransparentPayload = true;
@@ -260,7 +260,7 @@ void Application::InitializeGui()
     }
 
     // Setup Platform/Renderer bindings
-    ImGui_ImplWin32_Init(m_pAppWindow->GetHWnd());
+    ImGui_ImplWin32_Init(m_pAppWindow->GetDisplayWindow()->GetHWnd());
     ImGui_ImplDX11_Init(m_renderingApi->GetDevice(), m_renderingApi->GetDeviceContext());
 }
 
@@ -597,10 +597,23 @@ void Application::DrawGui()
     // Show the big demo window (most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
     bool show_demo_window = true;
     ImGui::ShowDemoWindow(&show_demo_window);
+    // Main window.
+    DrawMainWindowGui();
+}
 
+void Application::DrawMainWindowGui()
+{
+    RECT displayWindowRect;
+    m_pAppWindow->GetDisplayWindow()->GetRect(&displayWindowRect);
+    ImGui::SetNextWindowPos(ImVec2((float)displayWindowRect.left, (float)displayWindowRect.top));
+    ////ImGui::SetNextWindowSize(ImVec2(float(displayWindowRect.right - displayWindowRect.left), float(displayWindowRect.bottom - displayWindowRect.top)));
+    // Main Dear ImGui window is always inside the application OS window.
+    ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+    // Main window begin.
+    ImGui::Begin("Main", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings/* | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav*/);
     // Emulator video output.
-    ImGui::Begin("Amstrad CPC"/*, nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav*/);
     m_videoOutput->DrawGui();
+    // Main window end.
     ImGui::End();
 }
 
