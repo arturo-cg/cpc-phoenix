@@ -610,11 +610,59 @@ void Application::DrawMainWindowGui()
     // Main Dear ImGui window is always inside the application OS window.
     ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
     // Main window begin.
-    ImGui::Begin("Main", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings/* | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoNav*/);
+    ImGui::Begin("Main", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar);
+    // Main menu.
+    DrawMainMenuGui();
     // Emulator video output.
-    m_videoOutput->DrawGui();
+    m_videoOutput->DrawGui(ImGui::GetWindowViewport()->GetWorkSize().x);
     // Main window end.
     ImGui::End();
+}
+
+void Application::DrawMainMenuGui()
+{
+    if (ImGui::BeginMenuBar())
+    {
+        //
+        // "File" menu.
+        //
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::BeginMenu("Drive A"))
+            {
+                if (ImGui::MenuItem("Insert Disk..."))
+                {
+                    OpenLoadDiskImageDialog(0);
+                }
+                if (ImGui::MenuItem("Eject Disk"))
+                {
+                    SetDisk(0, "");
+                    m_pAppWindow->OnApplicationSettingsChanged();
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Drive B"))
+            {
+                if (ImGui::MenuItem("Insert Disk..."))
+                {
+                    OpenLoadDiskImageDialog(1);
+                }
+                if (ImGui::MenuItem("Eject Disk"))
+                {
+                    SetDisk(1, "");
+                    m_pAppWindow->OnApplicationSettingsChanged();
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit", "Alt+F4"))
+            {
+                RequestExitApp();
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
+    }
 }
 
 void Application::Render()
@@ -631,4 +679,42 @@ void Application::Render()
     }
 
     m_renderingApi->Present(false/*vsync*/);
+}
+
+void Application::OpenLoadDiskImageDialog(unsigned nDrive)
+{
+    // Show the File Dialog to let the user pick a file
+    char szCurrentDir[1000];
+    ::GetCurrentDirectory(sizeof(szCurrentDir), szCurrentDir);
+
+    string sInitialDir;
+    sInitialDir = szCurrentDir + string("\\Disks");
+
+    char szFileFullPath[1000];
+    char szFileName[1000];
+
+    OPENFILENAME openFileName;
+    memset(&openFileName, 0, sizeof(openFileName));
+    openFileName.lStructSize = sizeof(OPENFILENAME);
+    openFileName.hwndOwner = m_pAppWindow->GetHWnd();
+    openFileName.lpstrFilter = "DSK disk images (*.dsk)\0*.dsk\0\0";
+    //strncpy( szFileFullPath, "", sizeof(szFileFullPath) );
+    szFileFullPath[0] = '\0';
+    openFileName.lpstrFile = szFileFullPath;
+    openFileName.nMaxFile = sizeof(szFileFullPath);
+    openFileName.lpstrFileTitle = szFileName;
+    openFileName.nMaxFileTitle = sizeof(szFileName);
+    openFileName.lpstrInitialDir = sInitialDir.c_str();
+    openFileName.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;  // The flag OFN_NOCHANGEDIR is ignored on Windows XP and below.
+    openFileName.FlagsEx = OFN_EX_NOPLACESBAR;
+
+    if (::GetOpenFileName(&openFileName) != FALSE)
+    {
+        // "Insert" the disk into the emulated machine.
+        SetDisk(nDrive, szFileFullPath);
+        m_pAppWindow->OnApplicationSettingsChanged();
+    }
+
+    // Restore the working directory, changed by the Open File Dialog
+    ::SetCurrentDirectory(szCurrentDir);
 }

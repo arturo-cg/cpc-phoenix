@@ -114,11 +114,13 @@ void TextureVideoOutput::UnmapBackBufferTexture()
     m_bufferProperties.data = nullptr;
 }
 
-void TextureVideoOutput::DrawGui()
+void TextureVideoOutput::DrawGui(float availableWidth)
 {
     // Video output.
-    ImVec2 size = ImVec2(float(VIEWPORT_WIDTH),
-                         float(VIEWPORT_HEIGHT) * 2.f);
+    // +- Zoom - Fixed for now. Uncomment commented code to automatically zoom based on the window width.
+    float zoom = 1.f;  ////float zoom = availableWidth / float(VIEWPORT_WIDTH);
+    ImVec2 size = ImVec2(float(VIEWPORT_WIDTH) * zoom,
+                         float(VIEWPORT_HEIGHT) * 2.f * zoom);
     ImVec2 uv0 = ImVec2(float(VIEWPORT_LEFT) / float(TEXTURE_SIZE - 1),
                         float(VIEWPORT_TOP) / float(TEXTURE_SIZE - 1));
     ImVec2 uv1 = ImVec2(float(VIEWPORT_LEFT + VIEWPORT_WIDTH) / float(TEXTURE_SIZE),

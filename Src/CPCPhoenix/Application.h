@@ -100,9 +100,14 @@ private:
     void                      ShutdownGui();
 
     void                      ProcessWindowsMessages();
+
     void                      DrawGui();
     void                      DrawMainWindowGui();
+    void                      DrawMainMenuGui();
+
     void                      Render();
+
+    void                      OpenLoadDiskImageDialog(unsigned nDrive);
 
     bool                      m_bOk;
 
