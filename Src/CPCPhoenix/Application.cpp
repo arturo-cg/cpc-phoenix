@@ -621,6 +621,7 @@ void Application::DrawMainWindowGui()
     // Emulator video output.
     m_videoOutput->DrawGui(ImGui::GetContentRegionAvail().x);
     // Status bar.
+    ImGui::SetCursorPosY(ImGui::GetWindowViewport()->GetWorkSize().y - (ImGui::GetTextLineHeightWithSpacing() * 3.5f));
     DrawStatusBarGui();
     // Main window end.
     ImGui::End();
