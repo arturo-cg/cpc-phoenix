@@ -339,9 +339,6 @@ void Application::ChangeMachineSpecificationName(string machineSpecificationName
     // Delete the current machine and create the new one
     CreateMachine();
     m_uFrameCount = 0;
-
-    // Notify the application window
-    m_pAppWindow->OnApplicationSettingsChanged();
 }
 
 //----------------------------------------------------------------------------
@@ -355,9 +352,6 @@ void Application::ChangeMonitorTypeSetting(CPC::CGateArray::ERgbConversionTableT
 
     // Set the new monitor type
     m_pMachine->GetGateArray()->SetRgbConversionTable(eMonitorType);
-
-    // Notify the application window
-    m_pAppWindow->OnApplicationSettingsChanged();
 }
 
 //----------------------------------------------------------------------------
@@ -371,9 +365,6 @@ void Application::ChangeScaleSetting(float scale)
 
     // Resize the window.
     m_pAppWindow->ResizeToScale(scale);
-
-    // Notify the application window
-    m_pAppWindow->OnApplicationSettingsChanged();
 }
 
 //----------------------------------------------------------------------------
@@ -387,9 +378,6 @@ void Application::ChangeDrawScanLinesSetting(bool bDrawScanLines)
 
     // TODO: Apply/remove the effect
     //////m_pMachine->GetVideoOutput()->SetScanLineEffectActivated( bDrawScanLines );
-
-    // Notify the application window
-    m_pAppWindow->OnApplicationSettingsChanged();
 }
 
 //----------------------------------------------------------------------------
@@ -400,9 +388,6 @@ void Application::ChangeEmulationSpeedSetting(float fEmulationSpeed)
 {
     // Change application settings
     GetSettings()->SetEmulationSpeed(fEmulationSpeed);
-
-    // Notify the application window
-    m_pAppWindow->OnApplicationSettingsChanged();
 }
 
 //----------------------------------------------------------------------------
@@ -579,7 +564,6 @@ void Application::Run()
             if (s_nStatusBarUpdateDelay == 0)
             {
                 m_measuredEmulationSpeed = (float)((FRAME_DURATION_USECS * 100.0) / deltaTimeUsecs);
-                GetAppWindow()->GetStatusBar()->SetEmulationSpeed(m_measuredEmulationSpeed);
                 s_nStatusBarUpdateDelay = 25;
             }
             s_nStatusBarUpdateDelay--;
@@ -727,7 +711,6 @@ void Application::DrawDiskDriveMenuGui(int driveNumber)
     if (ImGui::MenuItem("Eject Disk"))
     {
         SetDisk(driveNumber, "");
-        m_pAppWindow->OnApplicationSettingsChanged();
     }
 }
 
@@ -813,7 +796,6 @@ void Application::OpenLoadDiskImageDialog(unsigned nDrive)
     {
         // "Insert" the disk into the emulated machine.
         SetDisk(nDrive, szFileFullPath);
-        m_pAppWindow->OnApplicationSettingsChanged();
     }
 
     // Restore the working directory, changed by the Open File Dialog

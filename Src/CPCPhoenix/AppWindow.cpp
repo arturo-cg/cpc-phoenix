@@ -46,17 +46,6 @@ bool AppWindow::Init()
         //...
     }
 
-    // Main menu
-    if (bRet)
-    {
-        m_hMainMenu = ::LoadMenu(::GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MAINMENU));
-        KMASSERTM(m_hMainMenu != NULL, ("Could not create the main menu. GetLastError() == %d", ::GetLastError()));
-        if (m_hMainMenu != NULL)
-        {
-            ::SetMenu(this->GetHWnd(), m_hMainMenu);
-        }
-    }
-
     // DisplayWindow
     if (bRet)
     {
@@ -65,13 +54,6 @@ bool AppWindow::Init()
 
         m_pDisplayWindow = new DisplayWindow;
         m_pDisplayWindow->Init(rWndRect, this);
-    }
-
-    // Status bar
-    if (bRet)
-    {
-        m_pStatusBar = new StatusBar;
-        m_pStatusBar->Init(this);
     }
 
     // Resize application window
@@ -84,12 +66,6 @@ bool AppWindow::Init()
     if (bRet)
     {
         m_hAccelerators = ::LoadAccelerators(::GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_APPWINDOWACCELERATORS));
-    }
-
-    // Update GUI based on settings
-    if (bRet)
-    {
-        OnApplicationSettingsChanged();
     }
 
 
@@ -125,10 +101,8 @@ bool AppWindow::Init()
 */
 void AppWindow::ResetVars()
 {
-    m_hMainMenu = NULL;
     m_hAccelerators = NULL;
     m_pDisplayWindow = NULL;
-    m_pStatusBar = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -137,7 +111,6 @@ void AppWindow::ResetVars()
 */
 void AppWindow::FreeVars()
 {
-    delete m_pStatusBar;
     delete m_pDisplayWindow;
 }
 
@@ -153,135 +126,14 @@ void AppWindow::ResizeToScale(float scale)
 
     RECT rWndRect;
     int nNewWidth = int(CPC::CVideoOutput::VIEWPORT_WIDTH * scale);
-    int nNewHeight = int(CPC::CVideoOutput::VIEWPORT_HEIGHT * 2 * scale) + m_pStatusBar->GetHeight();
+    int nNewHeight = int(CPC::CVideoOutput::VIEWPORT_HEIGHT * 2 * scale);
 
     ::SetRect(&rWndRect, 0, 0, nNewWidth, nNewHeight);
-    ::AdjustWindowRect(&rWndRect, dwStyles, TRUE/*bMenu*/);
+    ::AdjustWindowRect(&rWndRect, dwStyles, FALSE/*bMenu*/);
     ::OffsetRect(&rWndRect, -rWndRect.left, -rWndRect.top);
 
     // Resize it
     SetRect(rWndRect);
-}
-
-//----------------------------------------------------------------------------
-/**
-**
-*/
-void AppWindow::OnApplicationSettingsChanged()
-{
-    const Settings* pSettings;
-    pSettings = Application::Singleton()->GetSettings();
-
-    // Update the menu
-    UINT nItem;
-    nItem = ID_SETTINGS_CPCMODEL_CPC464/*first item*/ + Application::Singleton()->FindMachineSpecificationsOrderedPosition(pSettings->GetMachineSpecificationName());
-    ::CheckMenuRadioItem(m_hMainMenu, ID_SETTINGS_CPCMODEL_CPC464, ID_SETTINGS_CPCMODEL_CPC6128_MAXAM, nItem, MF_BYCOMMAND);
-
-    switch (pSettings->GetMonitorType())
-    {
-        case CPC::CGateArray::RGBCONVERSIONTABLE_COLOR:  nItem = ID_SETTINGS_MONITORTYPE_COLOR; break;
-        case CPC::CGateArray::RGBCONVERSIONTABLE_GREEN:  nItem = ID_SETTINGS_MONITORTYPE_GREEN; break;
-        default:                                         KMASSERT(false); nItem = ID_SETTINGS_MONITORTYPE_COLOR; break;
-    }
-    ::CheckMenuRadioItem(m_hMainMenu, ID_SETTINGS_MONITORTYPE_COLOR, ID_SETTINGS_MONITORTYPE_GREEN, nItem, MF_BYCOMMAND);
-
-    if (pSettings->GetScale() == 1.0f)
-    {
-        nItem = ID_SETTINGS_SCALE_1X;
-    }
-    else if (pSettings->GetScale() == 1.5f)
-    {
-        nItem = ID_SETTINGS_SCALE_1_5X;
-    }
-    else
-    {
-        nItem = ID_SETTINGS_SCALE_1X;
-    }
-    ::CheckMenuRadioItem(m_hMainMenu, ID_SETTINGS_SCALE_1X, ID_SETTINGS_SCALE_1_5X, nItem, MF_BYCOMMAND);
-
-    ::CheckMenuItem(m_hMainMenu, ID_SETTINGS_DRAWSCANLINES, /*MF_BYCOMMAND | */ pSettings->GetDrawScanLines() ? MF_CHECKED : MF_UNCHECKED);
-
-    if (pSettings->GetEmulationSpeed() < 0.f)
-    {
-        nItem = ID_SETTINGS_EMULATIONSPEED_UNLIMITED;
-    }
-    else
-    {
-        if (pSettings->GetEmulationSpeed() <= 0.251f)
-        {
-            nItem = ID_SETTINGS_EMULATIONSPEED_25;
-        }
-        else
-        {
-            if (pSettings->GetEmulationSpeed() <= 0.51f)
-            {
-                nItem = ID_SETTINGS_EMULATIONSPEED_50;
-            }
-            else
-            {
-                if (pSettings->GetEmulationSpeed() <= 1.01f)
-                {
-                    nItem = ID_SETTINGS_EMULATIONSPEED_100;
-                }
-                else
-                {
-                    if (pSettings->GetEmulationSpeed() <= 1.21f)
-                    {
-                        nItem = ID_SETTINGS_EMULATIONSPEED_120;
-                    }
-                    else
-                    {
-                        nItem = ID_SETTINGS_EMULATIONSPEED_UNLIMITED;
-                    }
-                }
-            }
-        }
-    }
-    ::CheckMenuRadioItem(m_hMainMenu, ID_SETTINGS_EMULATIONSPEED_25, ID_SETTINGS_EMULATIONSPEED_UNLIMITED, nItem, MF_BYCOMMAND);
-
-    // Update the status bar
-    m_pStatusBar->SetInsertedDiskNames(pSettings->GetDiskImage(0), pSettings->GetDiskImage(1));
-}
-
-//----------------------------------------------------------------------------
-/**
-**
-*/
-void AppWindow::OpenLoadDiskImageDialog(unsigned nDrive)
-{
-    // Show the File Dialog to let the user pick a file
-    char szCurrentDir[1000];
-    ::GetCurrentDirectory(sizeof(szCurrentDir), szCurrentDir);
-
-    string sInitialDir;
-    sInitialDir = szCurrentDir + string("\\Disks");
-
-    char szFileFullPath[1000];
-    char szFileName[1000];
-
-    OPENFILENAME openFileName;
-    memset(&openFileName, 0, sizeof(openFileName));
-    openFileName.lStructSize = sizeof(OPENFILENAME);
-    openFileName.hwndOwner = GetHWnd();
-    openFileName.lpstrFilter = "DSK disk images (*.dsk)\0*.dsk\0\0";
-    //strncpy( szFileFullPath, "", sizeof(szFileFullPath) );
-    szFileFullPath[0] = '\0';
-    openFileName.lpstrFile = szFileFullPath;
-    openFileName.nMaxFile = sizeof(szFileFullPath);
-    openFileName.lpstrFileTitle = szFileName;
-    openFileName.nMaxFileTitle = sizeof(szFileName);
-    openFileName.lpstrInitialDir = sInitialDir.c_str();
-    openFileName.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;  // The flag OFN_NOCHANGEDIR is ignored on Windows XP and below.
-    openFileName.FlagsEx = OFN_EX_NOPLACESBAR;
-
-    if (::GetOpenFileName(&openFileName) != FALSE)
-    {
-        Application::Singleton()->SetDisk(nDrive, szFileFullPath);
-        OnApplicationSettingsChanged();
-    }
-
-    // Restore the working directory, changed by the Open File Dialog
-    ::SetCurrentDirectory(szCurrentDir);
 }
 
 //----------------------------------------------------------------------------
@@ -311,17 +163,10 @@ void AppWindow::OpenLoadDiskImageDialog(unsigned nDrive)
 */
 /*virtual*/ LRESULT AppWindow::_OnSize(int iWidth, int iHeight)
 {
-    // Resize the status bar
-    if (m_pStatusBar != NULL)
-    {
-        ::SendMessage(m_pStatusBar->GetHWnd(), WM_SIZE, 0, LOWORD(iWidth) | HIWORD(iHeight));
-        ::InvalidateRect(m_pStatusBar->GetHWnd(), NULL, FALSE);
-    }
-
     // Resize the display window
     if (m_pDisplayWindow != NULL)
     {
-        m_pDisplayWindow->SetSize(iWidth, iHeight - m_pStatusBar->GetHeight());
+        m_pDisplayWindow->SetSize(iWidth, iHeight);
         m_pDisplayWindow->InvalidateAll(FALSE);
     }
 
@@ -346,16 +191,14 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
     CPC::CMachine* pEmulatedMachine;
     pEmulatedMachine = pApplication->GetEmulatedMachine();
 
+    // This used to have all the entries of the old native menu.
+    // Now, only the key accelerators are present.
+    // Dear ImGui doens't have support for key accelerators so we have to do it the old, native way.
     switch (nItemId)
     {
         //
         // File Menu
         //
-
-        case ID_DRIVEA_INSERTDISK:  OpenLoadDiskImageDialog(0); break;
-        case ID_DRIVEA_EJECTDISK:   pApplication->SetDisk(0, ""); OnApplicationSettingsChanged(); break;
-        case ID_DRIVEB_INSERTDISK:  OpenLoadDiskImageDialog(1); break;
-        case ID_DRIVEB_EJECTDISK:   pApplication->SetDisk(1, ""); OnApplicationSettingsChanged(); break;
 
         case ID_FILE_EXIT:  RequestClose(); break;
 
@@ -363,25 +206,6 @@ LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
         //
         // Settings Menu
         //
-
-        case ID_SETTINGS_CPCMODEL_CPC464:
-        case ID_SETTINGS_CPCMODEL_CPC664:
-        case ID_SETTINGS_CPCMODEL_CPC6128:
-        case ID_SETTINGS_CPCMODEL_CPC6128_MAXAM:
-        {
-            unsigned position = nItemId - ID_SETTINGS_CPCMODEL_CPC464/*first item*/;
-            const string* name = pApplication->GetMachineSpecificationsNameAtPosition(position);
-            pApplication->ChangeMachineSpecificationName(*name);
-            break;
-        }
-
-        case ID_SETTINGS_MONITORTYPE_COLOR:  pApplication->ChangeMonitorTypeSetting(CPC::CGateArray::RGBCONVERSIONTABLE_COLOR); break;
-        case ID_SETTINGS_MONITORTYPE_GREEN:  pApplication->ChangeMonitorTypeSetting(CPC::CGateArray::RGBCONVERSIONTABLE_GREEN); break;
-
-        case ID_SETTINGS_SCALE_1X:    pApplication->ChangeScaleSetting(1.0f); break;
-        case ID_SETTINGS_SCALE_1_5X:  pApplication->ChangeScaleSetting(1.5f); break;
-
-        case ID_SETTINGS_DRAWSCANLINES:  pApplication->ChangeDrawScanLinesSetting(!pApplication->GetSettings()->GetDrawScanLines()); break;
 
         case ID_SETTINGS_EMULATIONSPEED_25:         pApplication->ChangeEmulationSpeedSetting(0.25f); break;
         case ID_SETTINGS_EMULATIONSPEED_50:         pApplication->ChangeEmulationSpeedSetting(0.5f); break;

@@ -30,9 +30,6 @@ public:
     virtual void              End(bool bIncludedSuper = true);
 
 
-    /** The application notifies that the settings have changed. */
-    void                      OnApplicationSettingsChanged();
-
     /** Returns the accelerators used by this window. */
     HACCEL                    GetAccelerators() const { return m_hAccelerators; }
 
@@ -40,11 +37,6 @@ public:
     DisplayWindow*            GetDisplayWindow() { return m_pDisplayWindow; }
     /** Returns the display window (the one that shows the emulated machine display output) (const version). */
     const DisplayWindow*      GetDisplayWindow() const { return m_pDisplayWindow; }
-
-    /** Returns the status bar. */
-    StatusBar*                GetStatusBar() { return m_pStatusBar; }
-    /** Returns the status bar (const version). */
-    const StatusBar*          GetStatusBar() const { return m_pStatusBar; }
 
     /** Resizes the app window and the display window to fit the specified scale level. */
     void                      ResizeToScale(float scale);
@@ -70,13 +62,9 @@ private:
     void                      ResetVars();
     void                      FreeVars();
 
-    void                      OpenLoadDiskImageDialog(unsigned nDrive);
 
-
-    HMENU                     m_hMainMenu;
     HACCEL                    m_hAccelerators;
     DisplayWindow*            m_pDisplayWindow;
-    StatusBar*                m_pStatusBar;
 
 };
 
