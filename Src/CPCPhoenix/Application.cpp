@@ -82,6 +82,11 @@ bool Application::Init(HINSTANCE hInstance)
         m_videoOutput->Init();
         m_pMachine->SetVideoOutput(m_videoOutput);
     }
+    // Others.
+    if (bRet)
+    {
+        m_measuredEmulationSpeed = 0.f;
+    }
 
     if (bRet)
         m_bOk = true;
@@ -573,9 +578,8 @@ void Application::Run()
             static unsigned s_nStatusBarUpdateDelay = 0;
             if (s_nStatusBarUpdateDelay == 0)
             {
-                float fEmulationSpeed;
-                fEmulationSpeed = (float)((FRAME_DURATION_USECS * 100.0) / deltaTimeUsecs);
-                GetAppWindow()->GetStatusBar()->SetEmulationSpeed(fEmulationSpeed);
+                m_measuredEmulationSpeed = (float)((FRAME_DURATION_USECS * 100.0) / deltaTimeUsecs);
+                GetAppWindow()->GetStatusBar()->SetEmulationSpeed(m_measuredEmulationSpeed);
                 s_nStatusBarUpdateDelay = 25;
             }
             s_nStatusBarUpdateDelay--;
@@ -615,7 +619,9 @@ void Application::DrawMainWindowGui()
     // Main menu.
     DrawMainMenuGui();
     // Emulator video output.
-    m_videoOutput->DrawGui(ImGui::GetWindowViewport()->GetWorkSize().x);
+    m_videoOutput->DrawGui(ImGui::GetContentRegionAvail().x);
+    // Status bar.
+    DrawStatusBarGui();
     // Main window end.
     ImGui::End();
 }
@@ -631,28 +637,12 @@ void Application::DrawMainMenuGui()
         {
             if (ImGui::BeginMenu("Drive A"))
             {
-                if (ImGui::MenuItem("Insert Disk..."))
-                {
-                    OpenLoadDiskImageDialog(0);
-                }
-                if (ImGui::MenuItem("Eject Disk"))
-                {
-                    SetDisk(0, "");
-                    m_pAppWindow->OnApplicationSettingsChanged();
-                }
+                DrawDiskDriveMenuGui(0);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Drive B"))
             {
-                if (ImGui::MenuItem("Insert Disk..."))
-                {
-                    OpenLoadDiskImageDialog(1);
-                }
-                if (ImGui::MenuItem("Eject Disk"))
-                {
-                    SetDisk(1, "");
-                    m_pAppWindow->OnApplicationSettingsChanged();
-                }
+                DrawDiskDriveMenuGui(1);
                 ImGui::EndMenu();
             }
             ImGui::Separator();
@@ -725,6 +715,54 @@ void Application::DrawMainMenuGui()
         }
         ImGui::EndMenuBar();
     }
+}
+
+void Application::DrawDiskDriveMenuGui(int driveNumber)
+{
+    if (ImGui::MenuItem("Insert Disk..."))
+    {
+        OpenLoadDiskImageDialog(driveNumber);
+    }
+    if (ImGui::MenuItem("Eject Disk"))
+    {
+        SetDisk(driveNumber, "");
+        m_pAppWindow->OnApplicationSettingsChanged();
+    }
+}
+
+void Application::DrawStatusBarGui()
+{
+    ImGui::Spacing();
+    ImGui::Separator();
+    // Disk drives.
+    ImGui::BeginGroup();
+    DrawDiskDriveBarGui('A', 0);
+    DrawDiskDriveBarGui('B', 1);
+    ImGui::EndGroup();
+    // Emulation speed.
+    ImGui::SameLine();
+    ImGui::Text("Speed: ");
+    ImGui::SameLine();
+    ImGui::TextDisabled("%.1f%%", m_measuredEmulationSpeed);
+}
+
+void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
+{
+    string label = "Drive ";
+    label += driveLetter;
+    label += ":";
+    if (ImGui::Button(label.c_str()))
+    {
+        ImGui::OpenPopup(label.c_str());
+    }
+    if (ImGui::BeginPopup(label.c_str()))
+    {
+        DrawDiskDriveMenuGui(driveNumber);
+        ImGui::EndPopup();
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 100.f);      // TODO: Investigate why this is not working.
+    ImGui::TextDisabled(m_settings.GetDiskImage(driveNumber).c_str());
 }
 
 void Application::Render()

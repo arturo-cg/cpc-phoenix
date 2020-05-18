@@ -104,6 +104,9 @@ private:
     void                      DrawGui();
     void                      DrawMainWindowGui();
     void                      DrawMainMenuGui();
+    void                      DrawDiskDriveMenuGui(int driveNumber);
+    void                      DrawStatusBarGui();
+    void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
 
     void                      Render();
 
@@ -127,7 +130,7 @@ private:
     kmbPrecisionTimer         m_executionTimer;
     kmbPrecisionTimer::Value  m_previousTimerValue;
     kmbPrecisionTimer::Value  m_currentTimerValue;
-
+    float                     m_measuredEmulationSpeed;
 };
 
 #endif // _APPLICATION_H_
