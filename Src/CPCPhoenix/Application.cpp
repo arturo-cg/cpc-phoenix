@@ -609,6 +609,7 @@ void Application::DrawMainWindowGui()
     ////ImGui::SetNextWindowSize(ImVec2(float(displayWindowRect.right - displayWindowRect.left), float(displayWindowRect.bottom - displayWindowRect.top)));
     // Main Dear ImGui window is always inside the application OS window.
     ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+    ImGui::SetNextWindowSize(ImVec2(float(displayWindowRect.right - displayWindowRect.left), float(displayWindowRect.bottom - displayWindowRect.top)));
     // Main window begin.
     ImGui::Begin("Main", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar);
     // Main menu.
