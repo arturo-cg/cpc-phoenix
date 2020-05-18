@@ -553,7 +553,7 @@ void Application::Run()
                     double waitTimeMsecs = (FRAME_DURATION_USECS - adjustedDeltaTimeUsecs) / 1000.0;
                     if (waitTimeMsecs > WINDOWS_TIMER_RESOLUTION)
                     {
-                        DWORD sleepDuration = (DWORD) (waitTimeMsecs - WINDOWS_TIMER_RESOLUTION);
+                        DWORD sleepDuration = (DWORD)(waitTimeMsecs - WINDOWS_TIMER_RESOLUTION);
                         Sleep(sleepDuration);
                     }
                 }
@@ -658,6 +658,67 @@ void Application::DrawMainMenuGui()
             if (ImGui::MenuItem("Exit", "Alt+F4"))
             {
                 RequestExitApp();
+            }
+            ImGui::EndMenu();
+        }
+        //
+        // "Settings" menu.
+        //
+        if (ImGui::BeginMenu("Settings"))
+        {
+            if (ImGui::BeginCombo("CPC Machine", m_settings.GetMachineSpecificationName().c_str()))
+            {
+                unsigned currentSpecsIndex = FindMachineSpecificationsOrderedPosition(m_settings.GetMachineSpecificationName());
+                unsigned i = 0;
+                for (StringList::iterator iter = m_orderedMachineSpecificationsNames.begin(); iter != m_orderedMachineSpecificationsNames.end(); ++iter)
+                {
+                    string specsName = *iter;
+                    if (ImGui::Selectable(specsName.c_str(), i == currentSpecsIndex))
+                    {
+                        if (i != currentSpecsIndex)
+                        {
+                            ChangeMachineSpecificationName(specsName);
+                        }
+                    }
+                    i++;
+                }
+                ImGui::EndCombo();
+            }
+            int selectedMonitorType = (m_settings.GetMonitorType() == CPC::CGateArray::RGBCONVERSIONTABLE_COLOR ? 0 : 1);
+            if (ImGui::Combo("Monitor", &selectedMonitorType, "Color\0Green\0"))
+            {
+                ChangeMonitorTypeSetting(selectedMonitorType == 0 ? CPC::CGateArray::RGBCONVERSIONTABLE_COLOR : CPC::CGateArray::RGBCONVERSIONTABLE_GREEN);
+            }
+            if (ImGui::Button("25%"))
+            {
+                ChangeEmulationSpeedSetting(0.25f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("50%"))
+            {
+                ChangeEmulationSpeedSetting(0.5f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("100%"))
+            {
+                ChangeEmulationSpeedSetting(1.f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("~120%"))     // = 19968.0 (50.08 fps) / 16666.6667 (60 fps)  <- It speeds up the emulation so that it completes a new frame at a 60 Hz rate. Ideal to appreciate smooth scrolling on a 60 Hz host monitor.
+            {
+                ChangeEmulationSpeedSetting(1.19808f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Unlimited"))
+            {
+                ChangeEmulationSpeedSetting(-1.f);
+            }
+            ImGui::SameLine();
+            ImGui::Text("Emulation Speed");
+            ImGui::Separator();
+            if (ImGui::MenuItem("Reset", "Shift+F5"))
+            {
+                m_pMachine->Reset();
             }
             ImGui::EndMenu();
         }
