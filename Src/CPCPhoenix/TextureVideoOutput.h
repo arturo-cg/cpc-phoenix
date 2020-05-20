@@ -17,7 +17,7 @@ class TextureVideoOutput : public CPC::CVideoOutput
 {
 public:
 
-                            TextureVideoOutput(CPC::CMachine* machine);
+                            TextureVideoOutput() { }
     virtual                ~TextureVideoOutput() { FreeVars(); }
 
     bool                    Init();

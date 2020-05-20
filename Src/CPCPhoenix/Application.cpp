@@ -50,14 +50,6 @@ bool Application::Init(HINSTANCE hInstance)
     // Load user settings.
     m_settings.Init();
     m_settings.LoadFromFile();
-    // Key state provider.
-    m_pKeyStateProvider = new WindowsKeyStateProvider();
-    // Sound output.
-    m_pSoundOutput = new CWinSoundOutput();
-    m_pSoundOutput->Init();
-    m_pSoundOutput->SetVolume(0.1f);   // TODO - Move volume to CSettings
-    // Emulated machine (emulator).
-    CreateMachine();
     // Application main window.
     ImGui_ImplWin32_EnableDpiAwareness();
     kmbWindow::RegisterWindowClass();    // This must be called only once, before creating any kmbWindow
@@ -75,13 +67,22 @@ bool Application::Init(HINSTANCE hInstance)
     {
         InitializeGui();
     }
-    // Video output.
+    // Emulated machine.
     if (bRet)
     {
-        m_videoOutput = new TextureVideoOutput(m_pMachine);
+        // Key state provider.
+        m_pKeyStateProvider = new WindowsKeyStateProvider();
+        // Video output.
+        m_videoOutput = new TextureVideoOutput();
         m_videoOutput->Init();
-        m_pMachine->SetVideoOutput(m_videoOutput);
+        // Sound output.
+        m_pSoundOutput = new CWinSoundOutput();
+        m_pSoundOutput->Init();
+        m_pSoundOutput->SetVolume(0.1f);   // TODO - Move volume to CSettings
+        // Emulated machine.
+        CreateMachine();
     }
+
     // Others.
     if (bRet)
     {
@@ -138,6 +139,15 @@ void Application::FreeVars()
         m_pMachine->SetSoundOutput(NULL);
         m_pSoundOutput->End();
         delete m_pSoundOutput;
+        m_pSoundOutput = NULL;
+    }
+
+    if (m_videoOutput != NULL)
+    {
+        m_pMachine->SetVideoOutput(NULL);
+        m_videoOutput->End();
+        delete m_videoOutput;
+        m_videoOutput = NULL;
     }
 
     delete m_pKeyStateProvider;
@@ -188,17 +198,14 @@ void Application::CreateMachine()
     const CPC::MachineSpecifications* machineSpecifications = FindMachineSpecificationsByName(GetSettings()->GetMachineSpecificationName());
     if (machineSpecifications != nullptr)
     {
-        // +- Create the machine.
+        // Create the machine.
         m_pMachine = new CPC::CMachine(*machineSpecifications, m_pKeyStateProvider);
-
-        // Video output will be created and set later, after RenderingApi creation.
-
-        // Sound output.
+        // Video & sound output.
+        m_videoOutput->SetMachine(m_pMachine);
+        m_pMachine->SetVideoOutput(m_videoOutput);
         m_pMachine->SetSoundOutput(m_pSoundOutput);
-
         // Monitor color output type (color, green).
         m_pMachine->GetGateArray()->SetRgbConversionTable(GetSettings()->GetMonitorType());
-
         // Insert disks into the drives, if required.
         SetDisk(0, m_settings.GetDiskImage(0));
         SetDisk(1, m_settings.GetDiskImage(1));
@@ -223,12 +230,6 @@ void Application::DestroyMachine()
     {
         delete m_pMachine;
         m_pMachine = NULL;
-    }
-
-    if (m_videoOutput != NULL)
-    {
-        delete m_videoOutput;
-        m_videoOutput = NULL;
     }
 }
 

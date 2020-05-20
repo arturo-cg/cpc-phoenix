@@ -23,7 +23,7 @@ namespace CPC {
     ** For example, if the derived class uses OpenGL or DirectX textures, it must make sure the texture has been locked before passing
     ** it to the emulator, and unlock it once CVideoOutput::OnBufferComplete is called and the texture is going to be used for rendering.
     */
-    class CVideoOutput : public CSubSystem
+    class CVideoOutput
     {
     public:
 
@@ -57,11 +57,17 @@ namespace CPC {
         };
 
 
-        CVideoOutput(CMachine *pMachine);
+        CVideoOutput();
         virtual                ~CVideoOutput() { FreeVars(); }
 
         /** Resets the subsystem. */
         virtual void            Reset();
+
+        /** Sets the CMachine that this CVideoOutput is going to be used on. */
+        void                    SetMachine(CMachine* machine)  { m_machine = machine; }
+        /** Gets the CMachine that this CVideoOutput is being used on. */
+        CMachine*               GetMachine()  { return m_machine; }
+        const CMachine*         GetMachine() const  { return m_machine; }
 
         /** */
         void                    Run();
@@ -91,10 +97,9 @@ namespace CPC {
         virtual void            OnBufferComplete() = 0;
 
 
+        CMachine*               m_machine;
+
     private:
-
-        typedef                 CSubSystem                inherited;
-
 
         void                    ResetVars();
         void                    FreeVars();

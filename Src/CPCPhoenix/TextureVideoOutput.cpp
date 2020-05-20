@@ -12,15 +12,6 @@
 /**
 **
 */
-TextureVideoOutput::TextureVideoOutput(CPC::CMachine* pMachine) : inherited(pMachine)
-{
-    //...
-}
-
-//----------------------------------------------------------------------------
-/**
-**
-*/
 bool TextureVideoOutput::Init()
 {
     bool bRet = true;
