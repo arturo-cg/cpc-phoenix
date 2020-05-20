@@ -10,7 +10,6 @@
 #include "cpcDiskDrive.h"
 #include "cpcDskDisk.h"
 #include "AppWindow.h"
-#include "DisplayWindow.h"
 #include "RenderingApi.h"
 #include "StatusBar.h"
 #include "WindowsKeyStateProvider.h"
@@ -57,7 +56,7 @@ bool Application::Init(HINSTANCE hInstance)
     m_pAppWindow->Init();
     // Rendering API (Direct3D 11).
     m_renderingApi = new RenderingApi();
-    bRet = m_renderingApi->Init(m_pAppWindow->GetDisplayWindow()->GetHWnd());
+    bRet = m_renderingApi->Init(m_pAppWindow->GetHWnd());
     if (!bRet)
     {
         ::MessageBox(nullptr, "Failed to initialize Direct3D.", "Error", MB_OK | MB_ICONERROR);
@@ -266,7 +265,7 @@ void Application::InitializeGui()
     }
 
     // Setup Platform/Renderer bindings
-    ImGui_ImplWin32_Init(m_pAppWindow->GetDisplayWindow()->GetHWnd());
+    ImGui_ImplWin32_Init(m_pAppWindow->GetHWnd());
     ImGui_ImplDX11_Init(m_renderingApi->GetDevice(), m_renderingApi->GetDeviceContext());
 }
 
@@ -592,13 +591,13 @@ void Application::DrawGui()
 
 void Application::DrawMainWindowGui()
 {
-    RECT displayWindowRect;
-    m_pAppWindow->GetDisplayWindow()->GetRect(&displayWindowRect);
-    ImGui::SetNextWindowPos(ImVec2((float)displayWindowRect.left, (float)displayWindowRect.top));
-    ////ImGui::SetNextWindowSize(ImVec2(float(displayWindowRect.right - displayWindowRect.left), float(displayWindowRect.bottom - displayWindowRect.top)));
+    RECT appWindowRect;
+    m_pAppWindow->GetRect(&appWindowRect);
+    ImGui::SetNextWindowPos(ImVec2((float)appWindowRect.left, (float)appWindowRect.top));
+    ////ImGui::SetNextWindowSize(ImVec2(float(appWindowRect.right - appWindowRect.left), float(appWindowRect.bottom - appWindowRect.top)));
     // Main Dear ImGui window is always inside the application OS window.
     ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-    ImGui::SetNextWindowSize(ImVec2(float(displayWindowRect.right - displayWindowRect.left), float(displayWindowRect.bottom - displayWindowRect.top)));
+    ImGui::SetNextWindowSize(ImVec2(float(appWindowRect.right - appWindowRect.left), float(appWindowRect.bottom - appWindowRect.top)));
     // Main window begin.
     ImGui::Begin("Main", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar);
     // Main menu.

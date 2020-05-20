@@ -4,7 +4,6 @@
 #include "stdafx.h"
 #include "AppWindow.h"
 #include "Application.h"
-#include "DisplayWindow.h"
 #include "StatusBar.h"
 #include "WinVideoOutput.h"
 #include "RenderingApi.h"
@@ -44,16 +43,6 @@ bool AppWindow::Init()
     if (bRet)
     {
         //...
-    }
-
-    // DisplayWindow
-    if (bRet)
-    {
-        RECT rWndRect;
-        ::SetRect(&rWndRect, 0, 0, CPC::CVideoOutput::VIEWPORT_WIDTH, CPC::CVideoOutput::VIEWPORT_HEIGHT);
-
-        m_pDisplayWindow = new DisplayWindow;
-        m_pDisplayWindow->Init(rWndRect, this);
     }
 
     // Resize application window
@@ -102,7 +91,6 @@ bool AppWindow::Init()
 void AppWindow::ResetVars()
 {
     m_hAccelerators = NULL;
-    m_pDisplayWindow = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -111,7 +99,7 @@ void AppWindow::ResetVars()
 */
 void AppWindow::FreeVars()
 {
-    delete m_pDisplayWindow;
+    //...
 }
 
 //----------------------------------------------------------------------------
@@ -163,13 +151,6 @@ void AppWindow::ResizeToScale(float scale)
 */
 /*virtual*/ LRESULT AppWindow::_OnSize(int iWidth, int iHeight)
 {
-    // Resize the display window
-    if (m_pDisplayWindow != NULL)
-    {
-        m_pDisplayWindow->SetSize(iWidth, iHeight);
-        m_pDisplayWindow->InvalidateAll(FALSE);
-    }
-
     // Resize rendering buffers.
     if ((Application::Singleton()->GetRenderingApi() != NULL)/* && (wParam != SIZE_MINIMIZED)*/)
     {
