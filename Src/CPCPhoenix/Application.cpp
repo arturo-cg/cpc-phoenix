@@ -733,6 +733,8 @@ void Application::DrawStatusBarGui()
 
 void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
 {
+    ImGui::BeginGroup();
+
     string label = "Drive ";
     label += driveLetter;
     label += ":";
@@ -746,8 +748,15 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
         ImGui::EndPopup();
     }
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 100.f);      // TODO: Investigate why this is not working.
-    ImGui::TextDisabled(m_settings.GetDiskImage(driveNumber).c_str());
+    string diskImage = m_settings.GetDiskImage(driveNumber);
+    if (diskImage.size() == 0)
+    {
+        diskImage = "<EMPTY>";
+    }
+    ImGui::TextDisabled(diskImage.c_str());
+
+    ImGui::EndGroup();
+    ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
 }
 
 void Application::Render()
