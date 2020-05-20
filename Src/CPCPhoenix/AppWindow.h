@@ -7,6 +7,7 @@
 
 #include "Window/kmbWindow.h"
 
+class DisplayWindow;
 class StatusBar;
 
 namespace CPC
@@ -32,6 +33,11 @@ public:
     /** Returns the accelerators used by this window. */
     HACCEL                    GetAccelerators() const { return m_hAccelerators; }
 
+    /** Returns the display window (the one that shows the emulated machine display output). */
+    DisplayWindow*            GetDisplayWindow() { return m_pDisplayWindow; }
+    /** Returns the display window (the one that shows the emulated machine display output) (const version). */
+    const DisplayWindow*      GetDisplayWindow() const { return m_pDisplayWindow; }
+
     /** Resizes the app window and the display window to fit the specified scale level. */
     void                      ResizeToScale(float scale);
 
@@ -56,8 +62,11 @@ private:
     void                      ResetVars();
     void                      FreeVars();
 
+    void                      ComputeDisplayWindowSize(int* out_width, int* out_height);
+
 
     HACCEL                    m_hAccelerators;
+    DisplayWindow*            m_pDisplayWindow;
 
 };
 

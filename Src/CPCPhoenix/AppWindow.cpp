@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "AppWindow.h"
 #include "Application.h"
+#include "DisplayWindow.h"
 #include "StatusBar.h"
 #include "WinVideoOutput.h"
 #include "RenderingApi.h"
@@ -51,6 +52,17 @@ bool AppWindow::Init()
         ResizeToScale(Application::Singleton()->GetSettings()->GetScale());
     }
 
+    // DisplayWindow
+    if (bRet)
+    {
+        RECT rect;
+        ::SetRect(&rect, 0, 0, 1, 1);
+        ComputeDisplayWindowSize((int*)&rect.right, (int*)&rect.bottom);
+
+        m_pDisplayWindow = new DisplayWindow;
+        m_pDisplayWindow->Init(rect, this);
+    }
+
     // Key accelerators
     if (bRet)
     {
@@ -91,6 +103,7 @@ bool AppWindow::Init()
 void AppWindow::ResetVars()
 {
     m_hAccelerators = NULL;
+    m_pDisplayWindow = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -99,7 +112,7 @@ void AppWindow::ResetVars()
 */
 void AppWindow::FreeVars()
 {
-    //...
+    delete m_pDisplayWindow;
 }
 
 //----------------------------------------------------------------------------
@@ -122,6 +135,20 @@ void AppWindow::ResizeToScale(float scale)
 
     // Resize it
     SetRect(rWndRect);
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+void AppWindow::ComputeDisplayWindowSize(int* out_width, int* out_height)
+{
+    KMASSERT((out_width != nullptr) && (out_height != nullptr));
+
+    RECT appWindowClientRect;
+    GetClientRect(&appWindowClientRect);
+    *out_width = appWindowClientRect.right;
+    *out_height = appWindowClientRect.bottom;
 }
 
 //----------------------------------------------------------------------------
@@ -151,10 +178,21 @@ void AppWindow::ResizeToScale(float scale)
 */
 /*virtual*/ LRESULT AppWindow::_OnSize(int iWidth, int iHeight)
 {
+    int displayWindowWidth;
+    int displayWindowHeight;
+    ComputeDisplayWindowSize(&displayWindowWidth, &displayWindowHeight);
+
+    // Resize the display window
+    if (m_pDisplayWindow != NULL)
+    {
+        m_pDisplayWindow->SetSize(displayWindowWidth, displayWindowHeight);
+        m_pDisplayWindow->InvalidateAll(FALSE);
+    }
+
     // Resize rendering buffers.
     if ((Application::Singleton()->GetRenderingApi() != NULL)/* && (wParam != SIZE_MINIMIZED)*/)
     {
-        Application::Singleton()->GetRenderingApi()->ResizeRenderTarget(iWidth, iHeight);
+        Application::Singleton()->GetRenderingApi()->ResizeRenderTarget(displayWindowWidth, displayWindowHeight);
     }
 
     return 0;
