@@ -79,7 +79,7 @@ namespace CPC {
         /** Returns the current state of the VSYNC signal. */
         cpcByte                 GetCurrentVCharacter() const { return m_nCurrentVCharacter; }
         /** Returns the current memory address. */
-        const SGeneratedAddress GetCurrentAddress() const { return m_currentAddress; }
+        const SGeneratedAddress& GetCurrentAddress() const { return m_currentAddress; }
 
         /** We are notified that another subsytem is trying to write a byte to us.
         *** Usually it's the CPU through an OUT instruction. */
