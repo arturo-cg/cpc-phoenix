@@ -183,7 +183,7 @@ namespace CPC {
         memorySpecifications->lowerRomFileName = "OS_464.ROM";      // Lower ROM bank: Firmware v1
         memorySpecifications->upperRomFileNames = {
             { 0, "BASIC_464.ROM" },                                 // Upper ROM bank 0: BASIC
-        { 7, "AMSDOS_664.ROM" },                                // Upper ROM bank 7: AMSDOS
+            { 7, "AMSDOS.ROM" },                                    // Upper ROM bank 7: AMSDOS
         };
     }
 
@@ -201,7 +201,7 @@ namespace CPC {
         memorySpecifications->lowerRomFileName = "OS_664.ROM";      // Lower ROM bank: Firmware v2
         memorySpecifications->upperRomFileNames = {
             { 0, "BASIC_664.ROM" },                                 // Upper ROM bank 0: BASIC
-        { 7, "AMSDOS_664.ROM" },                                // Upper ROM bank 7: AMSDOS
+            { 7, "AMSDOS.ROM" },                                    // Upper ROM bank 7: AMSDOS
         };
     }
 
@@ -219,7 +219,7 @@ namespace CPC {
         memorySpecifications->lowerRomFileName = "OS_6128.ROM";     // Lower ROM bank: Firmware v3
         memorySpecifications->upperRomFileNames = {
             { 0, "BASIC_6128.ROM" },                                // Upper ROM bank 0: BASIC
-        { 7, "AMSDOS_6128.ROM" },                               // Upper ROM bank 7: AMSDOS
+            { 7, "AMSDOS.ROM" },                                    // Upper ROM bank 7: AMSDOS
         };
     }
 
