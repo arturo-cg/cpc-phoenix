@@ -1,0 +1,5 @@
+/Src/.vs/
+*.vcxproj.user
+/Obj/
+/Bin/CPCPhoenix/*
+!/Bin/CPCPhoenix/Roms/
