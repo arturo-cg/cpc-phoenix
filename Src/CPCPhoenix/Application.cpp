@@ -65,6 +65,7 @@ bool Application::Init(HINSTANCE hInstance)
     // GUI (Dear ImGui).
     if (bRet)
     {
+        m_showDearImGuiDemoWindow = false;
         InitializeGui();
     }
     // Emulated machine.
@@ -583,11 +584,14 @@ void Application::Run()
 
 void Application::DrawGui()
 {
-    // Show the big demo window (most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-    bool show_demo_window = true;
-    ImGui::ShowDemoWindow(&show_demo_window);
     // Main window.
     DrawMainWindowGui();
+    // Dear ImGui demo window.
+    // It should be removed at some point.
+    if (m_showDearImGuiDemoWindow)
+    {
+        ImGui::ShowDemoWindow(&m_showDearImGuiDemoWindow);
+    }
 }
 
 void Application::DrawMainWindowGui()
@@ -695,6 +699,21 @@ void Application::DrawMainMenuGui()
             if (ImGui::MenuItem("Reset", "Shift+F5"))
             {
                 m_pMachine->Reset();
+            }
+            ImGui::EndMenu();
+        }
+        //
+        // "Help" menu.
+        //
+        if (ImGui::BeginMenu("Help"))
+        {
+            if (ImGui::BeginMenu("Developer"))
+            {
+                if (ImGui::MenuItem("Show Dear ImGui Demo Window", nullptr/*shorcut*/, false/*selected*/, !m_showDearImGuiDemoWindow/*enabled*/))
+                {
+                    m_showDearImGuiDemoWindow = true;
+                }
+                ImGui::EndMenu();
             }
             ImGui::EndMenu();
         }

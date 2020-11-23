@@ -131,6 +131,8 @@ private:
     kmbPrecisionTimer::Value  m_previousTimerValue;
     kmbPrecisionTimer::Value  m_currentTimerValue;
     float                     m_measuredEmulationSpeed;
+
+    bool                      m_showDearImGuiDemoWindow;
 };
 
 #endif // _APPLICATION_H_
