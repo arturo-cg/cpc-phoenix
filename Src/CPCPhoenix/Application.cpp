@@ -595,10 +595,9 @@ void Application::DrawMainWindowGui()
     RECT displayWindowRect;
     m_pAppWindow->GetDisplayWindow()->GetRect(&displayWindowRect);
     ImGui::SetNextWindowPos(ImVec2((float)displayWindowRect.left, (float)displayWindowRect.top));
-    ////ImGui::SetNextWindowSize(ImVec2(float(displayWindowRect.right - displayWindowRect.left), float(displayWindowRect.bottom - displayWindowRect.top)));
+    ImGui::SetNextWindowSize(ImVec2(float(displayWindowRect.right - displayWindowRect.left), float(displayWindowRect.bottom - displayWindowRect.top)));
     // Main Dear ImGui window is always inside the application OS window.
     ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-    ImGui::SetNextWindowSize(ImVec2(float(displayWindowRect.right - displayWindowRect.left), float(displayWindowRect.bottom - displayWindowRect.top)));
     // Main window begin.
     ImGui::Begin("Main", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar);
     // Main menu.
@@ -754,6 +753,7 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
         diskImage = "<EMPTY>";
     }
     ImGui::TextDisabled(diskImage.c_str());
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 200.f);       // This aligns the disk drive row to the right and leaves some space for the Speed field.
 
     ImGui::EndGroup();
     ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
