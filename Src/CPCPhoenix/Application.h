@@ -75,7 +75,7 @@ public:
 
 
     /** Runs the application. */
-    void                      Run();
+    void                      MainLoop();
 
     // Notifications from the application window
     void                      _OnAppWindowCloseRequest(AppWindow* pAppWindow);
@@ -85,6 +85,8 @@ private:
 
     // 64 us per scan line * 312 scan lines = 19968 us per frame (50.08 frames/s)
     static constexpr double   FRAME_DURATION_USECS = 19968.0;
+    // Windows timer resolution to improve accuracy of Sleep().
+    static constexpr UINT     WINDOWS_TIMER_RESOLUTION = 1;
 
     using StringToMachineSpecificationsMap = map<string, CPC::MachineSpecifications>;
     using StringList = vector<string>;
@@ -109,6 +111,7 @@ private:
     void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
 
     void                      Render();
+    void                      WaitForRealTime();
 
     void                      OpenLoadDiskImageDialog(unsigned nDrive);
 
@@ -130,6 +133,7 @@ private:
     kmbPrecisionTimer         m_executionTimer;
     kmbPrecisionTimer::Value  m_previousTimerValue;
     kmbPrecisionTimer::Value  m_currentTimerValue;
+    double                    m_leftOverDeltaTimeUsecs;
     float                     m_measuredEmulationSpeed;
 
     bool                      m_showDearImGuiDemoWindow;

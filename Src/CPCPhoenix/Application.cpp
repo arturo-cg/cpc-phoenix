@@ -484,24 +484,23 @@ void Application::ProcessWindowsMessages()
 /**
 **
 */
-void Application::Run()
+void Application::MainLoop()
 {
     // Set Windows timer resolution.
     // This improves the accuracy of the Sleep function.
-    static const UINT WINDOWS_TIMER_RESOLUTION = 1;
     timeBeginPeriod(WINDOWS_TIMER_RESOLUTION);
 
-    // Initialize the execution timer, which is used to control the execution of the emulator
+    // Initialize the execution timer, which is used to control the execution of the emulator.
     m_executionTimer.Init();
     m_executionTimer.Read(&m_currentTimerValue);
     m_previousTimerValue = m_currentTimerValue;
 
-    double dLeftOverDeltaTimeUsecs = 0.0;
+    m_leftOverDeltaTimeUsecs = 0.0;
 
-    // Enter the main loop
+    // Main loop.
     while (!m_bExitApp)
     {
-        // Run the emulated machine
+        // Run the emulated machine.
         static const unsigned TIME_STEP_USECS = 1;
         m_pMachine->Run(TIME_STEP_USECS);
 
@@ -510,68 +509,15 @@ void Application::Run()
         {
             m_uFrameCount = m_videoOutput->GetFrameCount();
 
+            // Note: Ideally, this wouldn't be tied to the emulated machine having completed a new frame.
+            //       Instead, it would have its own timer that triggered Windows message processing and rendering at regular real-time intervals. 
+
             // Process Windows messages.
-            // Note: ideally, this wouldn't be tied to a frame of the emulated frame, but rather it would have its own real time counter that triggered Windows message processing
-            //       at regular real time intervals. In practice, the emulator runs at full speed in most scenarios (or fast enough in Debug) so this will do.
             ProcessWindowsMessages();
-
-            // Start the Dear ImGui frame.
-            ImGui_ImplDX11_NewFrame();
-            ImGui_ImplWin32_NewFrame();
-            ImGui::NewFrame();
-
-            // Draw all the GUI.
-            // This includes the emulator video output.
-            DrawGui();
-
-            // Limit the emulation speed.
-            double deltaTimeUsecs;
-            double adjustedDeltaTimeUsecs;
-            bool wait = true;
-            while (wait)
-            {
-                m_executionTimer.Read(&m_currentTimerValue);
-                deltaTimeUsecs = m_executionTimer.ComputeElapsedUsecs(m_previousTimerValue, m_currentTimerValue);   // Actual elapsed time during this frame so far.
-                adjustedDeltaTimeUsecs = (dLeftOverDeltaTimeUsecs + deltaTimeUsecs) * GetSettings()->GetEmulationSpeed();   // Carry over timing error from the previous frame, and scale by the desired emulation speed.
-                if ((GetSettings()->GetEmulationSpeed() <= 0.f) ||       // If Emulation Speed is set to Unlimited...
-                    (adjustedDeltaTimeUsecs >= FRAME_DURATION_USECS))    // If enough time has already passed...
-                {
-                    wait = false;
-                }
-                else
-                {
-                    // Block the thread for a while to free up the CPU.
-                    // Due to the limited resolution of Sleep, we'll only sleep for a fraction of the total time we need to wait and then do an active wait the rest of the way.
-                    double waitTimeMsecs = (FRAME_DURATION_USECS - adjustedDeltaTimeUsecs) / 1000.0;
-                    if (waitTimeMsecs > WINDOWS_TIMER_RESOLUTION)
-                    {
-                        DWORD sleepDuration = (DWORD)(waitTimeMsecs - WINDOWS_TIMER_RESOLUTION);
-                        Sleep(sleepDuration);
-                    }
-                }
-            }
-
-            m_previousTimerValue = m_currentTimerValue;
-
-            // Measure timing error in this frame and remember it for the next frame.
-            dLeftOverDeltaTimeUsecs = adjustedDeltaTimeUsecs - FRAME_DURATION_USECS;
-            static const double MAX_LEFT_OVER_DELTA_TIME_USECS = FRAME_DURATION_USECS * 0.2;
-            if (dLeftOverDeltaTimeUsecs > MAX_LEFT_OVER_DELTA_TIME_USECS)
-            {
-                dLeftOverDeltaTimeUsecs = MAX_LEFT_OVER_DELTA_TIME_USECS;
-            }
-
-            // Measure the emulation speed
-            static unsigned s_nStatusBarUpdateDelay = 0;
-            if (s_nStatusBarUpdateDelay == 0)
-            {
-                m_measuredEmulationSpeed = (float)((FRAME_DURATION_USECS * 100.0) / deltaTimeUsecs);
-                s_nStatusBarUpdateDelay = 25;
-            }
-            s_nStatusBarUpdateDelay--;
-
             // Render.
             Render();
+            // Match the speed of an actual CPC.
+            WaitForRealTime();
         }
     }
 
@@ -780,18 +726,78 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
 
 void Application::Render()
 {
+    // Start a new Dear ImGui frame.
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
+    // Draw all the GUI.
+    // This includes the emulator video output.
+    DrawGui();
+
+    // Render everything.
     ImGui::Render();
     m_renderingApi->PrepareForRender(RenderingApi::COLOR_MAGENTA);
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-    // Update and Render additional Platform Windows.
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
+        // Update and Render additional Platform Windows.
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
     }
 
+    // Make it visible.
     m_renderingApi->Present(false/*vsync*/);
+}
+
+void Application::WaitForRealTime()
+{
+    // Limit the emulation speed.
+    // It uses a combination of Sleep -for power efficiency- and active wait -for emulation speed accuracy-.
+    double deltaTimeUsecs;
+    double adjustedDeltaTimeUsecs;
+    bool wait = true;
+    while (wait)
+    {
+        m_executionTimer.Read(&m_currentTimerValue);
+        deltaTimeUsecs = m_executionTimer.ComputeElapsedUsecs(m_previousTimerValue, m_currentTimerValue);   // Actual elapsed time during this frame so far.
+        adjustedDeltaTimeUsecs = (m_leftOverDeltaTimeUsecs + deltaTimeUsecs) * GetSettings()->GetEmulationSpeed();   // Carry over timing error from the previous frame, and scale by the desired emulation speed.
+        if ((GetSettings()->GetEmulationSpeed() <= 0.f) ||       // If Emulation Speed is set to Unlimited...
+            (adjustedDeltaTimeUsecs >= FRAME_DURATION_USECS))    // If enough time has already passed...
+        {
+            wait = false;
+        }
+        else
+        {
+            // Block the thread for a while to free up the CPU.
+            // Due to the limited resolution of Sleep, we'll only sleep for a fraction of the total time we need to wait and then do an active wait the rest of the way.
+            double waitTimeMsecs = (FRAME_DURATION_USECS - adjustedDeltaTimeUsecs) / 1000.0;
+            if (waitTimeMsecs > WINDOWS_TIMER_RESOLUTION)
+            {
+                DWORD sleepDuration = (DWORD)(waitTimeMsecs - WINDOWS_TIMER_RESOLUTION);
+                Sleep(sleepDuration);
+            }
+        }
+    }
+
+    m_previousTimerValue = m_currentTimerValue;
+
+    // Measure timing error in this frame and remember it for the next frame.
+    m_leftOverDeltaTimeUsecs = adjustedDeltaTimeUsecs - FRAME_DURATION_USECS;
+    static const double MAX_LEFT_OVER_DELTA_TIME_USECS = FRAME_DURATION_USECS * 0.2;
+    if (m_leftOverDeltaTimeUsecs > MAX_LEFT_OVER_DELTA_TIME_USECS)
+    {
+        m_leftOverDeltaTimeUsecs = MAX_LEFT_OVER_DELTA_TIME_USECS;
+    }
+
+    // Measure the emulation speed
+    static unsigned s_nStatusBarUpdateDelay = 0;
+    if (s_nStatusBarUpdateDelay == 0)
+    {
+        m_measuredEmulationSpeed = (float)((FRAME_DURATION_USECS * 100.0) / deltaTimeUsecs);
+        s_nStatusBarUpdateDelay = 25;
+    }
+    s_nStatusBarUpdateDelay--;
 }
 
 void Application::OpenLoadDiskImageDialog(unsigned nDrive)

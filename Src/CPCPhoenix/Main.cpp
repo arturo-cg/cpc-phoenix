@@ -20,8 +20,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     if (bOk)
     {
-        // Run the application
-        Application::Singleton()->Run();
+        // Enter the application's main loop.
+        Application::Singleton()->MainLoop();
 
         // Terminate the application
         Application::Singleton()->End();
