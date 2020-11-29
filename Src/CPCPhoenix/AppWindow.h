@@ -49,6 +49,7 @@ public:
     virtual bool              _OnWindowProcedureProlog(UINT uMsg, WPARAM wParam, LPARAM lParam);
     // Returns 0 to continue the window creation, or -1 to cancel it.
     virtual LRESULT           _OnClose();
+    virtual LRESULT           _OnSizing(LPRECT prRect);
     virtual LRESULT           _OnSize(int iWidth, int iHeight);
     virtual LRESULT           _OnMenuCommand(WORD nItemId, bool bFromAccelerator);
     virtual LRESULT           _OnKeyDown(unsigned nVirtualKey);

@@ -176,6 +176,16 @@ void AppWindow::ComputeDisplayWindowSize(int* out_width, int* out_height)
 /**
 **
 */
+LRESULT AppWindow::_OnSizing(LPRECT prRect)
+{
+    Application::Singleton()->_OnAppWindowSizing();
+    return 0;
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
 /*virtual*/ LRESULT AppWindow::_OnSize(int iWidth, int iHeight)
 {
     int displayWindowWidth;

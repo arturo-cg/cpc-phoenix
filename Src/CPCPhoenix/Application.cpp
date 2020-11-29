@@ -283,6 +283,16 @@ void Application::ShutdownGui()
 /**
 **
 */
+void Application::_OnAppWindowSizing()
+{
+    // Keep updating the window while the user is resizing it.
+    Render();
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
 void Application::_OnAppWindowCloseRequest(AppWindow* pAppWindow)
 {
     if ((pAppWindow != NULL) && (pAppWindow == m_pAppWindow))

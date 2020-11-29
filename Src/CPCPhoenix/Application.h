@@ -78,6 +78,7 @@ public:
     void                      MainLoop();
 
     // Notifications from the application window
+    void                      _OnAppWindowSizing();
     void                      _OnAppWindowCloseRequest(AppWindow* pAppWindow);
 
 
