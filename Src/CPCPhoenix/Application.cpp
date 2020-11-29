@@ -527,7 +527,7 @@ void Application::MainLoop()
             // Render.
             Render();
             // Match the speed of an actual CPC.
-            WaitForRealTime();
+            SyncEmulationFrameTimeToRealTime();
         }
     }
 
@@ -760,7 +760,7 @@ void Application::Render()
     m_renderingApi->Present(false/*vsync*/);
 }
 
-void Application::WaitForRealTime()
+void Application::SyncEmulationFrameTimeToRealTime()
 {
     // Limit the emulation speed.
     // It uses a combination of Sleep -for power efficiency- and active wait -for emulation speed accuracy-.

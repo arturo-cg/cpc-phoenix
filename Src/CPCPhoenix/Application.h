@@ -112,7 +112,7 @@ private:
     void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
 
     void                      Render();
-    void                      WaitForRealTime();
+    void                      SyncEmulationFrameTimeToRealTime();
 
     void                      OpenLoadDiskImageDialog(unsigned nDrive);
 
