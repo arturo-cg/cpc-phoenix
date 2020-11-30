@@ -511,8 +511,8 @@ void Application::MainLoop()
     while (!m_bExitApp)
     {
         // Run the emulated machine.
-        static const unsigned TIME_STEP_USECS = 1;
-        m_pMachine->Run(TIME_STEP_USECS);
+        static constexpr unsigned TIME_STEP_IN_4MHZ_CYCLES = 4;
+        m_pMachine->Run(TIME_STEP_IN_4MHZ_CYCLES);
 
         // Has the emulated machine completed a new video frame?
         if (m_uFrameCount < m_videoOutput->GetFrameCount())

@@ -92,8 +92,8 @@ namespace CPC {
         void                    Reset();
 
         /** Runs the emulated machine for the specified period of time.
-        *** Time is in microseconds. */
-        void                    Run(unsigned nMicroSecs);
+        *** Time is in cycles of a 4Mhz clock. */
+        void                    Run(unsigned num4MhzCycles);
 
         /** Static utility method that fills in the specs for a standard Amstrad CPC 464. */
         static void             GetStandardCpc464Specifications(MachineSpecifications* outSpecifications);
@@ -122,7 +122,7 @@ namespace CPC {
         CVideoOutput*           m_pVideoOutput;
         CSoundOutput*           m_pSoundOutput;
 
-        float                   m_fAccumulatedCpuCycles;
+        unsigned                m_accumulated4MhzCycles;
     };
 
 

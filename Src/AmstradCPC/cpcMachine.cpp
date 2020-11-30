@@ -67,7 +67,7 @@ namespace CPC {
         m_pDiskDrives[1] = NULL;
         m_pVideoOutput = NULL;
         m_pSoundOutput = NULL;
-        m_fAccumulatedCpuCycles = 0.f;
+        m_accumulated4MhzCycles = 0;
     }
 
     //----------------------------------------------------------------------------
@@ -145,28 +145,39 @@ namespace CPC {
         {
             GetSoundOutput()->Reset();
         }
+
+        m_accumulated4MhzCycles = 0;
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    void CMachine::Run(unsigned nNum1MhzCycles)
+    void CMachine::Run(unsigned num4MhzCycles)
     {
-        // CPU (4Mhz clock)
-        GetCpu()->Run(nNum1MhzCycles * 4);
+        for (unsigned i = 0; i < num4MhzCycles; i++)
+        {
+            // CPU (4Mhz clock)
+            GetCpu()->Run(1);
 
-        // CRTC (1Mhz clock)
-        GetCrtc()->Run(nNum1MhzCycles);
+            // Time for a 1Mhz cycle?
+            // 1Mhz cycle every 4th 4Mhz cycle.
+            m_accumulated4MhzCycles = (m_accumulated4MhzCycles + 1) % 4;
+            if (m_accumulated4MhzCycles == 0)
+            {
+                // CRTC (1Mhz clock)
+                GetCrtc()->Run(1);
 
-        // Gate-Array (1Mhz clock)
-        GetGateArray()->Run(nNum1MhzCycles);
+                // Gate-Array (1Mhz clock)
+                GetGateArray()->Run(1);
 
-        // Monitor.
-        GetVideoOutput()->Run();
+                // Monitor.
+                GetVideoOutput()->Run();
 
-        // PSG (1Mhz clock)
-        GetPsg()->Run(nNum1MhzCycles);
+                // PSG (1Mhz clock)
+                GetPsg()->Run(1);
+            }
+        }
     }
 
     //----------------------------------------------------------------------------
