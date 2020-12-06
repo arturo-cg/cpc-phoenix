@@ -77,7 +77,8 @@ public:
     /** Runs the application. */
     void                      MainLoop();
 
-    // Notifications from the application window
+    // Notifications from the application window.
+    bool                      _OnAppWindowKeyDown(unsigned virtualKey, bool shift, bool ctrl, bool alt);     // Returns true if it processed the key, or false otherwise.
     void                      _OnAppWindowSizing();
     void                      _OnAppWindowCloseRequest(AppWindow* pAppWindow);
 

@@ -278,20 +278,60 @@ void Application::ShutdownGui()
     ImGui::DestroyContext();
 }
 
-//----------------------------------------------------------------------------
-/**
-**
-*/
+bool Application::_OnAppWindowKeyDown(unsigned virtualKey, bool shift, bool ctrl, bool alt)
+{
+    bool ret = false;
+    switch (virtualKey)
+    {
+    case VK_F3:
+    {
+        if (!shift && !ctrl && !alt)
+        {
+            // Emulation speed = 100%
+            ChangeEmulationSpeedSetting(1.f);
+            ret = true;
+        }
+        break;
+    }
+    case VK_F4:
+    {
+        if (!shift && !ctrl && !alt)
+        {
+            // Emulation speed = Unlimited
+            ChangeEmulationSpeedSetting(-1.f);
+            ret = true;
+        }
+        else if (shift && !ctrl && !alt)
+        {
+            // Close app.
+            m_pAppWindow->RequestClose();
+            ret = true;
+        }
+        break;
+    }
+    case VK_F5:
+    {
+        if (shift && !ctrl && !alt)
+        {
+            // Reset machine.
+            m_pMachine->Reset();
+            ret = true;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+    return ret;
+}
+
 void Application::_OnAppWindowSizing()
 {
     // Keep updating the window while the user is resizing it.
     Render();
 }
 
-//----------------------------------------------------------------------------
-/**
-**
-*/
 void Application::_OnAppWindowCloseRequest(AppWindow* pAppWindow)
 {
     if ((pAppWindow != NULL) && (pAppWindow == m_pAppWindow))

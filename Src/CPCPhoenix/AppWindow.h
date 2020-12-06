@@ -51,7 +51,6 @@ public:
     virtual LRESULT           _OnClose();
     virtual LRESULT           _OnSizing(LPRECT prRect);
     virtual LRESULT           _OnSize(int iWidth, int iHeight);
-    virtual LRESULT           _OnMenuCommand(WORD nItemId, bool bFromAccelerator);
     virtual LRESULT           _OnKeyDown(unsigned nVirtualKey);
 
 

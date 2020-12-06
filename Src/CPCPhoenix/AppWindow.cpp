@@ -212,47 +212,14 @@ LRESULT AppWindow::_OnSizing(LPRECT prRect)
 /**
 **
 */
-LRESULT AppWindow::_OnMenuCommand(WORD nItemId, bool bFromAccelerator)
+/*virtual*/ LRESULT AppWindow::_OnKeyDown(unsigned virtualKey)
 {
-    Application* pApplication;
-    pApplication = Application::Singleton();
+    // Get state of SHIFT, CTRL and ALT keys.
+    bool shiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+    bool ctrlPressed = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+    bool altPressed = (GetKeyState(VK_MENU) & 0x8000) != 0;
+    // Notify the application.
+    Application::Singleton()->_OnAppWindowKeyDown(virtualKey, shiftPressed, ctrlPressed, altPressed);
 
-    CPC::CMachine* pEmulatedMachine;
-    pEmulatedMachine = pApplication->GetEmulatedMachine();
-
-    // This used to have all the entries of the old native menu.
-    // Now, only the key accelerators are present.
-    // Dear ImGui doens't have support for key accelerators so we have to do it the old, native way.
-    switch (nItemId)
-    {
-        //
-        // File Menu
-        //
-
-        case ID_FILE_EXIT:  RequestClose(); break;
-
-
-        //
-        // Settings Menu
-        //
-
-        case ID_SETTINGS_EMULATIONSPEED_25:         pApplication->ChangeEmulationSpeedSetting(0.25f); break;
-        case ID_SETTINGS_EMULATIONSPEED_50:         pApplication->ChangeEmulationSpeedSetting(0.5f); break;
-        case ID_SETTINGS_EMULATIONSPEED_100:        pApplication->ChangeEmulationSpeedSetting(1.f); break;
-        case ID_SETTINGS_EMULATIONSPEED_120:        pApplication->ChangeEmulationSpeedSetting(1.19808f); break;     // = 19968.0 (50.08 fps) / 16666.6667 (60 fps)  <- It speeds up the emulation so that it completes a new frame at a 60 Hz rate.
-        case ID_SETTINGS_EMULATIONSPEED_UNLIMITED:  pApplication->ChangeEmulationSpeedSetting(-1.f); break;
-
-        case ID_SETTINGS_RESET:  pEmulatedMachine->Reset(); break;
-    }
-
-    return 0;
-}
-
-//----------------------------------------------------------------------------
-/**
-**
-*/
-/*virtual*/ LRESULT AppWindow::_OnKeyDown(unsigned nVirtualKey)
-{
     return 0;
 }
