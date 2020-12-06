@@ -121,7 +121,6 @@ void Application::ResetVars()
     m_pAppWindow = NULL;
     m_renderingApi = nullptr;
     m_pMachine = NULL;
-    m_uFrameCount = 0;
     m_pKeyStateProvider = NULL;
     m_videoOutput = NULL;
     m_pSoundOutput = NULL;
@@ -350,7 +349,6 @@ void Application::ChangeMachineSpecificationName(string machineSpecificationName
 
     // Delete the current machine and create the new one
     CreateMachine();
-    m_uFrameCount = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -456,6 +454,104 @@ void Application::SetDisk(unsigned nDrive, const std::string& sDiskImageFileName
 /**
 **
 */
+void Application::MainLoop()
+{
+    // Set Windows timer resolution.
+    // This improves the accuracy of the Sleep function.
+    timeBeginPeriod(WINDOWS_TIMER_RESOLUTION);
+
+    // Initialize timers.
+    m_precisionTimer.Init();
+    m_precisionTimer.Read(&m_previousPrecisionTimerValue);
+    m_emulationTime = 0.0;
+    m_renderTime = 0.0;
+    m_windowsMessagesTime = 0.0;
+    m_speedRealTime = 0.0;
+    m_speedEmulatedTime = 0.0;
+
+    // Main loop.
+    while (!m_bExitApp)
+    {
+        // Measure elapsed real time.
+        double elapsedRealTime = ComputeElapsedRealTime();
+        // Emulated machine.
+        RunMachine(elapsedRealTime);
+        // Windows messages.
+        ProcessWindowsMessagesIfNecessary(elapsedRealTime);
+        // Render.
+        RenderIfNecessary(elapsedRealTime);
+        // Be nice with the host CPU and go to sleep while there's nothing to do.
+        SleepIfIdle();
+    }
+
+    // Restore previous Windows timer resolution.
+    timeEndPeriod(WINDOWS_TIMER_RESOLUTION);
+
+    // Save user settings.
+    m_settings.SaveToFile();
+}
+
+double Application::ComputeElapsedRealTime()
+{
+    kmbPrecisionTimer::Value currentPrecisionTimerValue;
+    m_precisionTimer.Read(&currentPrecisionTimerValue);
+    double ret = m_precisionTimer.ComputeElapsedSecs(m_previousPrecisionTimerValue, currentPrecisionTimerValue);
+    // +- Clamp elapsed time to a maximum value.
+    //    Elapsed time can get large for various reasons, for instance after resizing the window or resuming after a debug session.
+    static constexpr double MAX_ELAPSED_TIME = 1.0 / 50.0;
+    if (ret > MAX_ELAPSED_TIME)
+    {
+        ret = MAX_ELAPSED_TIME;
+    }
+    m_previousPrecisionTimerValue = currentPrecisionTimerValue;
+
+    return ret;
+}
+
+void Application::RunMachine(double elapsedRealTime)
+{
+    m_emulationTime += elapsedRealTime;
+    // Run the emulated machine.
+    if (m_emulationTime >= 0.0)     // If emulated time is behind real time...
+    {
+        // Run the machine.
+        static constexpr unsigned MACHINE_TIME_STEP_CYCLES = unsigned((FRAME_DURATION_SECS * 4000000.0) / 6.0);     // Time step in cycles of a 4-MHz clock.
+        static constexpr double MACHINE_TIME_STEP_SECS = (double(MACHINE_TIME_STEP_CYCLES) / 4000000.0);            // Time step in seconds.
+        m_pMachine->Run(MACHINE_TIME_STEP_CYCLES);
+        // Advance emulated time.
+        if (m_settings.GetEmulationSpeed() > 0.f)   // If emulation speed *not* set to unlimited...
+        {
+            m_emulationTime -= MACHINE_TIME_STEP_SECS / m_settings.GetEmulationSpeed();
+        }
+        else
+        {
+            m_emulationTime -= elapsedRealTime;
+        }
+
+        m_speedEmulatedTime += MACHINE_TIME_STEP_SECS;
+    }
+    // Measure emulation speed.
+    m_speedRealTime += elapsedRealTime;
+    static constexpr double SPEED_UPDATE_PERIOD = 0.4;
+    if (m_speedRealTime >= SPEED_UPDATE_PERIOD)
+    {
+        m_measuredEmulationSpeed = float((m_speedEmulatedTime / m_speedRealTime) * 100.0);
+        m_speedEmulatedTime = 0.0;
+        m_speedRealTime = 0.0;
+    }
+}
+
+void Application::ProcessWindowsMessagesIfNecessary(double elapsedRealTime)
+{
+    m_windowsMessagesTime += elapsedRealTime;
+    if (m_windowsMessagesTime >= PROCESS_WINDOWS_MESSAGES_PERIOD)     // If it is time to process Windows messages...
+    {
+        // Process Windows messages.
+        ProcessWindowsMessages();
+        m_windowsMessagesTime = fmod(m_windowsMessagesTime - PROCESS_WINDOWS_MESSAGES_PERIOD, PROCESS_WINDOWS_MESSAGES_PERIOD);
+    }
+}
+
 void Application::ProcessWindowsMessages()
 {
     BOOL bGotMsg;
@@ -464,8 +560,8 @@ void Application::ProcessWindowsMessages()
     // Dispatch all the pending window messages
     do
     {
-        // Get the next pending message, if any. If the application is not active,
-        // block until a message is received.
+        // Get the next pending message, if any.
+        // If the application is not active, block until a message is received.
         if (true/*IsAppActive()*/)
         {
             bGotMsg = ::PeekMessage(&Msg, NULL, 0U, 0U, PM_REMOVE);
@@ -490,52 +586,61 @@ void Application::ProcessWindowsMessages()
     } while (bGotMsg);
 }
 
-//----------------------------------------------------------------------------
-/**
-**
-*/
-void Application::MainLoop()
+void Application::RenderIfNecessary(double elapsedRealTime)
 {
-    // Set Windows timer resolution.
-    // This improves the accuracy of the Sleep function.
-    timeBeginPeriod(WINDOWS_TIMER_RESOLUTION);
-
-    // Initialize the execution timer, which is used to control the execution of the emulator.
-    m_executionTimer.Init();
-    m_executionTimer.Read(&m_currentTimerValue);
-    m_previousTimerValue = m_currentTimerValue;
-
-    m_leftOverDeltaTimeUsecs = 0.0;
-
-    // Main loop.
-    while (!m_bExitApp)
+    m_renderTime += elapsedRealTime;
+    if (m_renderTime >= RENDER_PERIOD)     // If it is time to render a new frame...
     {
-        // Run the emulated machine.
-        static constexpr unsigned TIME_STEP_IN_4MHZ_CYCLES = 4;
-        m_pMachine->Run(TIME_STEP_IN_4MHZ_CYCLES);
+        // Render.
+        Render();
+        m_renderTime -= RENDER_PERIOD;
+    }
+}
 
-        // Has the emulated machine completed a new video frame?
-        if (m_uFrameCount < m_videoOutput->GetFrameCount())
-        {
-            m_uFrameCount = m_videoOutput->GetFrameCount();
+void Application::Render()
+{
+    // Start a new Dear ImGui frame.
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
 
-            // Note: Ideally, this wouldn't be tied to the emulated machine having completed a new frame.
-            //       Instead, it would have its own timer that triggered Windows message processing and rendering at regular real-time intervals. 
+    // Draw all the GUI.
+    // This includes the emulator video output.
+    DrawGui();
 
-            // Process Windows messages.
-            ProcessWindowsMessages();
-            // Render.
-            Render();
-            // Match the speed of an actual CPC.
-            SyncEmulationFrameTimeToRealTime();
-        }
+    // Render everything.
+    ImGui::Render();
+    m_renderingApi->PrepareForRender(RenderingApi::COLOR_MAGENTA);
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        // Update and Render additional Platform Windows.
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
     }
 
-    // Restore previous Windows timer resolution.
-    timeEndPeriod(WINDOWS_TIMER_RESOLUTION);
+    // Make it visible.
+    m_renderingApi->Present(false/*vsync*/);
+}
 
-    // Save user settings.
-    m_settings.SaveToFile();
+void Application::SleepIfIdle()
+{
+    // Compute idle time.
+    double emulationIdleTime = (m_emulationTime < 0.0 ? -m_emulationTime : 0.0);     // m_emulationTime < 0 if emulation is ahead of real time.
+    double renderIdleTime = RENDER_PERIOD - m_renderTime;
+    double windowsMessagesIdleTime = PROCESS_WINDOWS_MESSAGES_PERIOD - m_windowsMessagesTime;
+    double idleTime = emulationIdleTime;
+    idleTime = (renderIdleTime < emulationIdleTime ? renderIdleTime : emulationIdleTime);
+    idleTime = (windowsMessagesIdleTime < idleTime ? windowsMessagesIdleTime : idleTime);
+    idleTime *= 1000.0;     // Convert to milliseconds.
+    // Block the thread for a while to free up the CPU.
+    // Due to the limited resolution of Sleep, we'll sleep for just a little under the total idle time.
+    static constexpr double MIN_IDLE_TIME = 0.1;
+    if (idleTime > MIN_IDLE_TIME)
+    {
+        DWORD sleepDuration = (DWORD)(idleTime - MIN_IDLE_TIME);
+        Sleep(sleepDuration);
+    }
 }
 
 void Application::DrawGui()
@@ -732,82 +837,6 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
 
     ImGui::EndGroup();
     ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
-}
-
-void Application::Render()
-{
-    // Start a new Dear ImGui frame.
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
-
-    // Draw all the GUI.
-    // This includes the emulator video output.
-    DrawGui();
-
-    // Render everything.
-    ImGui::Render();
-    m_renderingApi->PrepareForRender(RenderingApi::COLOR_MAGENTA);
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        // Update and Render additional Platform Windows.
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-    }
-
-    // Make it visible.
-    m_renderingApi->Present(false/*vsync*/);
-}
-
-void Application::SyncEmulationFrameTimeToRealTime()
-{
-    // Limit the emulation speed.
-    // It uses a combination of Sleep -for power efficiency- and active wait -for emulation speed accuracy-.
-    double deltaTimeUsecs;
-    double adjustedDeltaTimeUsecs;
-    bool wait = true;
-    while (wait)
-    {
-        m_executionTimer.Read(&m_currentTimerValue);
-        deltaTimeUsecs = m_executionTimer.ComputeElapsedUsecs(m_previousTimerValue, m_currentTimerValue);   // Actual elapsed time during this frame so far.
-        adjustedDeltaTimeUsecs = (m_leftOverDeltaTimeUsecs + deltaTimeUsecs) * GetSettings()->GetEmulationSpeed();   // Carry over timing error from the previous frame, and scale by the desired emulation speed.
-        if ((GetSettings()->GetEmulationSpeed() <= 0.f) ||       // If Emulation Speed is set to Unlimited...
-            (adjustedDeltaTimeUsecs >= FRAME_DURATION_USECS))    // If enough time has already passed...
-        {
-            wait = false;
-        }
-        else
-        {
-            // Block the thread for a while to free up the CPU.
-            // Due to the limited resolution of Sleep, we'll only sleep for a fraction of the total time we need to wait and then do an active wait the rest of the way.
-            double waitTimeMsecs = (FRAME_DURATION_USECS - adjustedDeltaTimeUsecs) / 1000.0;
-            if (waitTimeMsecs > WINDOWS_TIMER_RESOLUTION)
-            {
-                DWORD sleepDuration = (DWORD)(waitTimeMsecs - WINDOWS_TIMER_RESOLUTION);
-                Sleep(sleepDuration);
-            }
-        }
-    }
-
-    m_previousTimerValue = m_currentTimerValue;
-
-    // Measure timing error in this frame and remember it for the next frame.
-    m_leftOverDeltaTimeUsecs = adjustedDeltaTimeUsecs - FRAME_DURATION_USECS;
-    static const double MAX_LEFT_OVER_DELTA_TIME_USECS = FRAME_DURATION_USECS * 0.2;
-    if (m_leftOverDeltaTimeUsecs > MAX_LEFT_OVER_DELTA_TIME_USECS)
-    {
-        m_leftOverDeltaTimeUsecs = MAX_LEFT_OVER_DELTA_TIME_USECS;
-    }
-
-    // Measure the emulation speed
-    static unsigned s_nStatusBarUpdateDelay = 0;
-    if (s_nStatusBarUpdateDelay == 0)
-    {
-        m_measuredEmulationSpeed = (float)((FRAME_DURATION_USECS * 100.0) / deltaTimeUsecs);
-        s_nStatusBarUpdateDelay = 25;
-    }
-    s_nStatusBarUpdateDelay--;
 }
 
 void Application::OpenLoadDiskImageDialog(unsigned nDrive)

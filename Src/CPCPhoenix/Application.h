@@ -86,8 +86,13 @@ private:
 
     // 64 us per scan line * 312 scan lines = 19968 us per frame (50.08 frames/s)
     static constexpr double   FRAME_DURATION_USECS = 19968.0;
+    static constexpr double   FRAME_DURATION_SECS = FRAME_DURATION_USECS / 1000000.0;
     // Windows timer resolution to improve accuracy of Sleep().
     static constexpr UINT     WINDOWS_TIMER_RESOLUTION = 1;
+    // How often Windows messages are processed.
+    static constexpr double   PROCESS_WINDOWS_MESSAGES_PERIOD = 1.0 / 50.0;
+    // How often a new frame is rendered.
+    static constexpr double   RENDER_PERIOD = 1.0 / 60.0;       // TODO - Dynamically calculate this using the host monitor's refresh rate.
 
     using StringToMachineSpecificationsMap = map<string, CPC::MachineSpecifications>;
     using StringList = vector<string>;
@@ -102,7 +107,13 @@ private:
     void                      InitializeGui();
     void                      ShutdownGui();
 
+    double                    ComputeElapsedRealTime();
+    void                      RunMachine(double elapsedRealTime);
+    void                      ProcessWindowsMessagesIfNecessary(double elapsedRealTime);
     void                      ProcessWindowsMessages();
+    void                      RenderIfNecessary(double elapsedRealTime);
+    void                      Render();
+    void                      SleepIfIdle();
 
     void                      DrawGui();
     void                      DrawMainWindowGui();
@@ -110,9 +121,6 @@ private:
     void                      DrawDiskDriveMenuGui(int driveNumber);
     void                      DrawStatusBarGui();
     void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
-
-    void                      Render();
-    void                      SyncEmulationFrameTimeToRealTime();
 
     void                      OpenLoadDiskImageDialog(unsigned nDrive);
 
@@ -126,15 +134,17 @@ private:
     RenderingApi*             m_renderingApi;
 
     CPC::CMachine*            m_pMachine;
-    unsigned                  m_uFrameCount;
     WindowsKeyStateProvider*  m_pKeyStateProvider;
     TextureVideoOutput*       m_videoOutput;
     CWinSoundOutput*          m_pSoundOutput;
 
-    kmbPrecisionTimer         m_executionTimer;
-    kmbPrecisionTimer::Value  m_previousTimerValue;
-    kmbPrecisionTimer::Value  m_currentTimerValue;
-    double                    m_leftOverDeltaTimeUsecs;
+    kmbPrecisionTimer         m_precisionTimer;
+    kmbPrecisionTimer::Value  m_previousPrecisionTimerValue;
+    double                    m_emulationTime;                         // To control when to advance the emulation.
+    double                    m_renderTime;                            // To control when to render a new frame.
+    double                    m_windowsMessagesTime;                   // To control when to process Windows messages.
+    double                    m_speedRealTime;                         // Used to keep track of how fast the emulation is running.
+    double                    m_speedEmulatedTime;                     // Used to keep track of how fast the emulation is running.
     float                     m_measuredEmulationSpeed;
 
     bool                      m_showDearImGuiDemoWindow;
