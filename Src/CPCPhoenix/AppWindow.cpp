@@ -35,19 +35,18 @@ bool AppWindow::Init()
         DWORD dwStyles;
         dwStyles = (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
-        bRet = Super::Init("CPCPhoenix", dwStyles, 0/*x*/, 0/*y*/, 1/*width*/, 1/*height*/, NULL/*hParentOrOwner*/);
+        static constexpr int ExtraWidth = 60;
+        static constexpr int ExtraHeight = 140;
+        int width = int(CPC::CVideoOutput::VIEWPORT_WIDTH) + ExtraWidth;
+        int height = int(CPC::CVideoOutput::VIEWPORT_HEIGHT * 2) + ExtraHeight;
+
+        bRet = Super::Init("CPCPhoenix", dwStyles, 0/*x*/, 0/*y*/, width, height, NULL/*hParentOrOwner*/);
     }
 
     // Check parameters
     if (bRet)
     {
         //...
-    }
-
-    // Resize application window
-    if (bRet)
-    {
-        ResizeToScale(Application::Singleton()->GetSettings()->GetScale());
     }
 
     // Key accelerators
