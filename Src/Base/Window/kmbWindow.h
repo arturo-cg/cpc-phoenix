@@ -54,6 +54,8 @@ public:
   void                      GetRect                   (RECT* pRect)        { ::GetWindowRect(m_hWnd, pRect); }
   /** Returns the RECT of the window client area, which includes its position and its size. */
   void                      GetClientRect             (RECT* pClientRect)  { ::GetClientRect(m_hWnd, pClientRect); }
+  /** Replaces the provided point in client coordinates with the equivalent point in screen coordinates. */
+  void                      ClientToScreen            (POINT* point) { ::ClientToScreen(m_hWnd, point); }
 
   /** Sets the input focus to this window. A _OnKillFocus event will be sent to the window that currently has the focus
   *** and a _OnSetFocus event will be sent to this window. */
