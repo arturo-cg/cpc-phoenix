@@ -45,6 +45,9 @@
     <ClCompile Include="DearImGui\imgui_widgets.cpp">
       <Filter>Dear ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="DearImGui\imgui_tables.cpp">
+      <Filter>Dear ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Dear ImGui">

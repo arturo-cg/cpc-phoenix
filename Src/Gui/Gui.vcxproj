@@ -170,6 +170,7 @@
     <ClCompile Include="DearImGui\imgui_draw.cpp" />
     <ClCompile Include="DearImGui\imgui_impl_dx11.cpp" />
     <ClCompile Include="DearImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="DearImGui\imgui_tables.cpp" />
     <ClCompile Include="DearImGui\imgui_widgets.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
