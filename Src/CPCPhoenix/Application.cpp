@@ -10,9 +10,7 @@
 #include "cpcDiskDrive.h"
 #include "cpcDskDisk.h"
 #include "AppWindow.h"
-#include "DisplayWindow.h"
 #include "RenderingApi.h"
-#include "StatusBar.h"
 #include "WindowsKeyStateProvider.h"
 #include "TextureVideoOutput.h"
 #include "WinSoundOutput.h"
@@ -57,7 +55,7 @@ bool Application::Init(HINSTANCE hInstance)
     m_pAppWindow->Init();
     // Rendering API (Direct3D 11).
     m_renderingApi = new RenderingApi();
-    bRet = m_renderingApi->Init(m_pAppWindow->GetDisplayWindow()->GetHWnd());
+    bRet = m_renderingApi->Init(m_pAppWindow->GetHWnd());
     if (!bRet)
     {
         ::MessageBox(nullptr, "Failed to initialize Direct3D.", "Error", MB_OK | MB_ICONERROR);
@@ -266,7 +264,7 @@ void Application::InitializeGui()
     }
 
     // Setup Platform/Renderer bindings
-    ImGui_ImplWin32_Init(m_pAppWindow->GetDisplayWindow()->GetHWnd());
+    ImGui_ImplWin32_Init(m_pAppWindow->GetHWnd());
     ImGui_ImplDX11_Init(m_renderingApi->GetDevice(), m_renderingApi->GetDeviceContext());
 }
 
@@ -697,10 +695,11 @@ void Application::DrawGui()
 
 void Application::DrawMainWindowGui()
 {
-    RECT displayWindowRect;
-    m_pAppWindow->GetDisplayWindow()->GetRect(&displayWindowRect);
-    ImGui::SetNextWindowPos(ImVec2((float)displayWindowRect.left, (float)displayWindowRect.top));
-    ImGui::SetNextWindowSize(ImVec2(float(displayWindowRect.right - displayWindowRect.left), float(displayWindowRect.bottom - displayWindowRect.top)));
+    RECT mainWindowRect;
+    m_pAppWindow->GetClientRect(&mainWindowRect);
+    m_pAppWindow->ClientToScreen((POINT*)&mainWindowRect.left);     // (left, top) = position of client area in screen coordinates; (right, bottom) = size of client area.
+    ImGui::SetNextWindowPos(ImVec2((float)mainWindowRect.left, (float)mainWindowRect.top));
+    ImGui::SetNextWindowSize(ImVec2(float(mainWindowRect.right), float(mainWindowRect.bottom)));
     // Main Dear ImGui window is always inside the application OS window.
     ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
     // Main window begin.

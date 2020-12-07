@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "AppWindow.h"
 #include "Application.h"
-#include "DisplayWindow.h"
-#include "StatusBar.h"
 #include "WinVideoOutput.h"
 #include "RenderingApi.h"
 #include "cpcMachine.h"
@@ -52,17 +50,6 @@ bool AppWindow::Init()
         ResizeToScale(Application::Singleton()->GetSettings()->GetScale());
     }
 
-    // DisplayWindow
-    if (bRet)
-    {
-        RECT rect;
-        ::SetRect(&rect, 0, 0, 1, 1);
-        ComputeDisplayWindowSize((int*)&rect.right, (int*)&rect.bottom);
-
-        m_pDisplayWindow = new DisplayWindow;
-        m_pDisplayWindow->Init(rect, this);
-    }
-
     // Key accelerators
     if (bRet)
     {
@@ -103,7 +90,6 @@ bool AppWindow::Init()
 void AppWindow::ResetVars()
 {
     m_hAccelerators = NULL;
-    m_pDisplayWindow = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -112,7 +98,7 @@ void AppWindow::ResetVars()
 */
 void AppWindow::FreeVars()
 {
-    delete m_pDisplayWindow;
+    //...
 }
 
 //----------------------------------------------------------------------------
@@ -191,13 +177,6 @@ LRESULT AppWindow::_OnSizing(LPRECT prRect)
     int displayWindowWidth;
     int displayWindowHeight;
     ComputeDisplayWindowSize(&displayWindowWidth, &displayWindowHeight);
-
-    // Resize the display window
-    if (m_pDisplayWindow != NULL)
-    {
-        m_pDisplayWindow->SetSize(displayWindowWidth, displayWindowHeight);
-        m_pDisplayWindow->InvalidateAll(FALSE);
-    }
 
     // Resize rendering buffers.
     if ((Application::Singleton()->GetRenderingApi() != NULL)/* && (wParam != SIZE_MINIMIZED)*/)
