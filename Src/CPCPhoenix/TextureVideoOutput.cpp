@@ -105,7 +105,7 @@ void TextureVideoOutput::UnmapBackBufferTexture()
     m_bufferProperties.data = nullptr;
 }
 
-void TextureVideoOutput::DrawGui(float availableWidth)
+void TextureVideoOutput::DrawGui()
 {
     // Video output.
     // +- Zoom - Fixed for now. Uncomment commented code to automatically zoom based on the window width.
@@ -117,7 +117,7 @@ void TextureVideoOutput::DrawGui(float availableWidth)
     ImVec2 uv1 = ImVec2(float(VIEWPORT_LEFT + VIEWPORT_WIDTH) / float(TEXTURE_SIZE),
                         float(VIEWPORT_TOP + VIEWPORT_HEIGHT) / float(TEXTURE_SIZE));
     ImGui::PushAllowKeyboardFocus(false);
-    ImGui::SetCursorPosX((availableWidth - size.x) * 0.5f);     // Center image horizontally.
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);     // Center image horizontally.
     ImGui::Image(m_textureSrvs[m_frontBuffer], size, uv0, uv1);
     ImGui::PopAllowKeyboardFocus();
 }

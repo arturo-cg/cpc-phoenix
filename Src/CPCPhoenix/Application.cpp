@@ -707,7 +707,7 @@ void Application::DrawMainWindowGui()
     // Main menu.
     DrawMainMenuGui();
     // Emulator video output.
-    m_videoOutput->DrawGui(ImGui::GetContentRegionAvail().x);
+    m_videoOutput->DrawGui();
     // Status bar.
     ImGui::SetCursorPosY(ImGui::GetWindowViewport()->GetWorkSize().y - (ImGui::GetTextLineHeightWithSpacing() * 3.5f));
     DrawStatusBarGui();

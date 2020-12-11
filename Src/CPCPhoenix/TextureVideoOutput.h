@@ -23,7 +23,7 @@ public:
     bool                    Init();
     void                    End();
 
-    void                    DrawGui(float availableWidth);
+    void                    DrawGui();
 
 
 protected:
