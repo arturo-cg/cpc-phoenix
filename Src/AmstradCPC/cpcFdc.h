@@ -122,6 +122,7 @@ namespace CPC {
     cpcByte                 m_anResult[MAX_PARAMETER_COUNT];
     unsigned                m_nCurrentResult;
     EDataDirection          m_nCurrentDataDir;
+    bool                    m_seekEnd;
 
     unsigned                m_nDesiredDrive;
     unsigned                m_nDesiredSide;

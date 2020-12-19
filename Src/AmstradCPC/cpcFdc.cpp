@@ -81,6 +81,7 @@ namespace CPC {
     m_nParameterCount  = 0;
     m_nCurrentResult   = 0;
     m_nCurrentDataDir  = DIRECTION_TO_FDC;
+    m_seekEnd          = false;
     m_pDataPointer     = NULL;
     m_nBytesToTransfer = 0;
   }
@@ -233,7 +234,7 @@ namespace CPC {
 
     return (nBit7 << 7) |           // Bits 7,6  IC  Interrupt Code (0=OK, 1=aborted:readfail/OK if EN, 2=unknown cmd ...
            (nBit6 << 6) |           //               or senseint with no int occured, 3=aborted:disc removed etc.)
-           (0     << 5) |           // Bit 5     SE  Seek End (Set if seek-command completed)
+           (m_seekEnd << 5) |       // Bit 5     SE  Seek End (Set if seek-command completed)
            (0     << 4) |           // Bit 4     EC  Equipment Check (drive failure or recalibrate failed (retry))
            (nBit3 << 3) |           // Bit 3     NR  Not Ready (drive not ready or non-existing 2nd head selected)
            (0     << 2) |           // Bit 2     HD  Head Adress (head during interrupt)
@@ -421,6 +422,7 @@ namespace CPC {
     if (pDrive != NULL)
     {
       pDrive->_SetCurrentSideAndTrack( m_nDesiredSide, 0 );
+      m_seekEnd = true;
     }
 
     EnterResultPhase();
@@ -441,6 +443,7 @@ namespace CPC {
     if (pDrive != NULL)
     {
       pDrive->_SetCurrentSideAndTrack( m_nDesiredSide, m_anParameters[1] );
+      m_seekEnd = true;
     }
 
     EnterResultPhase();
@@ -460,6 +463,10 @@ namespace CPC {
 
     m_anResult[0] = ReadStatusRegister0();
     m_anResult[1] = ( pDrive!=NULL ? pDrive->_GetCurrentTrack() : 0 );
+
+    // Reset 'Seek End' flag (returned in Status Register 0).
+    // TODO: Check whether this is how this flag actually works or not.
+    m_seekEnd = false;
   }
 
   //----------------------------------------------------------------------------
