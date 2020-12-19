@@ -96,9 +96,9 @@ namespace CPC {
     cpcByte CMachine::ReadByteFromPort(cpcWord nPort)
     {
         cpcByte nRet;
-        if (!GetPpi()->RespondToReadPortRequest(nPort, &nRet))
+        if (!GetFdc()->RespondToReadPortRequest(nPort, &nRet))
         {
-            if (!GetFdc()->RespondToReadPortRequest(nPort, &nRet))
+            if (!GetPpi()->RespondToReadPortRequest(nPort, &nRet))
             {
                 //if ( !GetDEVICE3()->RespondToReadPortRequest(nPort, &nRet) )
                 {
