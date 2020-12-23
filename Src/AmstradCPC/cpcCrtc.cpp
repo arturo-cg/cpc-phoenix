@@ -135,12 +135,12 @@ namespace CPC {
         cpcByte horizontalTotal = m_anRegisters[HORIZONTAL_TOTAL] + 1;
         cpcByte horizontalSyncEnd = m_anRegisters[HORIZONTAL_SYNC_POSITION] + (m_anRegisters[SYNC_WIDTHS] & 0x0F);
 
+        // Update signals depending on where we are in the scan line.
         bool atHorizontalTotal = (m_nCurrentHCharacter == horizontalTotal);
         bool atHorizontalDisplayed = (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_DISPLAYED]);
         bool atHorizontalSyncBegin = (m_nCurrentHCharacter == m_anRegisters[HORIZONTAL_SYNC_POSITION]);
         bool atHorizontalSyncEnd = (m_nCurrentHCharacter == horizontalSyncEnd);
 
-        // Update signals depending on where we are in the scan line.
         if (atHorizontalDisplayed)
         {
             // Disable display.
@@ -213,10 +213,6 @@ namespace CPC {
             cpcByte nMaximumScanLineAddress = m_anRegisters[MAXIMUM_SCAN_LINE_ADDRESS] + 1;
             if (m_nCurrentScanLine == nMaximumScanLineAddress)
             {
-                bool atVerticalTotal = (m_nCurrentVCharacter == (m_anRegisters[VERTICAL_TOTAL] + 1));
-                bool atVerticalDisplayed = (m_nCurrentVCharacter == m_anRegisters[VERTICAL_DISPLAYED]);
-                bool atVerticalSyncStart = (m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION]);
-
                 // Advance 1 character row.
                 m_nCurrentVCharacter++;
                 m_currentAddress.MA += m_anRegisters[HORIZONTAL_DISPLAYED];
@@ -224,14 +220,10 @@ namespace CPC {
                 m_nCurrentScanLine = 0;
 
                 // Update signals depending on where we are in the frame.
-                if (atVerticalTotal)    // At start of new CRTC frame?
-                {
-                    // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
-                    // Re-enable display.
-                    m_bDisplayEnabledV = true;
-                    m_nCurrentVCharacter = 0;
-                    m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
-                }
+                bool atVerticalDisplayed = (m_nCurrentVCharacter == m_anRegisters[VERTICAL_DISPLAYED]);
+                bool atVerticalTotal = (m_nCurrentVCharacter == (m_anRegisters[VERTICAL_TOTAL] + 1));
+                // HACK - If R7 (Vertical Sync Position) == 0, force it to happen at the same time as R4 + 1 (Vertical Total) so that VSYNC goes active and later inactive properly.
+                bool atVerticalSyncStart = (m_anRegisters[VERTICAL_SYNC_POSITION] != 0 ? m_nCurrentVCharacter == m_anRegisters[VERTICAL_SYNC_POSITION] : atVerticalTotal);
 
                 if (atVerticalDisplayed)
                 {
@@ -250,6 +242,15 @@ namespace CPC {
                     }
                     // Notify the Gate Array that VSYNC's rising edge just occured.
                     GetMachine()->GetGateArray()->OnCrtcVSyncBegin();
+                }
+
+                if (atVerticalTotal)    // At start of new CRTC frame?
+                {
+                    // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
+                    // Re-enable display.
+                    m_bDisplayEnabledV = true;
+                    m_nCurrentVCharacter = 0;
+                    m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
                 }
             }
         }
