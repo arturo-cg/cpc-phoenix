@@ -214,7 +214,7 @@ namespace CPC {
             if (m_nCurrentScanLine == nMaximumScanLineAddress)
             {
                 // Advance 1 character row.
-                m_nCurrentVCharacter++;
+                m_nCurrentVCharacter = (m_nCurrentVCharacter + 1) & 0x7F;   // VCC is a 7-bit counter, e.g. it wraps around after 127.
                 m_currentAddress.MA += m_anRegisters[HORIZONTAL_DISPLAYED];
                 m_currentAddress.RA = 0;
                 m_nCurrentScanLine = 0;

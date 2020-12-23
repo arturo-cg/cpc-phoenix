@@ -111,9 +111,9 @@ namespace CPC {
         /** The currently selected internal register. */
         ERegister               m_eSelectedRegister;
 
-        cpcByte                 m_nCurrentHCharacter;       // HCC
-        cpcByte                 m_nCurrentVCharacter;       // VCC
-        cpcByte                 m_nCurrentScanLine;         // VLC
+        cpcByte                 m_nCurrentHCharacter;       // A.k.a. HCC or C0.
+        cpcByte                 m_nCurrentVCharacter;       // A.k.a. VCC or C4.
+        cpcByte                 m_nCurrentScanLine;         // A.k.a. VLC or C9.
         cpcByte                 m_nScanLinesForVSyncOff;
         cpcByte                 m_nExtraScanLinesCounter;
         SGeneratedAddress       m_currentAddress;
