@@ -92,6 +92,33 @@ void TextureVideoOutput::FreeVars()
     MapBackBufferTexture();
 }
 
+void TextureVideoOutput::CaptureVideoOutputMidFrame()
+{
+    // At this point, front and back buffers contain:
+    //   - Front buffer: frame n (the one visible).
+    //   - Back buffer: frame n+1 (the frame currently being drawn by the monitor) / frame n-1 (two frames ago).
+    //                  The point where frame n+1 ends and frame n-1 starts is determined by the monitor beam position.
+
+    // Map front buffer.
+    unsigned char* frontBufferData;
+    unsigned frontBufferStride;
+    Application::Singleton()->GetRenderingApi()->MapResourceAsWriteDiscard(m_textures[m_frontBuffer], (void**)&frontBufferData, &frontBufferStride);
+    // Copy pixels that have been drawn so far in this frame.
+    unsigned beamX = GetBeamX();
+    unsigned beamY = GetBeamY();
+    beamX = (beamX < BUFFER_WIDTH ? beamX : BUFFER_WIDTH - 1);
+    beamY = (beamY < BUFFER_HEIGHT ? beamY : BUFFER_HEIGHT - 1);
+    static constexpr unsigned BytesPerPixel = 4;
+    unsigned numBytesDrawnSoFar = (beamY * m_bufferProperties.nStride) +   // Scan lines that are already complete.
+                                  (beamX * BytesPerPixel);                 // Scan line currently being drawn.
+    memcpy(frontBufferData, m_bufferProperties.data, numBytesDrawnSoFar);
+    //// Pixels still from the previous frame that haven't been refreshed yet.
+    //unsigned totalBytes = m_bufferProperties.nStride * BUFFER_HEIGHT;
+    //memset(frontBufferProperties.data + numBytesDrawnSoFar, 0, totalBytes - numBytesDrawnSoFar);      // Hides previous frame.
+    // Unmap front buffer.
+    Application::Singleton()->GetRenderingApi()->UnmapResource(m_textures[m_frontBuffer]);
+}
+
 void TextureVideoOutput::MapBackBufferTexture()
 {
     Application::Singleton()->GetRenderingApi()->MapResourceAsWriteDiscard(m_textures[m_backBuffer], (void**)&m_bufferProperties.data, &m_bufferProperties.nStride);
@@ -119,5 +146,7 @@ void TextureVideoOutput::DrawGui()
     ImGui::PushAllowKeyboardFocus(false);
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);     // Center image horizontally.
     ImGui::Image(m_textureSrvs[m_frontBuffer], size, uv0, uv1);
+    m_guiRectMin = ImGui::GetItemRectMin();
+    m_guiRectMax = ImGui::GetItemRectMax();
     ImGui::PopAllowKeyboardFocus();
 }

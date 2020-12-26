@@ -11,6 +11,7 @@
 #include "cpcDskDisk.h"
 #include "AppWindow.h"
 #include "RenderingApi.h"
+#include "Debugger.h"
 #include "WindowsKeyStateProvider.h"
 #include "TextureVideoOutput.h"
 #include "WinSoundOutput.h"
@@ -81,7 +82,12 @@ bool Application::Init(HINSTANCE hInstance)
         // Emulated machine.
         CreateMachine();
     }
-
+    // Debugger.
+    if (bRet)
+    {
+        m_debugger = new Debugger();
+        bRet = m_debugger->Init();
+    }
     // Others.
     if (bRet)
     {
@@ -512,8 +518,16 @@ void Application::MainLoop()
     {
         // Measure elapsed real time.
         double elapsedRealTime = ComputeElapsedRealTime();
-        // Emulated machine.
-        RunMachine(elapsedRealTime);
+        // Emulated machine / debugger.
+        if (m_debugger->IsActive())
+        {
+            // The machine gets updated by the debugger as required.
+            m_debugger->RunMachine();
+        }
+        else
+        {
+            RunMachine(elapsedRealTime);
+        }
         // Windows messages.
         ProcessWindowsMessagesIfNecessary(elapsedRealTime);
         // Render.
@@ -627,11 +641,13 @@ void Application::ProcessWindowsMessages()
 void Application::RenderIfNecessary(double elapsedRealTime)
 {
     m_renderTime += elapsedRealTime;
-    if (m_renderTime >= RENDER_PERIOD)     // If it is time to render a new frame...
+    // Render at a lower rate while debugging to prevent the Run To command from being painfully slow.
+    double renderPeriod = (m_debugger->IsActive() && m_debugger->IsRunning() ? RENDER_PERIOD_WHILE_DEBUGGER_RUNNING : RENDER_PERIOD);
+    if (m_renderTime >= renderPeriod)     // If it is time to render a new frame...
     {
         // Render.
         Render();
-        m_renderTime -= RENDER_PERIOD;
+        m_renderTime -= renderPeriod;
     }
 }
 
@@ -664,7 +680,7 @@ void Application::Render()
 void Application::SleepIfIdle()
 {
     // Compute idle time.
-    double emulationIdleTime = (m_emulationTime < 0.0 ? -m_emulationTime : 0.0);     // m_emulationTime < 0 if emulation is ahead of real time.
+    double emulationIdleTime = (m_debugger->IsActive() ? 12345.0/*arbitrary large number*/ : (m_emulationTime < 0.0 ? -m_emulationTime : 0.0));     // m_emulationTime < 0 if emulation is ahead of real time.
     double renderIdleTime = RENDER_PERIOD - m_renderTime;
     double windowsMessagesIdleTime = PROCESS_WINDOWS_MESSAGES_PERIOD - m_windowsMessagesTime;
     double idleTime = emulationIdleTime;
@@ -685,6 +701,11 @@ void Application::DrawGui()
 {
     // Main window.
     DrawMainWindowGui();
+    // Debugger.
+    if (m_debugger->IsActive())
+    {
+        m_debugger->DrawGui();
+    }
     // Dear ImGui demo window.
     // It should be removed at some point.
     if (m_showDearImGuiDemoWindow)
@@ -708,6 +729,10 @@ void Application::DrawMainWindowGui()
     DrawMainMenuGui();
     // Emulator video output.
     m_videoOutput->DrawGui();
+    if (m_debugger->IsActive())
+    {
+        m_debugger->DrawVideoOutputOverlays();
+    }
     // Status bar.
     ImGui::SetCursorPosY(ImGui::GetWindowViewport()->GetWorkSize().y - (ImGui::GetTextLineHeightWithSpacing() * 3.5f));
     DrawStatusBarGui();
@@ -801,6 +826,14 @@ void Application::DrawMainMenuGui()
                 m_pMachine->Reset();
             }
             ImGui::EndMenu();
+        }
+        //
+        // "Debugger" option.
+        //
+        bool debuggerActive = m_debugger->IsActive();
+        if (ImGui::Checkbox("Debugger", &debuggerActive))
+        {
+            m_debugger->SetActive(debuggerActive);
         }
         //
         // "Help" menu.

@@ -14,6 +14,7 @@ class RenderingApi;
 class WindowsKeyStateProvider;
 class TextureVideoOutput;
 class CWinSoundOutput;
+class Debugger;
 
 namespace CPC
 {
@@ -67,10 +68,20 @@ public:
 
     /** Returns the application window. */
     AppWindow*                GetAppWindow() { return m_pAppWindow; }
+    /** Returns the application window (const version). */
+    const AppWindow*          GetAppWindow() const { return m_pAppWindow; }
+
+    TextureVideoOutput*       GetTextureVideoOutput() { return m_videoOutput; }
+    const TextureVideoOutput* GetTextureVideoOutput() const { return m_videoOutput; }
+
+    /** Returns the debugger. */
+    Debugger*                 GetDebugger() { return m_debugger; }
+    /** Returns the debugger (const version). */
+    const Debugger*           GetDebugger() const { return m_debugger; }
 
     /** Returns the RenderingApi object. */
     RenderingApi*             GetRenderingApi() { return m_renderingApi; }
-    /** Returns the RenderingApi object (const version. */
+    /** Returns the RenderingApi object (const version). */
     const RenderingApi*       GetRenderingApi() const { return m_renderingApi; }
 
 
@@ -94,6 +105,7 @@ private:
     static constexpr double   PROCESS_WINDOWS_MESSAGES_PERIOD = 1.0 / 50.0;
     // How often a new frame is rendered.
     static constexpr double   RENDER_PERIOD = 1.0 / 60.0;       // TODO - Dynamically calculate this using the host monitor's refresh rate.
+    static constexpr double   RENDER_PERIOD_WHILE_DEBUGGER_RUNNING = 1.0 / 20.0;
 
     using StringToMachineSpecificationsMap = map<string, CPC::MachineSpecifications>;
     using StringList = vector<string>;
@@ -133,6 +145,7 @@ private:
     Settings                  m_settings;
     AppWindow*                m_pAppWindow;
     RenderingApi*             m_renderingApi;
+    Debugger*                 m_debugger;
 
     CPC::CMachine*            m_pMachine;
     WindowsKeyStateProvider*  m_pKeyStateProvider;

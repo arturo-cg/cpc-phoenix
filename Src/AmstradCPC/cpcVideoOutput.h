@@ -51,7 +51,7 @@ namespace CPC {
         {
             unsigned     nWidth;            // Width of the buffer in pixels. Must be >= BUFFER_WIDTH.
             //unsigned     nHeight;           // Height of the buffer in pixels.
-            unsigned     nStride;           // Length of the gap in bytes between two consecutive scan lines.
+            unsigned     nStride;           // Number of bytes between the start of a scan lines and the start of the next one.
             EPixelFormat eFormat;           // Pixel format.
             unsigned char* data;            // Pointer to the buffer data.
         };
@@ -72,6 +72,10 @@ namespace CPC {
         /** */
         void                    Run();
 
+        /** Returns the current X coordinate of the beam position. */
+        unsigned                GetBeamX() const { return m_beamX; }
+        /** Returns the current Y coordinate of the beam position. */
+        unsigned                GetBeamY() const { return m_beamY; }
         /** Returns the current frame count. */
         unsigned                GetFrameCount() const { return m_frameCount; }
 

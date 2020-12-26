@@ -5,6 +5,7 @@
 #include "AppWindow.h"
 #include "Application.h"
 #include "WinVideoOutput.h"
+#include "Debugger.h"
 #include "RenderingApi.h"
 #include "cpcMachine.h"
 #include "cpcKeyboard.h"
@@ -196,8 +197,18 @@ LRESULT AppWindow::_OnSizing(LPRECT prRect)
     bool shiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
     bool ctrlPressed = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
     bool altPressed = (GetKeyState(VK_MENU) & 0x8000) != 0;
-    // Notify the application.
-    Application::Singleton()->_OnAppWindowKeyDown(virtualKey, shiftPressed, ctrlPressed, altPressed);
+    // Pass it on to the debugger.
+    Application* application = Application::Singleton();
+    bool processed = false;
+    if (application->GetDebugger()->IsActive())
+    {
+        processed = application->GetDebugger()->_OnAppWindowKeyDown(virtualKey, shiftPressed, ctrlPressed, altPressed);
+    }
+    // If not processed by the debugger, pass it on to the application.
+    if (!processed)
+    {
+        processed = Application::Singleton()->_OnAppWindowKeyDown(virtualKey, shiftPressed, ctrlPressed, altPressed);
+    }
 
     return 0;
 }

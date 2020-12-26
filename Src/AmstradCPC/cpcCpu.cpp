@@ -177,6 +177,7 @@ namespace CPC {
         m_inHalt = false;
         m_delayInterruptEnable = false;
         m_interruptRequestActive = false;
+        m_interruptWasAcknowledged = false;
         m_interruptVector = 0;
         m_nmiRequested = false;
         m_signedDisplacement = 0;
@@ -189,6 +190,8 @@ namespace CPC {
     void CCpu::Run(unsigned nNumCycles)
     {
         KMASSERTM(m_cpuInterface != NULL, ("Unassigned CPU interface. Please assign one by calling the method CCpu::SetCpuInterface. The program will crash if you continue."));
+
+        m_interruptWasAcknowledged = false;
 
         // Accumulate cycles.
         m_numCyclesAhead -= (int)nNumCycles;
@@ -287,9 +290,6 @@ namespace CPC {
 
     void CCpu::AcceptInterrupt()
     {
-        //{
-        //    OutputDebugString("-- Interrupt --\n");
-        //}
         // Resume normal execution if currently in a HALT instruction.
         m_inHalt = false;
         // Don't allow further interrupts.
@@ -297,6 +297,7 @@ namespace CPC {
         m_registers.IFF2 = false;
         // Acknowledge interrupt.
         m_cpuInterface->OnInterruptAcknowledge(this);
+        m_interruptWasAcknowledged = true;
 
         switch (m_registers.IM)
         {
@@ -405,6 +406,12 @@ namespace CPC {
         m_prefix = Prefix::None;
         // Disallow interrupts immediately after an invalid instruction.
         m_delayInterruptEnable = true;
+    }
+
+    bool CCpu::IsExecutingInstruction() const
+    {
+        return ((m_numCyclesAhead > 0) ||               // If still consuming cycles for the last instruction...
+                (m_prefix != Prefix::None));            // If a prefix was just read...
     }
 
     //----------------------------------------------------------------------------

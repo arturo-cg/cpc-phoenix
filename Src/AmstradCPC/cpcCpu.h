@@ -36,7 +36,6 @@ namespace CPC {
     **
     ** TODO:
     **   - Interrupt Mode 2.
-    **   - Timing.
     */
     class CCpu : public CSubSystem
     {
@@ -117,10 +116,11 @@ namespace CPC {
         /** Runs the CPU for the given number of cycles (or T-states, in Z80 terminology). */
         void                    Run(unsigned nNumCycles);
 
-
-    private:
-
-        typedef                 CSubSystem                inherited;
+        /** Returns true if the CPU is in the middle of the execution of an instruction, or if it just read a prefix but not yet the opcode.
+        *** Returns false if it has just finished executing an instruction and is about to start the next one. */
+        bool                    IsExecutingInstruction() const;
+        /** Returns true if the CPU acknowledged an interrupt during the last call to Run, or false otherwise. */
+        bool                    InterruptWasAcknowledged() const { return m_interruptWasAcknowledged; }
 
         // Type for 16-bit registers whose 8-bit components can be accessed individually as well.
         union Reg16
@@ -202,6 +202,13 @@ namespace CPC {
             void SetFlag(Flag flag, bool state) { AF.b.l = (state ? AF.b.l | (1 << flag) : AF.b.l & ~(1 << flag)); }
             bool GetFlag(Flag flag) const { return ((AF.b.l & (1 << flag)) != 0); }
         };
+
+        /** Returns the Z80's internal registers. */
+        const Registers&        GetRegisters() const { return m_registers; }
+
+    private:
+
+        typedef                 CSubSystem                inherited;
 
         // Opcode prefixes.
         enum Prefix
@@ -423,6 +430,7 @@ namespace CPC {
         bool m_inHalt;
         bool m_delayInterruptEnable;
         bool m_interruptRequestActive;
+        bool m_interruptWasAcknowledged;
         cpcByte m_interruptVector;
         bool m_nmiRequested;
         bool m_waitActive;

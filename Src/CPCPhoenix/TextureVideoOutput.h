@@ -25,6 +25,12 @@ public:
 
     void                    DrawGui();
 
+    ImVec2                  GetGuiRectMin() const { return m_guiRectMin; }      // In screen space.
+    ImVec2                  GetGuiRectMax() const { return m_guiRectMax; }      // In screen space.
+
+    // Captures all the pixels that have been drawn so far in the current frame and copies them to the front buffer.
+    // Used by the debugger.
+    void                    CaptureVideoOutputMidFrame();
 
 protected:
 
@@ -49,6 +55,8 @@ private:
     SBufferProperties       m_bufferProperties;
     unsigned                m_backBuffer;
     unsigned                m_frontBuffer;
+    ImVec2                  m_guiRectMin;
+    ImVec2                  m_guiRectMax;
 
     ID3D11Texture2D*            m_textures[BUFFER_COUNT];
     ID3D11ShaderResourceView*   m_textureSrvs[BUFFER_COUNT];

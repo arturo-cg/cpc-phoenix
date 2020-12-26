@@ -107,6 +107,13 @@ namespace CPC {
         /** Runs the Gate-Array for the given number of cycles. */
         void                    Run(unsigned nMinNumCycles);
 
+        /** Static utility method to obtain a memory address on a CPC system from a CRTC address. */
+        static cpcWord          ConvertCrtcAddressToCpc(cpcWord ma, cpcByte ra)
+        {
+            return (((ma & 0x3000) << 2) |
+                    ((ra & 0x0007) << 11) |
+                    ((ma & 0x03FF) << 1));
+        }
 
     private:
 
