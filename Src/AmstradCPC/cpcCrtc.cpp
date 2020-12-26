@@ -16,7 +16,7 @@ namespace CPC {
         0xFF,   // R0
         0xFF,   // R1
         0xFF,   // R2
-        0xFF,   // R3
+        0x0F,   // R3 -- TODO: Depending on the CRTC type, this could be 0xFF too.
         0x7F,   // R4
         0x1F,   // R5
         0x7F,   // R6
