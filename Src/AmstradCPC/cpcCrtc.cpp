@@ -173,7 +173,8 @@ namespace CPC {
             // At this point, monitor raster is right past the left border.
             // Gate-Array starts reading bytes from RAM to generate video signal (if vertical position is in visible area too).
             // Re-enable display.
-            m_bDisplayEnabledH = true;
+            // Edge case: If Horizontal Displayed (R1) == 0, don't re-enable display.
+            m_bDisplayEnabledH = (m_anRegisters[HORIZONTAL_DISPLAYED] != 0);
             // Move to next scan line.
             m_nCurrentHCharacter = 0;
             m_currentAddress.MA -= horizontalTotal;
