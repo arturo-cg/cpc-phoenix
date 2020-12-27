@@ -187,7 +187,9 @@ namespace CPC {
     */
     void CCrtc::UpdateVertical()
     {
-        if (m_nExtraScanLinesCounter <= 0)
+        bool atEndOfCrtcFrame = false;
+
+        if (m_nExtraScanLinesCounter <= 0)      // If *not* currently adding extra scan lines at the end of the current CRTC frame...
         {
             // Advance 1 scan line.
             m_nCurrentScanLine++;
@@ -204,8 +206,6 @@ namespace CPC {
                     m_bVSyncState = false;
                     // Notify the Gate Array that VSYNC's falling edge just occured. The Gate Array uses HSYNC and VSYNC to generate interrupts.
                     GetMachine()->GetGateArray()->OnCrtcVSyncEnd();
-                    // Add extra scan lines, if requested.
-                    m_nExtraScanLinesCounter = m_anRegisters[VERTICAL_TOTAL_ADJUST] & 0x1F;
                 }
             }
 
@@ -244,13 +244,19 @@ namespace CPC {
                     GetMachine()->GetGateArray()->OnCrtcVSyncBegin();
                 }
 
-                if (atVerticalTotal)    // At start of new CRTC frame?
+                if (atVerticalTotal)    // At the end of current CRTC frame?
                 {
-                    // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
-                    // Re-enable display.
-                    m_bDisplayEnabledV = true;
-                    m_nCurrentVCharacter = 0;
-                    m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
+                    // If Vertical Total Adjust (R5) > 0, we need to add a few extra scan lines before ending the current CRTC frame.
+                    if (m_anRegisters[VERTICAL_TOTAL_ADJUST] > 0)
+                    {
+                        // Add the requested extra scan lines.
+                        m_nExtraScanLinesCounter = m_anRegisters[VERTICAL_TOTAL_ADJUST];
+                    }
+                    else
+                    {
+                        // End current CRTC frame.
+                        atEndOfCrtcFrame = true;
+                    }
                 }
             }
         }
@@ -258,6 +264,21 @@ namespace CPC {
         {
             // We are adding extra scan lines at the start of the frame (i.e. right after VSYNC goes off) as per the value contained in R5 (VERTICAL TOTAL ADJUST).
             m_nExtraScanLinesCounter--;
+            if (m_nExtraScanLinesCounter == 0)
+            {
+                // End current CRTC frame.
+                atEndOfCrtcFrame = true;
+            }
+        }
+
+        // Is it time to end the current CRTC frame?
+        if (atEndOfCrtcFrame)
+        {
+            // At this point, monitor raster is right past the top border vertically and right past the left border horizontally.
+            // Re-enable display.
+            m_bDisplayEnabledV = true;
+            m_nCurrentVCharacter = 0;
+            m_currentAddress.MA = (m_anRegisters[START_ADDRESS_HIGH] << 8) | m_anRegisters[START_ADDRESS_LOW];
         }
     }
 
