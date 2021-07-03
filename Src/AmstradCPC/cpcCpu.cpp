@@ -19,10 +19,10 @@ namespace CPC {
     CCpu::OpcodeInfo CCpu::m_opcodesMain[256] = {
         // This yields something similar to this:
         //
-        // { &CCpu::Execute_00, false, "NOP" },
-        // { &CCpu::Execute_01, false, "LD BC, %nn" },
-        // { &CCpu::Execute_02, false, "LD (BC), A" },
-        // { &CCpu::Execute_03, false, "INC BC" },
+        // { &CCpu::Execute_00, false, "NOP", TIMING_F4 },
+        // { &CCpu::Execute_01, false, "LD BC, %nn", TIMING_F4M3M3 },
+        // { &CCpu::Execute_02, false, "LD (BC), A", TIMING_F4M3 },
+        // { &CCpu::Execute_03, false, "INC BC", TIMING_F6 },
         // ...
         #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_##_num, _isInstruction, _mnemonic, _timingType },
         #include "cpcCpu_MainOpcodes.h"

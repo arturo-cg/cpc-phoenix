@@ -21,7 +21,7 @@ namespace CPC {
     ** From the point of view of the other devices in the machine, instructions are executed atomically.
     ** All the bytes that make up an instruction (prefix, opcode, operand) are read from memory on the same clock cycle
     ** and the result is written to memory on that same cycle, whereas a real Z80 CPU reads and writes each byte sequentially on
-    ** different clock cycles. This could be a problem in which extremely precise timing is needed.
+    ** different clock cycles. This could be a problem in situations where very precise timing is needed.
     **
     ** On an Amstrad CPC emulator it's *mostly* OK because the CPU is the only device that can write to memory, so once the CPU
     ** starts reading the bytes of the next instruction it's guaranteed that all of them are going to remain unchanged. Therefore,
