@@ -227,12 +227,31 @@ void Debugger::DrawExecuteOptions()
 
 void Debugger::DrawDisassembly()
 {
-    ImGui::BeginGroup();
-    ImGui::Dummy(ImVec2(400.f, 400.f));
-    ImGui::Text("TODO - Disassembly");
-    ImGui::Dummy(ImVec2(400.f, 400.f));
-    ImGui::EndGroup();
-    LastItemBox(0.f/*margin*/);
+    ImGui::BeginChild("Disassembly", ImVec2(-130.f, 0.f), true/*border*/);
+
+    const CPC::CCpu* cpu = m_machine->GetCpu();
+
+    ImGuiListClipper clipper;
+    clipper.Begin(1 << 16/*items_count: 64 KB*/, ImGui::GetTextLineHeightWithSpacing()/*items_height*/);
+    while (clipper.Step())
+    {
+        // Disassemble as many instructions as there are visible lines.
+        int lineCount = clipper.DisplayEnd - clipper.DisplayStart;
+        cpcWord address = (cpcWord)clipper.DisplayStart;
+        std::vector<CPC::CCpu::AssemblyInstruction> instructions;
+        instructions.resize(lineCount);
+        for (int i = 0; i < lineCount; i++)
+        {
+            // Disassemble instruction.
+            CPC::CCpu::AssemblyInstruction& instruction = instructions.at(i);
+            cpu->DisassembleInstruction(address, &instruction);
+            // Print instruction.
+            ImGui::Text("%04X: %s\t\t%s, %s", address, instruction.instruction.c_str(), instruction.firstOperand.c_str(), instruction.secondOperand.c_str());
+            address += instruction.sizeBytes;
+        }
+    }
+
+    ImGui::EndChild();
 }
 
 void Debugger::DrawCpuRegisters()

@@ -41,6 +41,20 @@ namespace CPC {
     {
     public:
 
+        // Opcode prefixes.
+        enum Prefix : int
+        {
+            None = 0,         // No prefix: main instructions.
+            ED,               // Extended instructions.
+            CB,               // Bit instructions.
+            DD,               // IX instructions.
+            DDCB,             // IX bit instructions.
+            FD,               // IY instructions.
+            FDCB,             // IY bit instructions.
+
+            Count
+        };
+
         enum InstructionTimingType
         {
             // F - Fetch cycle
@@ -91,6 +105,14 @@ namespace CPC {
             InstructionTimingType timingType;             // Index into the timing table.
         };
 
+        struct AssemblyInstruction
+        {
+            int sizeBytes;                  // Size of the instruction, in bytes. It includes everything: prefix, opcode and operands.
+            std::string instruction;        // The operation, e.g. "LD", "OUT", etc.
+            std::string firstOperand;       // Empty if instruction has no operands.
+            std::string secondOperand;      // Empty if instruction has zero or one operands.
+        };
+
 
         CCpu(CMachine *pMachine);
         virtual                ~CCpu() { FreeVars(); }
@@ -123,6 +145,11 @@ namespace CPC {
         bool                    IsExecutingInstruction() const;
         /** Returns true if the CPU acknowledged an interrupt during the last call to Run, or false otherwise. */
         bool                    InterruptWasAcknowledged() const { return m_interruptWasAcknowledged; }
+
+        /** Translates the instruction that starts at the specified address to assembly language.
+        *   It provides the core functionality for a full-blown disassembler.
+        */
+        void                    DisassembleInstruction(cpcWord address, AssemblyInstruction* outResult) const;
 
         // Type for 16-bit registers whose 8-bit components can be accessed individually as well.
         union Reg16
@@ -211,20 +238,6 @@ namespace CPC {
     private:
 
         typedef                 CSubSystem                inherited;
-
-        // Opcode prefixes.
-        enum Prefix
-        {
-            None = 0,         // No prefix: main instructions.
-            ED,               // Extended instructions.
-            CB,               // Bit instructions.
-            DD,               // IX instructions.
-            DDCB,             // IX bit instructions.
-            FD,               // IY instructions.
-            FDCB,             // IY bit instructions.
-
-            Count
-        };
 
         enum MCycleType
         {

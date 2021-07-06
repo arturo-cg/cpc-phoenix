@@ -28,13 +28,13 @@ namespace CPC {
     virtual void OnInterruptAcknowledge(CCpu* cpu) = 0;
 
     /** The Z80 requests to read a byte from memory. */
-    virtual cpcByte ReadByteFromMemory(CCpu* cpu, cpcWord address) = 0;
+    virtual cpcByte ReadByteFromMemory(const CCpu* cpu, cpcWord address) const = 0;
     /** The Z80 requests to write a byte to memory. */
-    virtual void WriteByteToMemory(CCpu* cpu, cpcWord address, cpcByte value) = 0;
+    virtual void WriteByteToMemory(const CCpu* cpu, cpcWord address, cpcByte value) = 0;
     /** The Z80 requests to read a byte from a port. */
-    virtual cpcByte ReadByteFromPort(CCpu* cpu, cpcWord port) = 0;
+    virtual cpcByte ReadByteFromPort(const CCpu* cpu, cpcWord port) const = 0;
     /** The Z80 requests to write a byte to a port. */
-    virtual void WriteByteToPort(CCpu* cpu, cpcWord port, cpcByte value) = 0;
+    virtual void WriteByteToPort(const CCpu* cpu, cpcWord port, cpcByte value) = 0;
 
 
   private:

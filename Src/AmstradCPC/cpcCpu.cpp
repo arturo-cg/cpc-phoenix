@@ -240,8 +240,8 @@ namespace CPC {
         m_delayInterruptEnable = false;
         IncrementR();
         // Execute instruction or remember prefix.
-        OpcodeInfo* table = m_opcodes[m_prefix];
-        OpcodeInfo* opcodeInfo = &table[opcode];
+        const OpcodeInfo* table = m_opcodes[m_prefix];
+        const OpcodeInfo* opcodeInfo = &table[opcode];
         //{
         //    std::ostringstream ss;
         //    ss << std::hex << m_registers.PC.w - 1 << "\t\t" << opcodeInfo->mnemonicOperation;
@@ -1848,6 +1848,48 @@ namespace CPC {
     void CCpu::HALT()
     {
         m_inHalt = true;
+    }
+
+    void CCpu::DisassembleInstruction(cpcWord address, AssemblyInstruction* outResult) const
+    {
+        // Prefix.
+        cpcByte firstByte = m_cpuInterface->ReadByteFromMemory(this, address);
+        cpcByte secondByte = m_cpuInterface->ReadByteFromMemory(this, address + 1);
+        Prefix prefix;
+        switch (firstByte)
+        {
+            case 0xED: prefix = Prefix::ED; break;
+            case 0xCB: prefix = Prefix::CB; break;
+            case 0xDD: prefix = (secondByte == 0xCB ? Prefix::DDCB : Prefix::DD); break;
+            case 0xFD: prefix = (secondByte == 0xCB ? Prefix::FDCB : Prefix::FD); break;
+            default: prefix = Prefix::None; break;
+        }
+        // Prefix size.
+        int prefixSizeBytes;
+        switch (prefix)
+        {
+            case Prefix::None: prefixSizeBytes = 0; break;
+            case Prefix::ED: prefixSizeBytes = 1; break;
+            case Prefix::CB: prefixSizeBytes = 1; break;
+            case Prefix::DD: prefixSizeBytes = 1; break;
+            case Prefix::DDCB: prefixSizeBytes = 2; break;
+            case Prefix::FD: prefixSizeBytes = 1; break;
+            case Prefix::FDCB: prefixSizeBytes = 2; break;
+            default: prefixSizeBytes = 0; break;
+        }
+        // Opcode.
+        cpcByte opcode = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes);
+        const OpcodeInfo* opcodeTable = m_opcodes[prefix];
+        const OpcodeInfo* opcodeInfo = &opcodeTable[opcode];
+        // Disassemble instruction.
+        // +- Operation.
+        outResult->instruction = opcodeInfo->mnemonicOperation;
+        // +- Operands.
+        //    TODO: Read actual value of operands from memory, if applicable.
+        outResult->firstOperand = opcodeInfo->mnemonicLeftOperand;
+        outResult->secondOperand = opcodeInfo->mnemonicRightOperand;
+        // Instruction size, in bytes.
+        outResult->sizeBytes = prefixSizeBytes + 1/*opcode*/ + 0/*offset*/ + 0/*first operand*/ + 0/*second operand*/;
     }
 
 } //namespace CPC
