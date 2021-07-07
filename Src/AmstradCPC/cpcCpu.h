@@ -93,16 +93,27 @@ namespace CPC {
             INSTRUCTION_TIMING_COUNT
         };
 
+        enum class MnemonicFlags
+        {
+            DisplacementBeforeOpcode = 1 << 0,          // Instruction has a 1-byte displacement right before the opcode.
+            DisplacementAfterOpcode = 1 << 1,           // Instruction has a 1-byte displacement right after the opcode.
+            Immediate8 = 1 << 2,                        // Instruction has a 1-byte immediate data at the end of the byte sequence.
+            Immediate16 = 1 << 3,                       // Instruction has a 2-byte immediate data at the end of the byte sequence.
+        };
+
         struct OpcodeInfo
         {
             using MicrocodeFn = void (CCpu::*)();
 
-            MicrocodeFn microcodeFn;                      // Pointer to the function that contains the microde (i.e. the emulation) for the instruction.
+            // Emulation data.
             bool isInstruction;                           // Prefixes are also included in the instruction look-up table. This variable is true iif this entry is for an instruction, or false if it's a prefix byte.
+            InstructionTimingType timingType;             // Index into the timing table.
+            MicrocodeFn microcodeFn;                      // Pointer to the function that contains the microde (i.e. the emulation) for the instruction.
+            // Disassembly data.
             const char* mnemonicOperation;                // The operation part of the mnemonic for this instruction.
             const char* mnemonicLeftOperand;              // The first operand of the mnemonic for this instruction.
             const char* mnemonicRightOperand;             // The second operand of the mnemonic for this instruction.
-            InstructionTimingType timingType;             // Index into the timing table.
+            MnemonicFlags mnemonicFlags;                  // Extra info about the mnemonic.
         };
 
         struct AssemblyInstruction
@@ -440,6 +451,8 @@ namespace CPC {
         void                    DI();
         void                    IM(int mode);
         void                    HALT();
+
+        void                    FillMnemonicFlags(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions);
 
         Registers m_registers;
         bool m_inHalt;
