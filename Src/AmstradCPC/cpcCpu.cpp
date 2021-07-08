@@ -19,48 +19,48 @@ namespace CPC {
     CCpu::OpcodeInfo CCpu::m_opcodesMain[256] = {
         // This generates something similar to this:
         //
-        // { false, TIMING_F4, &CCpu::Execute_00, "NOP", "", "", 0 },
-        // { false, TIMING_F4M3M3, &CCpu::Execute_01, "LD", "BC", "%nn" },
-        // { false, TIMING_F4M3, &CCpu::Execute_02, "LD", "(BC)", "A" }, 
-        // { false, TIMING_F6, &CCpu::Execute_03, "INC", "BC", "" },
+        // { false, TIMING_F4, &CCpu::Execute_00, "NOP", "", 0 },
+        // { false, TIMING_F4M3M3, &CCpu::Execute_01, "LD", "BC, %nn" },
+        // { false, TIMING_F4M3, &CCpu::Execute_02, "LD", "(BC), A" }, 
+        // { false, TIMING_F6, &CCpu::Execute_03, "INC", "BC" },
         // ...
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_##_num, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, (CCpu::MnemonicFlags)0 },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_MainOpcodes.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesED[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_ED##_num, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, (CCpu::MnemonicFlags)0 },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_ED##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesED.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesCB[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_CB##_num, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, (CCpu::MnemonicFlags)0 },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_CB##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesCB.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesDD[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_DD##_num, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, (CCpu::MnemonicFlags)0 },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_DD##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesDD.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesDDCB[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_DDCB##_num, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, (CCpu::MnemonicFlags)0 },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_DDCB##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesDDCB.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesFD[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_FD##_num, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, (CCpu::MnemonicFlags)0 },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_FD##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesFD.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesFDCB[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_FDCB##_num, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, (CCpu::MnemonicFlags)0 },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_FDCB##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesFDCB.h"
         #undef Z80_OPCODE
     };
@@ -1911,11 +1911,10 @@ namespace CPC {
         const OpcodeInfo* opcodeInfo = &opcodeTable[opcode];
         // Disassemble instruction.
         // +- Operation.
-        outResult->instruction = opcodeInfo->mnemonicOperation;
+        outResult->operation = opcodeInfo->mnemonicOperation;
         // +- Operands.
         //    TODO: Read actual value of operands from memory, if applicable.
-        outResult->firstOperand = opcodeInfo->mnemonicLeftOperand;
-        outResult->secondOperand = opcodeInfo->mnemonicRightOperand;
+        outResult->operands = opcodeInfo->mnemonicOperands;
         // Instruction size, in bytes.
         outResult->sizeBytes = prefixSizeBytes + 1/*opcode*/ + 0/*offset*/ + 0/*first operand*/ + 0/*second operand*/;
     }

@@ -111,17 +111,15 @@ namespace CPC {
             MicrocodeFn microcodeFn;                      // Pointer to the function that contains the microde (i.e. the emulation) for the instruction.
             // Disassembly data.
             const char* mnemonicOperation;                // The operation part of the mnemonic for this instruction.
-            const char* mnemonicLeftOperand;              // The first operand of the mnemonic for this instruction.
-            const char* mnemonicRightOperand;             // The second operand of the mnemonic for this instruction.
+            const char* mnemonicOperands;                 // The operands art of the mnemonic for this instruction. Empty string if it has no operands.
             MnemonicFlags mnemonicFlags;                  // Extra info about the mnemonic.
         };
 
         struct AssemblyInstruction
         {
             int sizeBytes;                  // Size of the instruction, in bytes. It includes everything: prefix, opcode and operands.
-            std::string instruction;        // The operation, e.g. "LD", "OUT", etc.
-            std::string firstOperand;       // Empty if instruction has no operands.
-            std::string secondOperand;      // Empty if instruction has zero or one operands.
+            std::string operation;          // The operation, e.g. "LD", "OUT", etc.
+            std::string operands;           // The operands. Empty if instruction has no operands.
         };
 
 
@@ -479,43 +477,43 @@ namespace CPC {
         static OpcodeInfo m_opcodesFDCB[256];
 
         // Define all the opcodes' micro-code functions.
-#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_##_num() \
         _microCode
 #include "cpcCpu_MainOpcodes.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_ED##_num() \
         _microCode
 #include "cpcCpu_OpcodesED.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_CB##_num() \
         _microCode
 #include "cpcCpu_OpcodesCB.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_DD##_num() \
         _microCode
 #include "cpcCpu_OpcodesDD.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_DDCB##_num() \
         _microCode
 #include "cpcCpu_OpcodesDDCB.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_FD##_num() \
         _microCode
 #include "cpcCpu_OpcodesFD.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicLeftOperand, _mnemonicRightOperand, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_FDCB##_num() \
         _microCode
 #include "cpcCpu_OpcodesFDCB.h"

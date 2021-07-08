@@ -240,15 +240,26 @@ void Debugger::DrawDisassembly()
         cpcWord address = (cpcWord)clipper.DisplayStart;
         std::vector<CPC::CCpu::AssemblyInstruction> instructions;
         instructions.resize(lineCount);
+        ImGui::BeginTable("DisassemblyContent", 3/*columns_count*/);
         for (int i = 0; i < lineCount; i++)
         {
+            ImGui::TableNextRow();
             // Disassemble instruction.
             CPC::CCpu::AssemblyInstruction& instruction = instructions.at(i);
             cpu->DisassembleInstruction(address, &instruction);
             // Print instruction.
-            ImGui::Text("%04X: %s\t\t%s, %s", address, instruction.instruction.c_str(), instruction.firstOperand.c_str(), instruction.secondOperand.c_str());
+            ImGui::TableNextColumn();
+            ImGui::Text("%04X", address);
+
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", instruction.operation.c_str());
+
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", instruction.operands.c_str());
+
             address += instruction.sizeBytes;
         }
+        ImGui::EndTable();
     }
 
     ImGui::EndChild();
