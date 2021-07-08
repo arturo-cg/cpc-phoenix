@@ -101,6 +101,15 @@ namespace CPC {
             Immediate16 = 1 << 3,                       // Instruction has a 2-byte immediate data at the end of the byte sequence.
         };
 
+        struct OpcodeDisassemblyInfo
+        {
+            const char* mnemonicOperation;              // The operation part of the mnemonic for this instruction.
+            const char* mnemonicOperands;               // The operands art of the mnemonic for this instruction. Empty string if it has no operands.
+            MnemonicFlags flags;
+            int displacementTagPos;                   // Index of the '%' character for the displacement tag in the mnemonicOperands string.
+            int immediateTagPos;                      // Index of the '%' character for the immediate data tag in the mnemonicOperands string.
+        };
+
         struct OpcodeInfo
         {
             using MicrocodeFn = void (CCpu::*)();
@@ -110,9 +119,7 @@ namespace CPC {
             InstructionTimingType timingType;             // Index into the timing table.
             MicrocodeFn microcodeFn;                      // Pointer to the function that contains the microde (i.e. the emulation) for the instruction.
             // Disassembly data.
-            const char* mnemonicOperation;                // The operation part of the mnemonic for this instruction.
-            const char* mnemonicOperands;                 // The operands art of the mnemonic for this instruction. Empty string if it has no operands.
-            MnemonicFlags mnemonicFlags;                  // Extra info about the mnemonic.
+            OpcodeDisassemblyInfo disassemblyInfo;        // Disassembly info.
         };
 
         struct AssemblyInstruction
@@ -450,7 +457,7 @@ namespace CPC {
         void                    IM(int mode);
         void                    HALT();
 
-        void                    FillMnemonicFlags(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions);
+        void                    FillOpcodeDisassemblyInfo(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions);
 
         Registers m_registers;
         bool m_inHalt;

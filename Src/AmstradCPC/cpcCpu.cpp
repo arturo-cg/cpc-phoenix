@@ -131,13 +131,13 @@ namespace CPC {
         ResetVars();
 
         // Prepare opcode tables.
-        FillMnemonicFlags(m_opcodesMain, false/*twoBytePrefixInstructions*/);
-        FillMnemonicFlags(m_opcodesED, false/*twoBytePrefixInstructions*/);
-        FillMnemonicFlags(m_opcodesCB, false/*twoBytePrefixInstructions*/);
-        FillMnemonicFlags(m_opcodesDD, false/*twoBytePrefixInstructions*/);
-        FillMnemonicFlags(m_opcodesDDCB, true/*twoBytePrefixInstructions*/);
-        FillMnemonicFlags(m_opcodesFD, false/*twoBytePrefixInstructions*/);
-        FillMnemonicFlags(m_opcodesFDCB, true/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesMain, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesED, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesCB, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesDD, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesDDCB, true/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesFD, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesFDCB, true/*twoBytePrefixInstructions*/);
 
         m_opcodes[Prefix::None] = m_opcodesMain;
         m_opcodes[Prefix::ED] = m_opcodesED;
@@ -1859,21 +1859,56 @@ namespace CPC {
         m_inHalt = true;
     }
 
-    void CCpu::FillMnemonicFlags(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions)
+    void CCpu::FillOpcodeDisassemblyInfo(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions)
     {
-        MnemonicFlags mnemonicFlags;
         for (int i = 0; i < 256; i++)
         {
-            if (twoBytePrefixInstructions)
+            OpcodeDisassemblyInfo* opcodeDisassemblyInfo = &opcodeTable[i].disassemblyInfo;
+            opcodeDisassemblyInfo->flags = (MnemonicFlags)0;
+            opcodeDisassemblyInfo->displacementTagPos = -1;
+            opcodeDisassemblyInfo->immediateTagPos = -1;
+            // Parse the operands part of the mnemonic in search of tags.
+            int displacementFlag = int(twoBytePrefixInstructions ? MnemonicFlags::DisplacementBeforeOpcode : MnemonicFlags::DisplacementAfterOpcode);
+            int mnemonicLength = strlen(opcodeDisassemblyInfo->mnemonicOperands);
+            int pos = 0;
+            while (pos < mnemonicLength)
             {
-                // Instructions with DDCB and FDCB prefixes:
-                //   - Always have an 8-bit displacement between the prefix and the opcode.
-                //   - Never have immediate data after the opcode.
-                mnemonicFlags = MnemonicFlags::DisplacementBeforeOpcode;
-            }
-            else
-            {
-                mnemonicFlags = (MnemonicFlags)0;
+                if (opcodeDisassemblyInfo->mnemonicOperands[pos] == '%')    // If at tag start character...
+                {
+                    if (opcodeDisassemblyInfo->mnemonicOperands[pos + 1] == 'd')
+                    {
+                        // Displacement tag found.
+                        opcodeDisassemblyInfo->flags = MnemonicFlags(int(opcodeDisassemblyInfo->flags) | displacementFlag);
+                        opcodeDisassemblyInfo->displacementTagPos = pos;
+                        pos += 2;
+                    }
+                    else if (opcodeDisassemblyInfo->mnemonicOperands[pos + 1] == 'n')
+                    {
+                        // Is it the 8-bit or the 16-bit immediate flag?
+                        if (opcodeDisassemblyInfo->mnemonicOperands[pos + 2] == 'n')
+                        {
+                            // 16-bit immediate tag found.
+                            opcodeDisassemblyInfo->flags = MnemonicFlags(int(opcodeDisassemblyInfo->flags) | int(MnemonicFlags::Immediate16));
+                            opcodeDisassemblyInfo->immediateTagPos = pos;
+                            pos += 3;
+                        }
+                        else
+                        {
+                            // 8-bit immediate tag found.
+                            opcodeDisassemblyInfo->flags = MnemonicFlags(int(opcodeDisassemblyInfo->flags) | int(MnemonicFlags::Immediate8));
+                            opcodeDisassemblyInfo->immediateTagPos = pos;
+                            pos += 2;
+                        }
+                    }
+                    else
+                    {
+                        KMASSERTM(false, ("Unknown mnemonic tag found for opcode %x", i));
+                    }
+                }
+                else
+                {
+                    pos++;
+                }
             }
         }
     }
@@ -1909,14 +1944,28 @@ namespace CPC {
         cpcByte opcode = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes);
         const OpcodeInfo* opcodeTable = m_opcodes[prefix];
         const OpcodeInfo* opcodeInfo = &opcodeTable[opcode];
+        const OpcodeDisassemblyInfo* opcodeDisassemblyInfo = &opcodeInfo->disassemblyInfo;
         // Disassemble instruction.
         // +- Operation.
-        outResult->operation = opcodeInfo->mnemonicOperation;
+        outResult->operation = opcodeDisassemblyInfo->mnemonicOperation;
         // +- Operands.
         //    TODO: Read actual value of operands from memory, if applicable.
-        outResult->operands = opcodeInfo->mnemonicOperands;
+        outResult->operands = opcodeDisassemblyInfo->mnemonicOperands;
         // Instruction size, in bytes.
-        outResult->sizeBytes = prefixSizeBytes + 1/*opcode*/ + 0/*offset*/ + 0/*first operand*/ + 0/*second operand*/;
+        outResult->sizeBytes = prefixSizeBytes + 1/*opcode*/;
+        if (((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementBeforeOpcode)) != 0) ||
+            ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0))
+        {
+            outResult->sizeBytes += 1;
+        }
+        if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::Immediate8)) != 0)
+        {
+            outResult->sizeBytes += 1;
+        }
+        if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::Immediate16)) != 0)
+        {
+            outResult->sizeBytes += 2;
+        }
     }
 
 } //namespace CPC
