@@ -1901,7 +1901,7 @@ namespace CPC {
                     }
                     else
                     {
-                        KMASSERTM(false, ("Unknown mnemonic tag found for opcode %x", i));
+                        KMASSERTM(false, ("Unknown mnemonic tag found for opcode 0x%02x", i));
                     }
                 }
                 else
