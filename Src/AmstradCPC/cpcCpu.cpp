@@ -6,12 +6,11 @@
 
 #include "stdafx.h"
 #include "cpcCpu.h"
+#include <sstream>
+#include <string>
 #include "cpcMachine.h"
 #include "cpcGateArray.h"
 #include "cpcCpuInterface.h"
-//#include <iostream>
-//#include <sstream>
-//#include <Windows.h>
 
 
 namespace CPC {
@@ -1941,16 +1940,11 @@ namespace CPC {
             default: prefixSizeBytes = 0; break;
         }
         // Opcode.
-        cpcByte opcode = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes);
+        cpcWord opcodeAddress = address + prefixSizeBytes + (prefixSizeBytes < 2 ? 0 : 1/*displacement byte*/);
+        cpcByte opcode = m_cpuInterface->ReadByteFromMemory(this, opcodeAddress);
         const OpcodeInfo* opcodeTable = m_opcodes[prefix];
         const OpcodeInfo* opcodeInfo = &opcodeTable[opcode];
         const OpcodeDisassemblyInfo* opcodeDisassemblyInfo = &opcodeInfo->disassemblyInfo;
-        // Disassemble instruction.
-        // +- Operation.
-        outResult->operation = opcodeDisassemblyInfo->mnemonicOperation;
-        // +- Operands.
-        //    TODO: Read actual value of operands from memory, if applicable.
-        outResult->operands = opcodeDisassemblyInfo->mnemonicOperands;
         // Instruction size, in bytes.
         outResult->sizeBytes = prefixSizeBytes + 1/*opcode*/;
         if (((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementBeforeOpcode)) != 0) ||
@@ -1966,6 +1960,82 @@ namespace CPC {
         {
             outResult->sizeBytes += 2;
         }
+        // Disassemble instruction.
+        // +- Operation.
+        outResult->operation = opcodeDisassemblyInfo->mnemonicOperation;
+        // +- Operands.
+        // +-- Get displacement.
+        cpcByte displacement;
+        if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementBeforeOpcode)) != 0)
+        {
+            displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes);
+        }
+        else if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0)
+        {
+            displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes + 1/*opcode*/);
+        }
+        else
+        {
+            displacement = 0;
+        }
+        // +-- Get immediate data.
+        cpcWord immediateAddress = address + prefixSizeBytes + 1/*opcode*/ + ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0 ? 1/*displacement*/ : 0);
+
+        // +-- Format operands string.
+        if ((opcodeDisassemblyInfo->displacementTagPos == -1) && (opcodeDisassemblyInfo->immediateTagPos == -1))
+        {
+            // No tags.
+            outResult->operands = opcodeDisassemblyInfo->mnemonicOperands;
+        }
+        else if ((opcodeDisassemblyInfo->displacementTagPos != -1) && (opcodeDisassemblyInfo->immediateTagPos == -1))
+        {
+            // Displacement tag only.
+            std::string mnemonic = opcodeDisassemblyInfo->mnemonicOperands;
+            char output[30];
+            snprintf(output, sizeof(output), "%s%x%s",
+                mnemonic.substr(0, opcodeDisassemblyInfo->displacementTagPos).c_str(),
+                displacement,
+                mnemonic.substr(opcodeDisassemblyInfo->displacementTagPos + 2, mnemonic.length()).c_str());
+            outResult->operands = output;
+        }
+        else if ((opcodeDisassemblyInfo->displacementTagPos == -1) && (opcodeDisassemblyInfo->immediateTagPos != -1))
+        {
+            // Immediate tag only.
+            std::string mnemonic = opcodeDisassemblyInfo->mnemonicOperands;
+            char output[30];
+            if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::Immediate8)) != 0)
+            {
+                // 8-bit immediate data.
+                cpcByte immediateData = m_cpuInterface->ReadByteFromMemory(this, immediateAddress);
+                snprintf(output, sizeof(output), "%s#%02X%s",
+                    mnemonic.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),
+                    immediateData,
+                    mnemonic.substr(opcodeDisassemblyInfo->immediateTagPos + 2, mnemonic.length()).c_str());
+            }
+            else
+            {
+                // 16-bit immediate data.
+                cpcWord immediateData = m_cpuInterface->ReadByteFromMemory(this, immediateAddress) | (cpcWord(m_cpuInterface->ReadByteFromMemory(this, immediateAddress + 1)) << 8);
+                snprintf(output, sizeof(output), "%s#%04X%s",
+                    mnemonic.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),
+                    immediateData,
+                    mnemonic.substr(opcodeDisassemblyInfo->immediateTagPos + 3, mnemonic.length()).c_str());
+            }
+            outResult->operands = output;
+        }
+        else
+        {
+            // Both displacement and immediate tags.
+
+            //
+            // TODO
+            //
+
+            KMASSERT(false);
+            outResult->operands = opcodeDisassemblyInfo->mnemonicOperands;
+        }
+
+
     }
 
 } //namespace CPC

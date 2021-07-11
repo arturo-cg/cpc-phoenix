@@ -242,7 +242,7 @@ void Debugger::DrawDisassembly()
         instructions.resize(lineCount);
         ImGui::BeginTable("DisassemblyContent", 3/*columns_count*/);
         ImGui::TableSetupColumn("", ImGuiTableFlags_ColumnsWidthFixed, 100.f);      // Address.
-        ImGui::TableSetupColumn("", ImGuiTableFlags_ColumnsWidthFixed, 100.f);      // Operation.
+        ImGui::TableSetupColumn("", ImGuiTableFlags_ColumnsWidthFixed, 60.f);       // Operation.
         ImGui::TableSetupColumn("", ImGuiTableFlags_ColumnsWidthFixed, 300.f);      // Operands.
         for (int i = 0; i < lineCount; i++)
         {
