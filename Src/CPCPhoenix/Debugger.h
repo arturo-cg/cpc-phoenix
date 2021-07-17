@@ -64,6 +64,8 @@ private:
     void DrawInt(const char* label, int n);
     void LastItemBox(float margin);
 
+    void RequestScrollToAddress(cpcWord address);
+
     bool m_bOk;
     bool m_active;
     CPC::CMachine* m_machine;
@@ -73,5 +75,7 @@ private:
     bool m_stopAtInterrupt;
     bool m_stopAtHSync;
     bool m_stopAtVSync;
+    bool m_scrollToAddressRequested;
+    cpcWord m_scrollToAddress;
     bool m_showMonitorOverlay;
 };
