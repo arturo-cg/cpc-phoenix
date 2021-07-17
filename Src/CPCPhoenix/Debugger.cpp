@@ -227,45 +227,46 @@ void Debugger::DrawExecuteOptions()
 
 void Debugger::DrawDisassembly()
 {
-    ImGui::BeginChild("Disassembly", ImVec2(-130.f, 0.f), true/*border*/);
-
     const CPC::CCpu* cpu = m_machine->GetCpu();
 
-    ImGuiListClipper clipper;
-    clipper.Begin(1 << 16/*items_count: 64 KB*/, ImGui::GetTextLineHeightWithSpacing()/*items_height*/);
-    while (clipper.Step())
+    ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_ColumnsWidthFixed;
+    if (ImGui::BeginTable("Disassembly", 3/*columns_count*/, tableFlags, ImVec2(500.f, 0.f)))
     {
-        // Disassemble as many instructions as there are visible lines.
-        int lineCount = clipper.DisplayEnd - clipper.DisplayStart;
-        cpcWord address = (cpcWord)clipper.DisplayStart;
-        std::vector<CPC::CCpu::AssemblyInstruction> instructions;
-        instructions.resize(lineCount);
-        ImGui::BeginTable("DisassemblyContent", 3/*columns_count*/);
-        ImGui::TableSetupColumn("", ImGuiTableFlags_ColumnsWidthFixed, 100.f);      // Address.
-        ImGui::TableSetupColumn("", ImGuiTableFlags_ColumnsWidthFixed, 60.f);       // Operation.
-        ImGui::TableSetupColumn("", ImGuiTableFlags_ColumnsWidthFixed, 300.f);      // Operands.
-        for (int i = 0; i < lineCount; i++)
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 100.f);      // Address.
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 60.f);       // Operation.
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 300.f);      // Operands.
+
+        ImGuiListClipper clipper;
+        clipper.Begin(1 << 16/*items_count: 64 KB*/, ImGui::GetTextLineHeightWithSpacing()/*items_height*/);
+        while (clipper.Step())
         {
-            ImGui::TableNextRow();
-            // Disassemble instruction.
-            CPC::CCpu::AssemblyInstruction& instruction = instructions.at(i);
-            cpu->DisassembleInstruction(address, &instruction);
-            // Print instruction.
-            ImGui::TableNextColumn();
-            ImGui::Text("%04X", address);
+            // Disassemble as many instructions as there are visible lines.
+            int lineCount = clipper.DisplayEnd - clipper.DisplayStart;
+            cpcWord address = (cpcWord)clipper.DisplayStart;
+            std::vector<CPC::CCpu::AssemblyInstruction> instructions;
+            instructions.resize(lineCount);
+            for (int i = 0; i < lineCount; i++)
+            {
+                ImGui::TableNextRow();
+                // Disassemble instruction.
+                CPC::CCpu::AssemblyInstruction& instruction = instructions.at(i);
+                cpu->DisassembleInstruction(address, &instruction);
+                // Print instruction.
+                ImGui::TableNextColumn();
+                ImGui::Text("%04X", address);
 
-            ImGui::TableNextColumn();
-            ImGui::Text("%s", instruction.operation.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", instruction.operation.c_str());
 
-            ImGui::TableNextColumn();
-            ImGui::Text("%s", instruction.operands.c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", instruction.operands.c_str());
 
-            address += instruction.sizeBytes;
+                address += instruction.sizeBytes;
+            }
         }
+
         ImGui::EndTable();
     }
-
-    ImGui::EndChild();
 }
 
 void Debugger::DrawCpuRegisters()
