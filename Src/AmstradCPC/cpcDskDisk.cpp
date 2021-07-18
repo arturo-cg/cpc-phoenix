@@ -139,7 +139,7 @@ namespace CPC {
 
             // Advance pointer to next track
             pCurrOffset += (m_eFormat == FORMAT_STANDARD_DSK ? unsigned(m_diskInfo.nTrackSize) :
-                unsigned(m_diskInfo.anTrackSizes[i]) << 8);
+                                                               unsigned(m_diskInfo.anTrackSizes[i]) << 8);
 
             m_lTracks.push_back(newTrack);
         }
@@ -156,28 +156,27 @@ namespace CPC {
 
         track.lSectors.reserve(track.pInfo->nSectorCount);
 
-        SSectorInfo* pSectorInfos;
-        pSectorInfos = (SSectorInfo*)((cpcByte*)track.pInfo + sizeof(SDskTrackInfo));
-
-        cpcByte* pDataOffset;
-        pDataOffset = (cpcByte*)track.pInfo + 256;
+        SSectorInfo* sectorInfos = (SSectorInfo*)((cpcByte*)track.pInfo + sizeof(SDskTrackInfo));
+        uint8_t* sectorData = (uint8_t*)track.pInfo + 256;
 
         unsigned i;
         for (i = 0; i < track.pInfo->nSectorCount; i++)
         {
             SDskSector newSector;
-            newSector.pInfo = &pSectorInfos[i];
-            newSector.pData = pDataOffset;
+            newSector.pInfo = &sectorInfos[i];
+            newSector.pData = sectorData;
+
+            // Determine sector data length and number of copies.
+            unsigned N = (newSector.pInfo->nSize > 0 ? newSector.pInfo->nSize : 8);
+            unsigned dataLength = N << 8;
+            unsigned totalDataLength = (m_eFormat == FORMAT_EXTENDED_DSK ? newSector.pInfo->nDataLength : dataLength);
+            newSector.numDatas = totalDataLength / dataLength;
 
             track.lSectors.push_back(newSector);
             track.lIdsToIndex.insert(SDskTrack::TIndexMap::value_type(newSector.pInfo->nId, i));
 
-            // Advance pointer to next sector data
-            unsigned nDataLength;
-            nDataLength = (newSector.pInfo->nSize != 6 ? newSector.pInfo->nSize << 8 : 0x1800);
-            KMASSERT((m_eFormat == FORMAT_STANDARD_DSK) || (nDataLength == unsigned(newSector.pInfo->nDataLength)));
-
-            pDataOffset += nDataLength;
+            // Advance pointer to next sector data.
+            sectorData += totalDataLength;
         }
     }
 

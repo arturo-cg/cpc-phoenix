@@ -77,6 +77,7 @@ namespace CPC {
         {
             SSectorInfo* pInfo;
             cpcByte* pData;
+            int numDatas;               // For a normal sector: 1. For a weak/random sector: may be > 1; pData points at the first copy, the remaining copies are stored one after another. A copy is selected randomly on each read.
         };
 
         struct SDskTrack
