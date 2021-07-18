@@ -239,7 +239,7 @@ void Debugger::DrawDisassembly()
 {
     const CPC::CCpu* cpu = m_machine->GetCpu();
 
-    ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_ColumnsWidthFixed;
+    ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
     if (ImGui::BeginTable("Disassembly", 3/*columns_count*/, tableFlags, ImVec2(500.f, 0.f)))
     {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 100.f);      // Address.
