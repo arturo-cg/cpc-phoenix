@@ -190,7 +190,7 @@ namespace CPC {
         SetColorAlpha(0xFF);    // This sets m_alphaChannel.
         m_eRequestedScreenMode = SCREEN_MODE_1;
         m_eScreenMode = SCREEN_MODE_1;
-        m_nSecondaryRamPage = 1;
+        m_nSecondaryRamPage = 0;
         m_eRamConfig = RAM_CONFIG_0_1_2_3;
         m_bLowerRomVisible = true;
         m_bUpperRomVisible = false;
@@ -483,11 +483,15 @@ namespace CPC {
         {
             if (((nValue & 0xC0) >> 6) == 3)
             {
-                // Bits 2-0 define one of the eight possible RAM configurations
-                // Note: If we wanted to emulate expansion RAMs other than the CPC6128 built-in one, we would have
-                //       to look into bits 5-3 which contain the secondary 64k page to use.
-                ERamConfig ramConfig = (ERamConfig)(nValue & 0x07);
-                SetRamConfiguration(1/*nSecondaryRamPage*/, ramConfig);
+                // The hardware that implements this function is implemented in RAM expansions, including the built-in RAM expansion in a CPC 6128.
+                // In standard 64 KB CPCs, this hardware does not exist.
+                if (GetMachine()->GetMemory()->GetNumRamPages() >= 2)   // If a RAM expansion is present, including the built-in RAM expansion in a CPC 6128...
+                {
+                    // Bits 2-0 define one of the eight possible RAM configurations
+                    ERamConfig ramConfig = (ERamConfig)(nValue & 0x07);
+                    unsigned secondaryRamPage = ((nValue & 0x38) >> 3) + 1;     // Add 1 because internally RAM page 0 is the base 64k RAM. So OUT'ing a 0 here selects RAM page 1 in the emulator.
+                    SetRamConfiguration(ramConfig, secondaryRamPage);
+                }
             }
         }
 
@@ -574,10 +578,10 @@ namespace CPC {
     /**
     **
     */
-    void CGateArray::SetRamConfiguration(unsigned nSecondaryPage, ERamConfig eConfig)
+    void CGateArray::SetRamConfiguration(ERamConfig eConfig, unsigned nSecondaryPage)
     {
-        m_nSecondaryRamPage = nSecondaryPage;
         m_eRamConfig = eConfig;
+        m_nSecondaryRamPage = (GetMachine()->GetMemory()->RamPageExists(nSecondaryPage) ? nSecondaryPage : 0/*base 64k RAM page*/);     // TODO: What does actually happen if a non-existent RAM page is selected?
 
         UpdateVisibleMemoryBlocks();
     }
@@ -611,7 +615,7 @@ namespace CPC {
     void CGateArray::UpdateVisibleMemoryBlocks()
     {
         SRamConfigEntry &config = s_aRamConfigTable[m_eRamConfig];
-        unsigned         i;
+        unsigned i;
 
         // Write blocks
         for (i = 0; i < 4; i++)

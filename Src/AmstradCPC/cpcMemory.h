@@ -44,6 +44,12 @@ namespace CPC {
         *** Amsdos ROM is at index 7. Other indices may contain another ROM or not. If they don't, Basic ROM is returned instead. */
         const CMemoryBlock* GetUpperRomBlock(cpcByte nIndex) const;
 
+        /** Returns the number of RAM pages that are present in the machine. Standard CPC 464/664 have one, standard CPC 6128 has two; RAM expansions add more RAM pages. */
+        unsigned GetNumRamPages() const;
+        /** Returns true if the specified RAM page exists in the machine.
+        *** RAM page 0 contains the first 4 x 16k RAM blocks present in any CPC machine.
+        *** RAM page 1 contains the second 4 x 16k RAM blocks present in a CPC 6128 or a CPC 464/664 with a RAM expansion installed and so on. */
+        bool RamPageExists(unsigned ramPage) const;
         /** Returns the requested RAM block. The index can go from 0 to MAX_NUM_RAM_BANKS.
         *** The first four are the 64k primary RAM page, the last four the 64k secondary RAM page. */
         CMemoryBlock* GetRamBlock(int i);

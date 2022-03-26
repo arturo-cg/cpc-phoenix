@@ -147,7 +147,7 @@ namespace CPC {
         void                    SetBorderColor(cpcByte nColorIndex);
         void                    RequestScreenModeChange(EScreenMode eScreenMode);
         void                    SetScreenMode(EScreenMode eScreenMode);
-        void                    SetRamConfiguration(unsigned nSecondaryPage, ERamConfig eConfig);
+        void                    SetRamConfiguration(ERamConfig eConfig, unsigned nSecondaryPage);
         void                    SetRomVisibility(bool bLowerRomVisible, bool bUpperRomVisible);
         void                    SelectUpperRom(cpcByte nIndex);
 
