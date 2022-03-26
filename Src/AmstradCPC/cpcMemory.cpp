@@ -141,6 +141,24 @@ namespace CPC {
     /**
     **
     */
+    unsigned CMemory::GetNumRamPages() const
+    {
+        return (m_ramBlocks.size() >> 2);       // Note that m_ramBlocks.size() is always a multiple of 4.
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    bool CMemory::RamPageExists(unsigned ramPage) const
+    {
+        return (ramPage < GetNumRamPages());
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
     CMemoryBlock* CMemory::GetRamBlock(int i)
     {
         KMASSERT((i >= 0) && (i < (int)m_ramBlocks.size()));
