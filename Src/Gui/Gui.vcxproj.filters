@@ -54,4 +54,9 @@
       <UniqueIdentifier>{ef8014b0-d0ef-47d3-b571-a3c300aef28b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="DearImGui\imgui.natvis">
+      <Filter>Dear ImGui</Filter>
+    </Natvis>
+  </ItemGroup>
 </Project>
