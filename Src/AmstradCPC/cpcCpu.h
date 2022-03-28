@@ -41,6 +41,20 @@ namespace CPC {
     {
     public:
 
+        // Opcode prefixes.
+        enum Prefix : int
+        {
+            None = 0,         // No prefix: main instructions.
+            ED,               // Extended instructions.
+            CB,               // Bit instructions.
+            DD,               // IX instructions.
+            DDCB,             // IX bit instructions.
+            FD,               // IY instructions.
+            FDCB,             // IY bit instructions.
+
+            Count
+        };
+
         enum InstructionTimingType
         {
             // F - Fetch cycle
@@ -79,14 +93,40 @@ namespace CPC {
             INSTRUCTION_TIMING_COUNT
         };
 
+        enum class MnemonicFlags
+        {
+            DisplacementBeforeOpcode = 1 << 0,          // Instruction has a 1-byte displacement right before the opcode.
+            DisplacementAfterOpcode = 1 << 1,           // Instruction has a 1-byte displacement right after the opcode.
+            Immediate8 = 1 << 2,                        // Instruction has a 1-byte immediate data at the end of the byte sequence.
+            Immediate16 = 1 << 3,                       // Instruction has a 2-byte immediate data at the end of the byte sequence.
+        };
+
+        struct OpcodeDisassemblyInfo
+        {
+            const char* mnemonicOperation;              // The operation part of the mnemonic for this instruction.
+            const char* mnemonicOperands;               // The operands art of the mnemonic for this instruction. Empty string if it has no operands.
+            MnemonicFlags flags;
+            int displacementTagPos;                   // Index of the '%' character for the displacement tag in the mnemonicOperands string.
+            int immediateTagPos;                      // Index of the '%' character for the immediate data tag in the mnemonicOperands string.
+        };
+
         struct OpcodeInfo
         {
             using MicrocodeFn = void (CCpu::*)();
 
-            MicrocodeFn microcodeFn;                      // Pointer to the function that contains the microde (i.e. the emulation) for the instruction.
+            // Emulation data.
             bool isInstruction;                           // Prefixes are also included in the instruction look-up table. This variable is true iif this entry is for an instruction, or false if it's a prefix byte.
-            const char* mnemonic;                         // The mnemonic for this instruction.
             InstructionTimingType timingType;             // Index into the timing table.
+            MicrocodeFn microcodeFn;                      // Pointer to the function that contains the microde (i.e. the emulation) for the instruction.
+            // Disassembly data.
+            OpcodeDisassemblyInfo disassemblyInfo;        // Disassembly info.
+        };
+
+        struct AssemblyInstruction
+        {
+            int sizeBytes;                  // Size of the instruction, in bytes. It includes everything: prefix, opcode and operands.
+            std::string operation;          // The operation, e.g. "LD", "OUT", etc.
+            std::string operands;           // The operands. Empty if instruction has no operands.
         };
 
 
@@ -121,6 +161,11 @@ namespace CPC {
         bool                    IsExecutingInstruction() const;
         /** Returns true if the CPU acknowledged an interrupt during the last call to Run, or false otherwise. */
         bool                    InterruptWasAcknowledged() const { return m_interruptWasAcknowledged; }
+
+        /** Translates the instruction that starts at the specified address to assembly language.
+        *   It provides the core functionality for a full-blown disassembler.
+        */
+        void                    DisassembleInstruction(cpcWord address, AssemblyInstruction* outResult) const;
 
         // Type for 16-bit registers whose 8-bit components can be accessed individually as well.
         union Reg16
@@ -209,20 +254,6 @@ namespace CPC {
     private:
 
         typedef                 CSubSystem                inherited;
-
-        // Opcode prefixes.
-        enum Prefix
-        {
-            None = 0,         // No prefix: main instructions.
-            ED,               // Extended instructions.
-            CB,               // Bit instructions.
-            DD,               // IX instructions.
-            DDCB,             // IX bit instructions.
-            FD,               // IY instructions.
-            FDCB,             // IY bit instructions.
-
-            Count
-        };
 
         enum MCycleType
         {
@@ -426,6 +457,8 @@ namespace CPC {
         void                    IM(int mode);
         void                    HALT();
 
+        void                    FillOpcodeDisassemblyInfo(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions);
+
         Registers m_registers;
         bool m_inHalt;
         bool m_delayInterruptEnable;
@@ -451,43 +484,43 @@ namespace CPC {
         static OpcodeInfo m_opcodesFDCB[256];
 
         // Define all the opcodes' micro-code functions.
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_##_num() \
         _microCode
 #include "cpcCpu_MainOpcodes.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_ED##_num() \
         _microCode
 #include "cpcCpu_OpcodesED.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_CB##_num() \
         _microCode
 #include "cpcCpu_OpcodesCB.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_DD##_num() \
         _microCode
 #include "cpcCpu_OpcodesDD.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_DDCB##_num() \
         _microCode
 #include "cpcCpu_OpcodesDDCB.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_FD##_num() \
         _microCode
 #include "cpcCpu_OpcodesFD.h"
 #undef Z80_OPCODE
 
-#define Z80_OPCODE(_num, _isPrefix, _mnemonic, _timingType, _microCode) \
+#define Z80_OPCODE(_num, _isPrefix, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) \
     void Execute_FDCB##_num() \
         _microCode
 #include "cpcCpu_OpcodesFDCB.h"

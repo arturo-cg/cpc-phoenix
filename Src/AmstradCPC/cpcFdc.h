@@ -1,13 +1,10 @@
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
-#ifndef _CPCFDC_H_
-#define _CPCFDC_H_
-
+#pragma once
 
 #include "cpcSubSystem.h"
 #include "cpcDisk.h"
-
 
 namespace CPC {
 
@@ -20,20 +17,20 @@ namespace CPC {
     public:
 
         CFdc(CMachine* pMachine);
-        virtual                ~CFdc() { FreeVars(); }
+        virtual ~CFdc() { FreeVars(); }
 
         /** Resets the subsystem. */
-        virtual void            Reset();
+        virtual void Reset();
 
         /** We are notified that the machine is trying to read a byte from this subsystem. */
-        virtual bool            RespondToReadPortRequest(cpcWord nPort, cpcByte* pnValue);
+        virtual bool RespondToReadPortRequest(cpcWord nPort, cpcByte* pnValue);
         /** We are notified that the machine is trying to write a byte to this subsystem. */
-        virtual void            RespondToWritePortRequest(cpcWord nPort, cpcByte nValue);
+        virtual void RespondToWritePortRequest(cpcWord nPort, cpcByte nValue);
 
 
     private:
 
-        typedef                 CSubSystem                inherited;
+        typedef CSubSystem inherited;
 
         enum EPhase
         {
@@ -73,9 +70,9 @@ namespace CPC {
             DIRECTION_TO_CPU = 1,       // FDC -> CPU
         };
 
-        static const unsigned   MAX_PARAMETER_COUNT = 8;
-        static const unsigned   MAX_RESULT_COUNT = 7;
-        static const unsigned   DRIVE_COUNT = 4;          // The 765 FDC supports up to four drives, though the Amstrad CPC supports two only.
+        static const unsigned MAX_PARAMETER_COUNT = 8;
+        static const unsigned MAX_RESULT_COUNT = 7;
+        static const unsigned DRIVE_COUNT = 4;          // The 765 FDC supports up to four drives, though the Amstrad CPC supports two only.
 
         struct STypicalParameters
         {
@@ -91,50 +88,47 @@ namespace CPC {
         };
 
 
-        void                    ResetVars();
-        void                    FreeVars();
+        void ResetVars();
+        void FreeVars();
 
-        void                    TurnMotorOn(bool bOn);
-        cpcByte                 ReadMainStatusRegister() const;
-        cpcByte                 ReadStatusRegister0() const;
-        cpcByte                 ReadStatusRegister3() const;
-        cpcByte                 ReadDataRegister();
-        void                    WriteDataRegister(cpcByte nValue);
-        void                    EnterCommandPhase();
-        void                    EnterResultPhase();
-        void                    ExitResultPhase();
-        void                    DecodeTypicalParameters(STypicalParameters* pParams);
+        void TurnMotorOn(bool bOn);
+        cpcByte ReadMainStatusRegister() const;
+        cpcByte ReadStatusRegister0() const;
+        cpcByte ReadStatusRegister3() const;
+        cpcByte ReadDataRegister();
+        void WriteDataRegister(cpcByte nValue);
+        void EnterCommandPhase();
+        void EnterResultPhase();
+        void ExitResultPhase();
+        void DecodeTypicalParameters(STypicalParameters* pParams);
 
-        void                    ExecuteCommand_SpecifySpdDma();
-        void                    ExecuteCommand_SenseDriveState();
-        void                    ExecuteCommand_RecalibrateSeek0();
-        void                    ExecuteCommand_SenseIntState();
-        void                    ExecuteCommand_ReadId();
-        void                    ExecuteCommand_ReadSectors();
-        cpcByte                 ReadDataRegister_ReadSectors();
-        void                    ExecuteCommand_SeekTrackN();
-        //void                    ExecuteCommand_ ();
+        void ExecuteCommand_SpecifySpdDma();
+        void ExecuteCommand_SenseDriveState();
+        void ExecuteCommand_RecalibrateSeek0();
+        void ExecuteCommand_SenseIntState();
+        void ExecuteCommand_ReadId();
+        void ExecuteCommand_ReadSectors();
+        cpcByte ReadDataRegister_ReadSectors();
+        void ExecuteCommand_SeekTrackN();
+        //void ExecuteCommand_ ();
 
 
-        EPhase                  m_eCurrentPhase;
-        ECommand                m_eCurrentCommand;
-        cpcByte                 m_anParameters[MAX_PARAMETER_COUNT];
-        unsigned                m_nParameterCount;
-        cpcByte                 m_anResult[MAX_PARAMETER_COUNT];
-        unsigned                m_nCurrentResult;
-        EDataDirection          m_nCurrentDataDir;
-        bool                    m_seekEnd;
+        EPhase m_eCurrentPhase;
+        ECommand m_eCurrentCommand;
+        cpcByte m_anParameters[MAX_PARAMETER_COUNT];
+        unsigned m_nParameterCount;
+        cpcByte m_anResult[MAX_PARAMETER_COUNT];
+        unsigned m_nCurrentResult;
+        EDataDirection m_nCurrentDataDir;
+        bool m_seekEnd;
 
-        unsigned                m_nDesiredDrive;
-        unsigned                m_nDesiredSide;
+        unsigned m_nDesiredDrive;
+        unsigned m_nDesiredSide;
 
         const CDisk::SSectorInfo* m_pSectorInfo;
-        const cpcByte*          m_pDataPointer;
-        unsigned                m_nBytesToTransfer;
+        const cpcByte* m_pDataPointer;
+        unsigned m_nBytesToTransfer;
 
     };
 
-
 } //namespace CPC
-
-#endif // _CPCFDC_H_

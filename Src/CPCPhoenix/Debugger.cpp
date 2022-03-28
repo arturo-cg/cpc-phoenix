@@ -60,6 +60,8 @@ void Debugger::ResetVars()
     m_stopAtInterrupt = false;
     m_stopAtHSync = false;
     m_stopAtVSync = false;
+    m_scrollToAddressRequested = false;
+    m_scrollToAddress = 0x0000;
     m_showMonitorOverlay = true;
 }
 
@@ -77,6 +79,8 @@ void Debugger::SetActive(bool active)
         m_machine = Application::Singleton()->GetEmulatedMachine();
         // Finish current instruction.
         ExecuteCurrentInstruction();
+        // Scroll to PC.
+        RequestScrollToAddress(m_machine->GetCpu()->GetRegisters().PC.w);
     }
 }
 
@@ -102,6 +106,8 @@ void Debugger::RunMachine()
         {
             // Stop condition met. Stop running.
             m_running = false;
+            // Scroll to PC.
+            RequestScrollToAddress(m_machine->GetCpu()->GetRegisters().PC.w);
         }
         // Update the screen.
         if (!m_running ||                                   // If we just stopped running...
@@ -121,6 +127,8 @@ void Debugger::ExecuteCurrentInstruction()
     } while (m_machine->GetCpu()->IsExecutingInstruction());
     // Update the screen.
     Application::Singleton()->GetTextureVideoOutput()->CaptureVideoOutputMidFrame();
+    // Scroll to PC.
+    RequestScrollToAddress(m_machine->GetCpu()->GetRegisters().PC.w);
 }
 
 void Debugger::RunSingleCycle()
@@ -129,6 +137,8 @@ void Debugger::RunSingleCycle()
     m_machine->Run(4);
     // Update the screen.
     Application::Singleton()->GetTextureVideoOutput()->CaptureVideoOutputMidFrame();
+    // Scroll to PC.
+    RequestScrollToAddress(m_machine->GetCpu()->GetRegisters().PC.w);
 }
 
 void Debugger::DrawGui()
@@ -227,12 +237,52 @@ void Debugger::DrawExecuteOptions()
 
 void Debugger::DrawDisassembly()
 {
-    ImGui::BeginGroup();
-    ImGui::Dummy(ImVec2(400.f, 400.f));
-    ImGui::Text("TODO - Disassembly");
-    ImGui::Dummy(ImVec2(400.f, 400.f));
-    ImGui::EndGroup();
-    LastItemBox(0.f/*margin*/);
+    const CPC::CCpu* cpu = m_machine->GetCpu();
+
+    ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
+    if (ImGui::BeginTable("Disassembly", 3/*columns_count*/, tableFlags, ImVec2(500.f, 0.f)))
+    {
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 100.f);      // Address.
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 60.f);       // Operation.
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 300.f);      // Operands.
+
+        ImGuiListClipper clipper;
+        clipper.Begin(1 << 16/*items_count: 64 KB*/, ImGui::GetTextLineHeightWithSpacing()/*items_height*/);
+        while (clipper.Step())
+        {
+            // Disassemble as many instructions as there are visible lines.
+            int lineCount = clipper.DisplayEnd - clipper.DisplayStart;
+            cpcWord address = (cpcWord)clipper.DisplayStart;
+            std::vector<CPC::CCpu::AssemblyInstruction> instructions;
+            instructions.resize(lineCount);
+            for (int i = 0; i < lineCount; i++)
+            {
+                ImGui::TableNextRow();
+                // Disassemble instruction.
+                CPC::CCpu::AssemblyInstruction& instruction = instructions.at(i);
+                cpu->DisassembleInstruction(address, &instruction);
+                // Print instruction.
+                ImGui::TableNextColumn();
+                ImGui::Text("%04X", address);
+
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", instruction.operation.c_str());
+
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", instruction.operands.c_str());
+
+                address += instruction.sizeBytes;
+            }
+        }
+
+        if (m_scrollToAddressRequested)
+        {
+            ImGui::SetScrollY(clipper.ItemsHeight * m_scrollToAddress);
+            m_scrollToAddressRequested = false;
+        }
+
+        ImGui::EndTable();
+    }
 }
 
 void Debugger::DrawCpuRegisters()
@@ -477,6 +527,12 @@ void Debugger::LastItemBox(float margin)
     ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemRectMin().x - margin, ImGui::GetItemRectMin().y - margin),
                                         ImVec2(ImGui::GetItemRectMax().x + margin, ImGui::GetItemRectMax().y + margin),
                                         ImGui::GetColorU32(ImGuiCol_Border));
+}
+
+void Debugger::RequestScrollToAddress(cpcWord address)
+{
+    m_scrollToAddress = address;
+    m_scrollToAddressRequested = true;
 }
 
 bool Debugger::_OnAppWindowKeyDown(unsigned virtualKey, bool shift, bool ctrl, bool alt)

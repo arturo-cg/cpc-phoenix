@@ -7,15 +7,14 @@
 #include "cpcDiskDrive.h"
 
 
-
 // HU parameter:  Bits 0,1=Unit/Drive Number, Bit 2=Physical Head Number, other bits zero
 #define DECODE_HU \
   m_nDesiredDrive =  (m_anParameters[0]) & 0x03; \
   m_nDesiredSide  = ((m_anParameters[0]) & 0x04) >> 2;
 
 
-namespace CPC {
-
+namespace CPC
+{
 
     struct SCommandInfo
     {
@@ -127,9 +126,9 @@ namespace CPC {
             nRegister = ((nPort & 0x0100) >> 7) | (nPort & 0x0001);
             switch (nRegister)
             {
-            case 2:   *pnValue = ReadMainStatusRegister(); break;
-            case 3:   *pnValue = ReadDataRegister(); break;
-            default:  *pnValue = 0xFF;
+                case 2:   *pnValue = ReadMainStatusRegister(); break;
+                case 3:   *pnValue = ReadDataRegister(); break;
+                default:  *pnValue = 0xFF;
             }
 
             bRet = true;       // Indicates the device has responded to the port read request.
@@ -159,10 +158,10 @@ namespace CPC {
             nRegister = ((nPort & 0x0100) >> 7) | (nPort & 0x0001);
             switch (nRegister)
             {
-            case 0:   TurnMotorOn((nValue & 0x0001) ? true : false); break;
-            case 1:   TurnMotorOn((nValue & 0x0001) ? true : false); break;
-            case 2:   WriteDataRegister(nValue); break;
-            case 3:   WriteDataRegister(nValue); break;
+                case 0:   TurnMotorOn((nValue & 0x0001) ? true : false); break;
+                case 1:   TurnMotorOn((nValue & 0x0001) ? true : false); break;
+                case 2:   WriteDataRegister(nValue); break;
+                case 3:   WriteDataRegister(nValue); break;
             }
         }
     }
@@ -233,12 +232,12 @@ namespace CPC {
         nBit0 = m_nDesiredDrive & 0x01;
 
         return (nBit7 << 7) |             // Bits 7,6  IC  Interrupt Code (0=OK, 1=aborted:readfail/OK if EN, 2=unknown cmd ...
-               (nBit6 << 6) |             //               or senseint with no int occured, 3=aborted:disc removed etc.)
-               (m_seekEnd << 5) |         // Bit 5     SE  Seek End (Set if seek-command completed)
-               (0 << 4) |                 // Bit 4     EC  Equipment Check (drive failure or recalibrate failed (retry))
-               (nBit3 << 3) |             // Bit 3     NR  Not Ready (drive not ready or non-existing 2nd head selected)
-               (m_nDesiredSide << 2) |    // Bit 2     HD  Head Adress (head during interrupt)
-               (m_nDesiredDrive & 0x03);  // Bits 1,0  US  Unit Select (driveno during interrupt)
+            (nBit6 << 6) |             //               or senseint with no int occured, 3=aborted:disc removed etc.)
+            (m_seekEnd << 5) |         // Bit 5     SE  Seek End (Set if seek-command completed)
+            (0 << 4) |                 // Bit 4     EC  Equipment Check (drive failure or recalibrate failed (retry))
+            (nBit3 << 3) |             // Bit 3     NR  Not Ready (drive not ready or non-existing 2nd head selected)
+            (m_nDesiredSide << 2) |    // Bit 2     HD  Head Adress (head during interrupt)
+            (m_nDesiredDrive & 0x03);  // Bits 1,0  US  Unit Select (driveno during interrupt)
     }
 
     //----------------------------------------------------------------------------
@@ -261,12 +260,12 @@ namespace CPC {
         }
 
         return (0 << 7) |                   // Status of the Fault signal from the FDD.
-               (0 << 6) |                   // Status of the Write Protected signal from the FDD.
-               (bit5 << 5) |                // Status of the Ready signal from the FDD.
-               (bit4 << 4) |                // Status of the Track 0 signal from the FDD.
-               (bit3 << 3) |                // Status of the Two Side signal from the FDD.
-               (m_nDesiredSide << 2) |      // Status of the Side Select signal to the FDD.
-               (m_nDesiredDrive & 0x03);    // Status of the Unit Select 1,0 signals to the FDD.
+            (0 << 6) |                   // Status of the Write Protected signal from the FDD.
+            (bit5 << 5) |                // Status of the Ready signal from the FDD.
+            (bit4 << 4) |                // Status of the Track 0 signal from the FDD.
+            (bit3 << 3) |                // Status of the Two Side signal from the FDD.
+            (m_nDesiredSide << 2) |      // Status of the Side Select signal to the FDD.
+            (m_nDesiredDrive & 0x03);    // Status of the Unit Select 1,0 signals to the FDD.
     }
 
     //----------------------------------------------------------------------------
@@ -285,7 +284,7 @@ namespace CPC {
 
             switch (m_eCurrentCommand)
             {
-            case COMMAND_READ_SECTORS:  nRet = ReadDataRegister_ReadSectors(); break;
+                case COMMAND_READ_SECTORS:  nRet = ReadDataRegister_ReadSectors(); break;
             }
         }
         else if (m_eCurrentPhase == PHASE_RESULT)
@@ -345,14 +344,14 @@ namespace CPC {
 
                 switch (m_eCurrentCommand)
                 {
-                case COMMAND_SPECIFY_SPD_DMA:     ExecuteCommand_SpecifySpdDma(); break;
-                case COMMAND_SENSE_DRIVE_STATE:   ExecuteCommand_SenseDriveState(); break;
-                case COMMAND_READ_SECTORS:        ExecuteCommand_ReadSectors(); break;
-                case COMMAND_RECALIBRATE_SEEK_0:  ExecuteCommand_RecalibrateSeek0(); break;
-                case COMMAND_SENSE_INT_STATE:     ExecuteCommand_SenseIntState(); break;
-                case COMMAND_READ_ID:             ExecuteCommand_ReadId(); break;
-                case COMMAND_SEEK_TRACK_N:        ExecuteCommand_SeekTrackN(); break;
-                default:                          KMASSERTM(false, ("Unknown FDC command: %d", m_eCurrentCommand));
+                    case COMMAND_SPECIFY_SPD_DMA:     ExecuteCommand_SpecifySpdDma(); break;
+                    case COMMAND_SENSE_DRIVE_STATE:   ExecuteCommand_SenseDriveState(); break;
+                    case COMMAND_READ_SECTORS:        ExecuteCommand_ReadSectors(); break;
+                    case COMMAND_RECALIBRATE_SEEK_0:  ExecuteCommand_RecalibrateSeek0(); break;
+                    case COMMAND_SENSE_INT_STATE:     ExecuteCommand_SenseIntState(); break;
+                    case COMMAND_READ_ID:             ExecuteCommand_ReadId(); break;
+                    case COMMAND_SEEK_TRACK_N:        ExecuteCommand_SeekTrackN(); break;
+                    default:                          KMASSERTM(false, ("Unknown FDC command: %d", m_eCurrentCommand));
                 }
             }
         }

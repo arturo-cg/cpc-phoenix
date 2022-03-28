@@ -734,7 +734,7 @@ void Application::DrawMainWindowGui()
         m_debugger->DrawVideoOutputOverlays();
     }
     // Status bar.
-    ImGui::SetCursorPosY(ImGui::GetWindowViewport()->GetWorkSize().y - (ImGui::GetTextLineHeightWithSpacing() * 3.5f));
+    ImGui::SetCursorPosY(ImGui::GetWindowViewport()->WorkSize.y - (ImGui::GetTextLineHeightWithSpacing() * 3.5f));
     DrawStatusBarGui();
     // Main window end.
     ImGui::End();

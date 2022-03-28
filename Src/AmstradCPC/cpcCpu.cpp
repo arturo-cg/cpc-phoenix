@@ -6,61 +6,60 @@
 
 #include "stdafx.h"
 #include "cpcCpu.h"
+#include <sstream>
+#include <string>
 #include "cpcMachine.h"
 #include "cpcGateArray.h"
 #include "cpcCpuInterface.h"
-//#include <iostream>
-//#include <sstream>
-//#include <Windows.h>
 
 
 namespace CPC {
 
     CCpu::OpcodeInfo CCpu::m_opcodesMain[256] = {
-        // This yields something similar to this:
+        // This generates something similar to this:
         //
-        // { &CCpu::Execute_00, false, "NOP", TIMING_F4 },
-        // { &CCpu::Execute_01, false, "LD BC, %nn", TIMING_F4M3M3 },
-        // { &CCpu::Execute_02, false, "LD (BC), A", TIMING_F4M3 },
-        // { &CCpu::Execute_03, false, "INC BC", TIMING_F6 },
+        // { false, TIMING_F4, &CCpu::Execute_00, "NOP", "", 0 },
+        // { false, TIMING_F4M3M3, &CCpu::Execute_01, "LD", "BC, %nn" },
+        // { false, TIMING_F4M3, &CCpu::Execute_02, "LD", "(BC), A" }, 
+        // { false, TIMING_F6, &CCpu::Execute_03, "INC", "BC" },
         // ...
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_##_num, _isInstruction, _mnemonic, _timingType },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_MainOpcodes.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesED[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_ED##_num, _isInstruction, _mnemonic, _timingType },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_ED##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesED.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesCB[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_CB##_num, _isInstruction, _mnemonic, _timingType },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_CB##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesCB.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesDD[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_DD##_num, _isInstruction, _mnemonic, _timingType },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_DD##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesDD.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesDDCB[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_DDCB##_num, _isInstruction, _mnemonic, _timingType },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_DDCB##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesDDCB.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesFD[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_FD##_num, _isInstruction, _mnemonic, _timingType },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_FD##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesFD.h"
         #undef Z80_OPCODE
     };
 
     CCpu::OpcodeInfo CCpu::m_opcodesFDCB[256] = {
-        #define Z80_OPCODE(_num, _isInstruction, _mnemonic, _timingType, _microCode) { &CCpu::Execute_FDCB##_num, _isInstruction, _mnemonic, _timingType },
+        #define Z80_OPCODE(_num, _isInstruction, _mnemonicOperation, _mnemonicOperands, _timingType, _microCode) { _isInstruction, _timingType, &CCpu::Execute_FDCB##_num, _mnemonicOperation, _mnemonicOperands, (CCpu::MnemonicFlags)0 },
         #include "cpcCpu_OpcodesFDCB.h"
         #undef Z80_OPCODE
     };
@@ -129,6 +128,15 @@ namespace CPC {
     CCpu::CCpu(CMachine *pMachine) : inherited(pMachine)
     {
         ResetVars();
+
+        // Prepare opcode tables.
+        FillOpcodeDisassemblyInfo(m_opcodesMain, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesED, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesCB, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesDD, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesDDCB, true/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesFD, false/*twoBytePrefixInstructions*/);
+        FillOpcodeDisassemblyInfo(m_opcodesFDCB, true/*twoBytePrefixInstructions*/);
 
         m_opcodes[Prefix::None] = m_opcodesMain;
         m_opcodes[Prefix::ED] = m_opcodesED;
@@ -240,12 +248,20 @@ namespace CPC {
         m_delayInterruptEnable = false;
         IncrementR();
         // Execute instruction or remember prefix.
-        OpcodeInfo* table = m_opcodes[m_prefix];
-        OpcodeInfo* opcodeInfo = &table[opcode];
+        const OpcodeInfo* table = m_opcodes[m_prefix];
+        const OpcodeInfo* opcodeInfo = &table[opcode];
         //{
         //    std::ostringstream ss;
-        //    ss << std::hex << m_registers.PC.w - 1 << "    " << opcodeInfo->mnemonic << "\n";
-        //    //std::cout << ss.str();
+        //    ss << std::hex << m_registers.PC.w - 1 << "\t\t" << opcodeInfo->mnemonicOperation;
+        //    if (opcodeInfo->mnemonicLeftOperand[0] != '\0')
+        //    {
+        //        ss << "\t" << opcodeInfo->mnemonicLeftOperand;
+        //    }
+        //    if (opcodeInfo->mnemonicRightOperand[0] != '\0')
+        //    {
+        //        ss << ", " << opcodeInfo->mnemonicRightOperand;
+        //    }
+        //    ss << "\n";
         //    OutputDebugString(ss.str().c_str());
         //}
         DoInstructionTiming(s_instructionTimings[opcodeInfo->timingType]);
@@ -1840,6 +1856,186 @@ namespace CPC {
     void CCpu::HALT()
     {
         m_inHalt = true;
+    }
+
+    void CCpu::FillOpcodeDisassemblyInfo(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions)
+    {
+        for (int i = 0; i < 256; i++)
+        {
+            OpcodeDisassemblyInfo* opcodeDisassemblyInfo = &opcodeTable[i].disassemblyInfo;
+            opcodeDisassemblyInfo->flags = (MnemonicFlags)0;
+            opcodeDisassemblyInfo->displacementTagPos = -1;
+            opcodeDisassemblyInfo->immediateTagPos = -1;
+            // Parse the operands part of the mnemonic in search of tags.
+            int displacementFlag = int(twoBytePrefixInstructions ? MnemonicFlags::DisplacementBeforeOpcode : MnemonicFlags::DisplacementAfterOpcode);
+            int mnemonicLength = strlen(opcodeDisassemblyInfo->mnemonicOperands);
+            int pos = 0;
+            while (pos < mnemonicLength)
+            {
+                if (opcodeDisassemblyInfo->mnemonicOperands[pos] == '%')    // If at tag start character...
+                {
+                    if (opcodeDisassemblyInfo->mnemonicOperands[pos + 1] == 'd')
+                    {
+                        // Displacement tag found.
+                        opcodeDisassemblyInfo->flags = MnemonicFlags(int(opcodeDisassemblyInfo->flags) | displacementFlag);
+                        opcodeDisassemblyInfo->displacementTagPos = pos;
+                        pos += 2;
+                    }
+                    else if (opcodeDisassemblyInfo->mnemonicOperands[pos + 1] == 'n')
+                    {
+                        // Is it the 8-bit or the 16-bit immediate flag?
+                        if (opcodeDisassemblyInfo->mnemonicOperands[pos + 2] == 'n')
+                        {
+                            // 16-bit immediate tag found.
+                            opcodeDisassemblyInfo->flags = MnemonicFlags(int(opcodeDisassemblyInfo->flags) | int(MnemonicFlags::Immediate16));
+                            opcodeDisassemblyInfo->immediateTagPos = pos;
+                            pos += 3;
+                        }
+                        else
+                        {
+                            // 8-bit immediate tag found.
+                            opcodeDisassemblyInfo->flags = MnemonicFlags(int(opcodeDisassemblyInfo->flags) | int(MnemonicFlags::Immediate8));
+                            opcodeDisassemblyInfo->immediateTagPos = pos;
+                            pos += 2;
+                        }
+                    }
+                    else
+                    {
+                        KMASSERTM(false, ("Unknown mnemonic tag found for opcode 0x%02x", i));
+                    }
+                }
+                else
+                {
+                    pos++;
+                }
+            }
+        }
+    }
+
+    void CCpu::DisassembleInstruction(cpcWord address, AssemblyInstruction* outResult) const
+    {
+        // Prefix.
+        cpcByte firstByte = m_cpuInterface->ReadByteFromMemory(this, address);
+        cpcByte secondByte = m_cpuInterface->ReadByteFromMemory(this, address + 1);
+        Prefix prefix;
+        switch (firstByte)
+        {
+            case 0xED: prefix = Prefix::ED; break;
+            case 0xCB: prefix = Prefix::CB; break;
+            case 0xDD: prefix = (secondByte == 0xCB ? Prefix::DDCB : Prefix::DD); break;
+            case 0xFD: prefix = (secondByte == 0xCB ? Prefix::FDCB : Prefix::FD); break;
+            default: prefix = Prefix::None; break;
+        }
+        // Prefix size.
+        int prefixSizeBytes;
+        switch (prefix)
+        {
+            case Prefix::None: prefixSizeBytes = 0; break;
+            case Prefix::ED: prefixSizeBytes = 1; break;
+            case Prefix::CB: prefixSizeBytes = 1; break;
+            case Prefix::DD: prefixSizeBytes = 1; break;
+            case Prefix::DDCB: prefixSizeBytes = 2; break;
+            case Prefix::FD: prefixSizeBytes = 1; break;
+            case Prefix::FDCB: prefixSizeBytes = 2; break;
+            default: prefixSizeBytes = 0; break;
+        }
+        // Opcode.
+        cpcWord opcodeAddress = address + prefixSizeBytes + (prefixSizeBytes < 2 ? 0 : 1/*displacement byte*/);
+        cpcByte opcode = m_cpuInterface->ReadByteFromMemory(this, opcodeAddress);
+        const OpcodeInfo* opcodeTable = m_opcodes[prefix];
+        const OpcodeInfo* opcodeInfo = &opcodeTable[opcode];
+        const OpcodeDisassemblyInfo* opcodeDisassemblyInfo = &opcodeInfo->disassemblyInfo;
+        // Instruction size, in bytes.
+        outResult->sizeBytes = prefixSizeBytes + 1/*opcode*/;
+        if (((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementBeforeOpcode)) != 0) ||
+            ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0))
+        {
+            outResult->sizeBytes += 1;
+        }
+        if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::Immediate8)) != 0)
+        {
+            outResult->sizeBytes += 1;
+        }
+        if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::Immediate16)) != 0)
+        {
+            outResult->sizeBytes += 2;
+        }
+        // Disassemble instruction.
+        // +- Operation.
+        outResult->operation = opcodeDisassemblyInfo->mnemonicOperation;
+        // +- Operands.
+        // +-- Get displacement.
+        cpcByte displacement;
+        if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementBeforeOpcode)) != 0)
+        {
+            displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes);
+        }
+        else if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0)
+        {
+            displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes + 1/*opcode*/);
+        }
+        else
+        {
+            displacement = 0;
+        }
+        // +-- Get immediate data.
+        cpcWord immediateAddress = address + prefixSizeBytes + 1/*opcode*/ + ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0 ? 1/*displacement*/ : 0);
+
+        // +-- Format operands string.
+        if ((opcodeDisassemblyInfo->displacementTagPos == -1) && (opcodeDisassemblyInfo->immediateTagPos == -1))
+        {
+            // No tags.
+            outResult->operands = opcodeDisassemblyInfo->mnemonicOperands;
+        }
+        else if ((opcodeDisassemblyInfo->displacementTagPos != -1) && (opcodeDisassemblyInfo->immediateTagPos == -1))
+        {
+            // Displacement tag only.
+            std::string mnemonic = opcodeDisassemblyInfo->mnemonicOperands;
+            char output[30];
+            snprintf(output, sizeof(output), "%s%x%s",
+                mnemonic.substr(0, opcodeDisassemblyInfo->displacementTagPos).c_str(),
+                displacement,
+                mnemonic.substr(opcodeDisassemblyInfo->displacementTagPos + 2, mnemonic.length()).c_str());
+            outResult->operands = output;
+        }
+        else if ((opcodeDisassemblyInfo->displacementTagPos == -1) && (opcodeDisassemblyInfo->immediateTagPos != -1))
+        {
+            // Immediate tag only.
+            std::string mnemonic = opcodeDisassemblyInfo->mnemonicOperands;
+            char output[30];
+            if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::Immediate8)) != 0)
+            {
+                // 8-bit immediate data.
+                cpcByte immediateData = m_cpuInterface->ReadByteFromMemory(this, immediateAddress);
+                snprintf(output, sizeof(output), "%s#%02X%s",
+                    mnemonic.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),
+                    immediateData,
+                    mnemonic.substr(opcodeDisassemblyInfo->immediateTagPos + 2, mnemonic.length()).c_str());
+            }
+            else
+            {
+                // 16-bit immediate data.
+                cpcWord immediateData = m_cpuInterface->ReadByteFromMemory(this, immediateAddress) | (cpcWord(m_cpuInterface->ReadByteFromMemory(this, immediateAddress + 1)) << 8);
+                snprintf(output, sizeof(output), "%s#%04X%s",
+                    mnemonic.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),
+                    immediateData,
+                    mnemonic.substr(opcodeDisassemblyInfo->immediateTagPos + 3, mnemonic.length()).c_str());
+            }
+            outResult->operands = output;
+        }
+        else
+        {
+            // Both displacement and immediate tags.
+
+            //
+            // TODO
+            //
+
+            KMASSERT(false);
+            outResult->operands = opcodeDisassemblyInfo->mnemonicOperands;
+        }
+
+
     }
 
 } //namespace CPC

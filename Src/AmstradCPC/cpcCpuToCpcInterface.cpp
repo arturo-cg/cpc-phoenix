@@ -35,22 +35,22 @@ namespace CPC {
         m_machine->GetGateArray()->OnInterruptAcknowledge();
     }
 
-    cpcByte CCpuToCpcInterface::ReadByteFromMemory(CCpu* cpu, cpcWord address)
+    cpcByte CCpuToCpcInterface::ReadByteFromMemory(const CCpu* cpu, cpcWord address) const
     {
         return m_machine->GetGateArray()->ReadByteFromMemory(address);
     }
 
-    void CCpuToCpcInterface::WriteByteToMemory(CCpu* cpu, cpcWord address, cpcByte value)
+    void CCpuToCpcInterface::WriteByteToMemory(const CCpu* cpu, cpcWord address, cpcByte value)
     {
         m_machine->GetGateArray()->WriteByteToMemory(address, value);
     }
 
-    cpcByte CCpuToCpcInterface::ReadByteFromPort(CCpu* cpu, cpcWord port)
+    cpcByte CCpuToCpcInterface::ReadByteFromPort(const CCpu* cpu, cpcWord port) const
     {
         return m_machine->ReadByteFromPort(port);
     }
 
-    void CCpuToCpcInterface::WriteByteToPort(CCpu* cpu, cpcWord port, cpcByte value)
+    void CCpuToCpcInterface::WriteByteToPort(const CCpu* cpu, cpcWord port, cpcByte value)
     {
         m_machine->WriteByteToPort(port, value);
     }
