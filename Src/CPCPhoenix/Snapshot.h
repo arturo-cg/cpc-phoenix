@@ -10,12 +10,9 @@ class Snapshot
 {
 public:
 
-    Snapshot() { m_bOk = false; }
-    virtual ~Snapshot() { End(); }
+    Snapshot();
 
-    bool Init();
-    virtual void End();
-    bool IsOk() const { return m_bOk; }
+    void Reset();
 
     CPC::CCpu::Registers& GetCpuRegisters() { return m_cpuRegisters; }
     const CPC::CCpu::Registers& GetCpuRegisters() const { return m_cpuRegisters; }
@@ -28,10 +25,6 @@ public:
 
 private:
 
-    void ResetVars();
-    void FreeVars();
-
-    bool m_bOk;
     CPC::CCpu::Registers m_cpuRegisters;
     CPC::CGateArray::Snapshot m_gateArray;
     CPC::CCrtc::Snapshot m_crtc;
