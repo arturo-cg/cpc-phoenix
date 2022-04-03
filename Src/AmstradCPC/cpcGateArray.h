@@ -44,6 +44,31 @@ namespace CPC {
             RGBCONVERSIONTABLE_INVALID = 0x7FFFFFFF,
         };
 
+        enum ERamConfig
+        {
+            RAM_CONFIG_0_1_2_3 = 0,
+            RAM_CONFIG_0_1_2_3s = 1,
+            RAM_CONFIG_0s_1s_2s_3s = 2,
+            RAM_CONFIG_0_3_2_3s = 3,
+            RAM_CONFIG_0_0s_2_3 = 4,
+            RAM_CONFIG_0_1s_2_3 = 5,
+            RAM_CONFIG_0_2s_2_3 = 6,
+            RAM_CONFIG_0_3s_2_3 = 7,
+        };
+
+        struct Snapshot
+        {
+            cpcByte selectedPen;            // Index of the selected pen.
+            EScreenMode screenMode;         // Screen mode.
+            bool lowerRomVisible;           // Lower ROM visibility.
+            bool upperRomVisible;           // Upper ROM visibility;
+            bool interruptControlState;     // Interrupt Control bit.
+            cpcByte penColor[16];           // Pen colors.
+            cpcByte borderColor;            // Border color.
+            ERamConfig ramConfig;           // RAM configuration.
+            unsigned secondaryRamPage;      // Selected secondary RAM page.
+        };
+
         static const unsigned   MAX_NUM_PENS = 16;
         static const unsigned   MAX_NUM_PALETTE_COLORS = 32;
         static const unsigned   NUM_PHYSICAL_PIXELS_PER_CYCLE = 16;   // Number of physical pixels per cycle of a 1MHz clock.
@@ -119,18 +144,6 @@ namespace CPC {
 
         typedef                 CSubSystem                inherited;
 
-
-        enum ERamConfig
-        {
-            RAM_CONFIG_0_1_2_3 = 0,
-            RAM_CONFIG_0_1_2_3s = 1,
-            RAM_CONFIG_0s_1s_2s_3s = 2,
-            RAM_CONFIG_0_3_2_3s = 3,
-            RAM_CONFIG_0_0s_2_3 = 4,
-            RAM_CONFIG_0_1s_2_3 = 5,
-            RAM_CONFIG_0_2s_2_3 = 6,
-            RAM_CONFIG_0_3s_2_3 = 7,
-        };
 
         static const unsigned GATE_ARRAY_HSYNC_DELAY = 2;   // Delay relative to the start of CRTC's HSYNC, in 1Mhz clock ticks.
         static const unsigned GATE_ARRAY_HSYNC_LENGTH = 4;  // In 1Mhz clock ticks.

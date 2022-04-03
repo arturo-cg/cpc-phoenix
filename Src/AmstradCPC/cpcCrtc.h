@@ -59,6 +59,11 @@ namespace CPC {
             cpcByte RA;    // Raster Address, 5 bits.
         };
 
+        struct Snapshot
+        {
+            ERegister selectedRegister;         // Currently selected register.
+            cpcByte registers[NUM_REGISTERS];   // Register values.
+        };
 
         CCrtc(CMachine *pMachine);
         virtual                ~CCrtc() { FreeVars(); }
