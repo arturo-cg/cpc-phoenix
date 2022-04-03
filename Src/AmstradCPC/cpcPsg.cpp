@@ -38,6 +38,7 @@ namespace CPC {
     void CPsg::ResetVars()
     {
         m_eSelectedRegister = REG_A_TONE_PERIOD_LOW;
+        memset(m_anRegisters, 0, sizeof(m_anRegisters));
         m_fAccumCycles = 0.f;
         m_fAngle = 0.f;
     }
@@ -93,16 +94,13 @@ namespace CPC {
     */
     float CPsg::GenerateNoiseSample()
     {
-        // 1. Generate white noise (i.e. random number that is either -1 or 1, both with same probability to be picked).
-        // 2. Modulate it with the programmed frequency.
-        float fNoise = (rand() < (RAND_MAX / 2) ? -1.f : 1.f) * 0.2f/*noise amplitude*/;
-
-        //////unsigned nNoisePeriod = m_anRegisters[REG_NOISE_PERIOD] & 0x1F;
-        //////float fNoisePeriod = float( nNoisePeriod!=0 ? nNoisePeriod : 1 );
-        //////float fFrequency = 1000000.f / (16.f * fNoisePeriod);                          // Formula from manufacturer's chip datasheet.
-        //////float fRet = ::sinf( (fFrequency + fNoise) * m_fAngle );
-        //////return fRet;
-        return fNoise;
+        unsigned nNoisePeriod = m_anRegisters[REG_NOISE_PERIOD] & 0x1F;
+        float fNoisePeriod = (nNoisePeriod != 0 ? float(nNoisePeriod) : 1.f);
+        float fFrequency = 1000000.f / (16.f * fNoisePeriod);                   // Formula from manufacturer's chip datasheet.
+        float fRet = ::sinf(fFrequency * m_fAngle) +                            // Base wave.
+                     ((float(rand()) / float(RAND_MAX >> 1)) - 1.f) * 1.f/*noise amplitude*/;         // Add noise.
+        fRet = (fRet < 0.f ? -1.f : 1.f);                                       // Convert to square wave
+        return fRet;
     }
 
     //----------------------------------------------------------------------------
@@ -216,13 +214,6 @@ namespace CPC {
                 // Mix samples from each channel and write the resulting sample to the sound output
                 float fSample;
                 fSample = (fSampleA + fSampleB + fSampleC) / 3.f/*num channels*/;
-
-                //////float fNoiseOffset = float(rand()) / float(RAND_MAX) * 10.f/*noise factor*/;
-
-                //////float fSinParam;
-                //////fSinParam = fmod( m_fAngle * (500.f + fNoiseOffset), 2.f * PI );
-
-                //////float fSample = ::sinf( fSinParam );
 
                 GetMachine()->GetSoundOutput()->WriteSample(fSample);
 
