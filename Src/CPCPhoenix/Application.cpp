@@ -12,6 +12,8 @@
 #include "AppWindow.h"
 #include "RenderingApi.h"
 #include "Debugger.h"
+#include "Snapshot.h"
+#include "SnaSnapshotReadWrite.h"
 #include "WindowsKeyStateProvider.h"
 #include "TextureVideoOutput.h"
 #include "WinSoundOutput.h"
@@ -760,6 +762,16 @@ void Application::DrawMainMenuGui()
                 ImGui::EndMenu();
             }
             ImGui::Separator();
+            if (ImGui::MenuItem("Load Snapshot..."))
+            {
+                string fullFilePath;
+                if (ShowLoadFileDialog("\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
+                {
+                    // Load the selected snapshot.
+                    LoadSnapshot(fullFilePath);
+                }
+            }
+            ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Alt+F4"))
             {
                 RequestExitApp();
@@ -858,7 +870,12 @@ void Application::DrawDiskDriveMenuGui(int driveNumber)
 {
     if (ImGui::MenuItem("Insert Disk..."))
     {
-        OpenLoadDiskImageDialog(driveNumber);
+        string fullFilePath;
+        if (ShowLoadFileDialog("\\Disks", "DSK disk images (*.dsk)\0*.dsk\0\0", &fullFilePath))
+        {
+            // "Insert" the disk into the emulated machine.
+            SetDisk(driveNumber, fullFilePath);
+        }
     }
     if (ImGui::MenuItem("Eject Disk"))
     {
@@ -911,39 +928,80 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
     ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
 }
 
-void Application::OpenLoadDiskImageDialog(unsigned nDrive)
+void Application::LoadSnapshot(string fullFilePath)
 {
-    // Show the File Dialog to let the user pick a file
-    char szCurrentDir[1000];
-    ::GetCurrentDirectory(sizeof(szCurrentDir), szCurrentDir);
+    // Open the file.
+    kmbFileInputStream stream;
+    if (stream.Init(fullFilePath))
+    {
+        // Load the snapshot's header.
+        CPC::Snapshot snapshot;
+        if (SnaSnapshotReadWrite::LoadSnapshotHeader(stream, &snapshot))
+        {
+            // Create the new machine.
+            string machineSpecsName;
+            switch (snapshot.GetCpcType())
+            {
+                case CPC::Snapshot::CpcType::Cpc464: machineSpecsName = StandardCpc464SpecificationsName; break;
+                case CPC::Snapshot::CpcType::Cpc664: machineSpecsName = StandardCpc664SpecificationsName; break;
+                case CPC::Snapshot::CpcType::Cpc6128: machineSpecsName = StandardCpc6128SpecificationsName; break;
+                default: machineSpecsName.clear(); break;
+            }
 
-    string sInitialDir;
-    sInitialDir = szCurrentDir + string("\\Disks");
+            if (!machineSpecsName.empty())        // If the emulator supports this machine...
+            {
+                const CPC::MachineSpecifications* machineSpecs = FindMachineSpecificationsByName(machineSpecsName);
+                GetSettings()->SetMachineSpecificationName(machineSpecsName);
+                // TODO: Insert the disk images from the snapshot?
+                CreateMachine();
 
-    char szFileFullPath[1000];
-    char szFileName[1000];
+                // Apply the snapshot.
+                m_pMachine->ApplySnapshot(snapshot, stream);
+            }
+        }
+    }
+}
+
+bool Application::ShowLoadFileDialog(string relativeInitialDir, const char* filter, string* outFullFilePath) const
+{
+    bool ret;
+
+    // Show the File Dialog to let the user pick a file.
+    char currentDir[2000];
+    ::GetCurrentDirectory(sizeof(currentDir), currentDir);
+
+    string initialDir;
+    initialDir = currentDir + relativeInitialDir;
+
+    char fileFullPath[2000];
+    fileFullPath[0] = '\0';
+    char fileName[2000];
 
     OPENFILENAME openFileName;
     memset(&openFileName, 0, sizeof(openFileName));
     openFileName.lStructSize = sizeof(OPENFILENAME);
     openFileName.hwndOwner = m_pAppWindow->GetHWnd();
-    openFileName.lpstrFilter = "DSK disk images (*.dsk)\0*.dsk\0\0";
-    //strncpy( szFileFullPath, "", sizeof(szFileFullPath) );
-    szFileFullPath[0] = '\0';
-    openFileName.lpstrFile = szFileFullPath;
-    openFileName.nMaxFile = sizeof(szFileFullPath);
-    openFileName.lpstrFileTitle = szFileName;
-    openFileName.nMaxFileTitle = sizeof(szFileName);
-    openFileName.lpstrInitialDir = sInitialDir.c_str();
+    openFileName.lpstrFilter = filter;
+    openFileName.lpstrFile = fileFullPath;
+    openFileName.nMaxFile = sizeof(fileFullPath);
+    openFileName.lpstrFileTitle = fileName;
+    openFileName.nMaxFileTitle = sizeof(fileName);
+    openFileName.lpstrInitialDir = initialDir.c_str();
     openFileName.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;  // The flag OFN_NOCHANGEDIR is ignored on Windows XP and below.
     openFileName.FlagsEx = OFN_EX_NOPLACESBAR;
 
-    if (::GetOpenFileName(&openFileName) != FALSE)
+    BOOL result = ::GetOpenFileName(&openFileName);
+    ::SetCurrentDirectory(currentDir);          // Restore the working directory, changed by the Open File Dialog
+
+    ret = (result != FALSE);
+    if (ret)
     {
-        // "Insert" the disk into the emulated machine.
-        SetDisk(nDrive, szFileFullPath);
+        outFullFilePath->assign(fileFullPath);
+    }
+    else
+    {
+        outFullFilePath->clear();
     }
 
-    // Restore the working directory, changed by the Open File Dialog
-    ::SetCurrentDirectory(szCurrentDir);
+    return ret;
 }

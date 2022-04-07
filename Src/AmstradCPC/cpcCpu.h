@@ -212,6 +212,14 @@ namespace CPC {
             cpcByte& E() { return DE.b.l; }
             cpcByte& H() { return HL.b.h; }
             cpcByte& L() { return HL.b.l; }
+            cpcByte& altA() { return altAF.b.h; }
+            cpcByte& altF() { return altAF.b.l; }
+            cpcByte& altB() { return altBC.b.h; }
+            cpcByte& altC() { return altBC.b.l; }
+            cpcByte& altD() { return altDE.b.h; }
+            cpcByte& altE() { return altDE.b.l; }
+            cpcByte& altH() { return altHL.b.h; }
+            cpcByte& altL() { return altHL.b.l; }
             cpcByte& I() { return IR.b.h; }
             cpcByte& R() { return IR.b.l; }
             cpcByte& IXH() { return IX.b.h; }
@@ -226,6 +234,14 @@ namespace CPC {
             const cpcByte& E() const { return DE.b.l; }
             const cpcByte& H() const { return HL.b.h; }
             const cpcByte& L() const { return HL.b.l; }
+            const cpcByte& altA() const { return altAF.b.h; }
+            const cpcByte& altF() const { return altAF.b.l; }
+            const cpcByte& altB() const { return altBC.b.h; }
+            const cpcByte& altC() const { return altBC.b.l; }
+            const cpcByte& altD() const { return altDE.b.h; }
+            const cpcByte& altE() const { return altDE.b.l; }
+            const cpcByte& altH() const { return altHL.b.h; }
+            const cpcByte& altL() const { return altHL.b.l; }
             const cpcByte& I() const { return IR.b.h; }
             const cpcByte& R() const { return IR.b.l; }
             const cpcByte& IXH() const { return IX.b.h; }
@@ -248,6 +264,8 @@ namespace CPC {
             bool GetFlag(Flag flag) const { return ((AF.b.l & (1 << flag)) != 0); }
         };
 
+        /** Sets the Z80's internal registers. */
+        void                    SetRegisters(const Registers& newRegisters) { m_registers = newRegisters; }
         /** Returns the Z80's internal registers. */
         const Registers&        GetRegisters() const { return m_registers; }
 

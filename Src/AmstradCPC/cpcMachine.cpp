@@ -15,7 +15,8 @@
 #include "cpcDiskDrive.h"
 #include "cpcVideoOutput.h"
 #include "cpcSoundOutput.h"
-
+#include "Snapshot.h"
+#include "Stream/kmbInputStream.h"
 
 
 namespace CPC {
@@ -178,6 +179,22 @@ namespace CPC {
                 GetPsg()->Run(1);
             }
         }
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CPC::CMachine::ApplySnapshot(const Snapshot& snapshot, kmbInputStream& ramDumpInputStream)
+    {
+        Reset();
+
+        m_pCpu->SetRegisters(snapshot.GetCpuRegisters());
+        m_pGateArray->ApplySnapshot(snapshot.GetGateArray());
+        m_pCrtc->ApplySnapshot(snapshot.GetCrtc());
+
+        // Load the snapshot's RAM dump into the machine's RAM.
+        m_pMemory->LoadRam(ramDumpInputStream);
     }
 
     //----------------------------------------------------------------------------

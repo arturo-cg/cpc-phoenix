@@ -38,7 +38,7 @@ namespace CPC {
 
     /** Fills the whole memory block with the provided content.
     *** This is used primarily for ROM blocks to write their content on creation, but it could be used in the future for a save state feature. */
-    void                    FillContent               (kmbInputStream* pContentStream);
+    bool                    FillContent               (kmbInputStream* pContentStream);
 
 
   private:

@@ -231,6 +231,31 @@ namespace CPC {
     /**
     **
     */
+    void CGateArray::ApplySnapshot(const Snapshot& snapshot)
+    {
+        m_nSelectedPen = snapshot.selectedPen;
+        m_eScreenMode = snapshot.screenMode;
+        m_bLowerRomVisible = snapshot.lowerRomVisible;
+        m_bUpperRomVisible = snapshot.upperRomVisible;
+        if (snapshot.interruptControlState)
+        {
+            m_nCrtcHSyncCounter = 0;
+            GetMachine()->GetCpu()->SetInterruptRequestActive(false);
+        }
+        std::copy(std::begin(snapshot.penColors), std::end(snapshot.penColors), std::begin(m_anPenColors));
+        m_nBorderColor = snapshot.borderColor;
+        m_eRamConfig = snapshot.ramConfig;
+        m_nSecondaryRamPage = snapshot.secondaryRamPage;
+        m_nSelectedUpperRom = snapshot.selectedUpperRom;
+
+        // Determine visible read/write blocks.
+        UpdateVisibleMemoryBlocks();
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
     void CGateArray::OnCrtcHSyncBegin()
     {
         // Set requested screen mode.

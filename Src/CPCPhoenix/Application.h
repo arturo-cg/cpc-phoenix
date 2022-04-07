@@ -135,7 +135,9 @@ private:
     void                      DrawStatusBarGui();
     void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
 
-    void                      OpenLoadDiskImageDialog(unsigned nDrive);
+    void                      LoadSnapshot(string fullFilePath);
+
+    bool                      ShowLoadFileDialog(string relativeInitialDir, const char* filter, string* outFullFilePath) const;
 
     bool                      m_bOk;
 

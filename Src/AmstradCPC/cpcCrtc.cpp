@@ -91,6 +91,16 @@ namespace CPC {
     /**
     **
     */
+    void CCrtc::ApplySnapshot(const Snapshot& snapshot)
+    {
+        m_eSelectedRegister = snapshot.selectedRegister;
+        std::copy(std::begin(snapshot.registers), std::end(snapshot.registers), std::begin(m_anRegisters));
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
     void CCrtc::SelectRegister(ERegister eRegister)
     {
         if (eRegister != INVALID_REGISTER)

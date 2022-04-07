@@ -63,10 +63,11 @@ namespace CPC {
             bool lowerRomVisible;           // Lower ROM visibility.
             bool upperRomVisible;           // Upper ROM visibility;
             bool interruptControlState;     // Interrupt Control bit.
-            cpcByte penColor[16];           // Pen colors.
+            cpcByte penColors[16];          // Pen colors.
             cpcByte borderColor;            // Border color.
             ERamConfig ramConfig;           // RAM configuration.
             unsigned secondaryRamPage;      // Selected secondary RAM page.
+            cpcByte selectedUpperRom;       // Selected upper ROM.
         };
 
         static const unsigned   MAX_NUM_PENS = 16;
@@ -79,6 +80,9 @@ namespace CPC {
 
         /** Resets the subsystem. */
         virtual void            Reset();
+
+        /** Applies the values from the specified snaphot. */
+        void                    ApplySnapshot(const Snapshot& snapshot);
 
         /** Returns the current screen mode. */
         EScreenMode             GetScreenMode() const { return m_eScreenMode; }

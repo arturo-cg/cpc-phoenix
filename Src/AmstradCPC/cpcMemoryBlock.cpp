@@ -53,8 +53,9 @@ namespace CPC {
   /**
   ** 
   */
-  void CMemoryBlock::FillContent(kmbInputStream* pContentStream)
+  bool CMemoryBlock::FillContent(kmbInputStream* pContentStream)
   {
+    bool ret = false;
     if ( (pContentStream != NULL) && pContentStream->IsOk() )
     {
       // Determine the conten length
@@ -67,8 +68,10 @@ namespace CPC {
       }
 
       // Copy the content to the memory block
-      pContentStream->Read( m_anBytes, nLength );
+      ret = pContentStream->Read( m_anBytes, nLength );
     }
+
+    return ret;
   }
 
 } //namespace CPC

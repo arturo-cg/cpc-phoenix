@@ -92,6 +92,7 @@
     <ClCompile Include="cpcSoundOutput.cpp" />
     <ClCompile Include="cpcSubSystem.cpp" />
     <ClCompile Include="cpcVideoOutput.cpp" />
+    <ClCompile Include="Snapshot.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -126,6 +127,7 @@
     <ClInclude Include="cpcSubSystem.h" />
     <ClInclude Include="cpcTypes.h" />
     <ClInclude Include="cpcVideoOutput.h" />
+    <ClInclude Include="Snapshot.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include "cpcSubSystem.h"
 
+class kmbInputStream;
 
 namespace CPC {
 
@@ -56,6 +57,9 @@ namespace CPC {
         /** Returns the requested RAM block. The index can go from 0 to MAX_NUM_RAM_BANKS (const version).
         *** The first four are the 64k primary RAM page, the last four the 64k secondary RAM page. */
         const CMemoryBlock* GetRamBlock(int i) const;
+
+        bool LoadRam(kmbInputStream& inputStream);
+        //bool SaveRam(kmbOutputStream& outputStream);
 
     private:
 

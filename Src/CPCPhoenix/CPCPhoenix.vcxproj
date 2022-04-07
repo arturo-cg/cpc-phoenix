@@ -147,7 +147,7 @@
     <ClInclude Include="RenderingApi.h" />
     <ClInclude Include="res\Resource.h" />
     <ClInclude Include="Settings.h" />
-    <ClInclude Include="Snapshot.h" />
+    <ClInclude Include="SnaSnapshotReadWrite.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TextureVideoOutput.h" />
     <ClInclude Include="WindowsKeyStateProvider.h" />
@@ -160,7 +160,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="RenderingApi.cpp" />
     <ClCompile Include="Settings.cpp" />
-    <ClCompile Include="Snapshot.cpp" />
+    <ClCompile Include="SnaSnapshotReadWrite.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

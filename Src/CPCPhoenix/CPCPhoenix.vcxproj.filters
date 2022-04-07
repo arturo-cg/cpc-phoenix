@@ -35,7 +35,7 @@
     <ClInclude Include="RenderingApi.h" />
     <ClInclude Include="TextureVideoOutput.h" />
     <ClInclude Include="Debugger.h" />
-    <ClInclude Include="Snapshot.h" />
+    <ClInclude Include="SnaSnapshotReadWrite.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -48,6 +48,6 @@
     <ClCompile Include="RenderingApi.cpp" />
     <ClCompile Include="TextureVideoOutput.cpp" />
     <ClCompile Include="Debugger.cpp" />
-    <ClCompile Include="Snapshot.cpp" />
+    <ClCompile Include="SnaSnapshotReadWrite.cpp" />
   </ItemGroup>
 </Project>
