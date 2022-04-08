@@ -23,7 +23,11 @@ namespace CPC {
             Gx4000,
         };
 
+        static const int MaxRamPageCount = 9;       // RAM page index can go from 0 to 8.
+        static const int RamPageSize = 64 * 1024;   // 64 KB.
+
         Snapshot();
+        ~Snapshot();
 
         void Reset();
 
@@ -39,12 +43,22 @@ namespace CPC {
         CPC::CCrtc::Snapshot& GetCrtc() { return m_crtc; }
         const CPC::CCrtc::Snapshot& GetCrtc() const { return m_crtc; }
 
+        /** Gets the RAM page (64 KB of memory) at the specified index, or nullptr if this RAM page does not exist.
+            Base 64 KB is at index 0, CPC 6128's additional 64 KB is at index 1 (if it exists). */
+        const cpcByte* GetRamPage(int index) const { return (index < MaxRamPageCount ? m_ramPages[index] : nullptr); }
+        /** For Snapshot importers only. */
+        cpcByte* CreateRamPageIfNecessary(int index);
+
     private:
+
+        void ResetVars();
+        void FreeVars();
 
         CpcType m_cpcType;
         CPC::CCpu::Registers m_cpuRegisters;
         CPC::CGateArray::Snapshot m_gateArray;
         CPC::CCrtc::Snapshot m_crtc;
+        cpcByte* m_ramPages[MaxRamPageCount];       // RAM pages 0 to 8. Each RAM page is 64KB. Page 0 is the base 64KB of memory, page 1 is the additional 64KB in the CPC 6128. Page n is nullptr if it doesn't exist.
     };
 
 }

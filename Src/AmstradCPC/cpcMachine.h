@@ -96,8 +96,8 @@ namespace CPC {
         *** Time is in cycles of a 4Mhz clock. */
         void                    Run(unsigned num4MhzCycles);
 
-        /** Applies the specified snapshot to the machine. RAM content is read from the specified stream. */
-        void                    ApplySnapshot(const Snapshot& snapshot, kmbInputStream& ramDumpInputStream);
+        /** Applies the specified snapshot to the machine. */
+        void                    ApplySnapshot(const Snapshot& snapshot);
 
         /** Static utility method that fills in the specs for a standard Amstrad CPC 464. */
         static void             GetStandardCpc464Specifications(MachineSpecifications* outSpecifications);

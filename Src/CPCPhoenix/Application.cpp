@@ -936,7 +936,7 @@ void Application::LoadSnapshot(string fullFilePath)
     {
         // Load the snapshot's header.
         CPC::Snapshot snapshot;
-        if (SnaSnapshotReadWrite::LoadSnapshotHeader(stream, &snapshot))
+        if (SnaSnapshotReadWrite::LoadSnapshot(stream, &snapshot))
         {
             // Create the new machine.
             string machineSpecsName;
@@ -956,7 +956,7 @@ void Application::LoadSnapshot(string fullFilePath)
                 CreateMachine();
 
                 // Apply the snapshot.
-                m_pMachine->ApplySnapshot(snapshot, stream);
+                m_pMachine->ApplySnapshot(snapshot);
             }
         }
     }

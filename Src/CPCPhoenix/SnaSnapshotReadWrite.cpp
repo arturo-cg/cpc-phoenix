@@ -54,7 +54,7 @@ struct Header
     uint8_t ppiControlPort;
     uint8_t psgSelectedRegister;
     uint8_t psgRegisters[16];
-    uint8_t memSizeInKilobytes;             // E.g. 64 for 64K, 128 for 128K.
+    uint8_t memSizeInKilobytes;             // E.g. 64 for 64K, 128 for 128K, of uncompressed memory. In .SNA version 3, it can also be 0, in which case there will be MEM chunks of compressed memory later on in the snapshot.
 
     // Version 2 and higher.
 
@@ -67,7 +67,7 @@ struct Header
     uint8_t unused2[93 + 55];
 };
 
-bool SnaSnapshotReadWrite::LoadSnapshotHeader(kmbInputStream& inputStream, CPC::Snapshot* outputSnapshot)
+bool SnaSnapshotReadWrite::LoadSnapshot(kmbInputStream& inputStream, CPC::Snapshot* outputSnapshot)
 {
     bool ret = false;
 
@@ -90,7 +90,7 @@ bool SnaSnapshotReadWrite::LoadSnapshotHeader(kmbInputStream& inputStream, CPC::
                 CPC::CCrtc::Snapshot* crtc = &outputSnapshot->GetCrtc();
 
                 // All versions.
-                outputSnapshot->SetCpcType(header.memSizeInKilobytes == 64 ? CPC::Snapshot::CpcType::Cpc464 : CPC::Snapshot::CpcType::Cpc6128);   // Overwritten later if .SNA version is 2 or higher.
+                outputSnapshot->SetCpcType(header.memSizeInKilobytes == 64 ? CPC::Snapshot::CpcType::Cpc464 : CPC::Snapshot::CpcType::Cpc6128);   // Overwritten later on if .SNA version is 2 or higher.
                 cpuRegisters->F() = header.cpuF;
                 cpuRegisters->A() = header.cpuA;
                 cpuRegisters->C() = header.cpuC;
@@ -144,7 +144,24 @@ bool SnaSnapshotReadWrite::LoadSnapshotHeader(kmbInputStream& inputStream, CPC::
                 {
                 }
 
-                // Note: The stream is now positioned right after the header, which is 256 bytes long, at the start of the RAM dump.
+                // Read uncompressed RAM, if it exists.
+                // Note: The stream is now positioned right after the header, which is 256 bytes long, at the start of the RAM dump (if it exists).
+                if (header.memSizeInKilobytes >= 64)    // Base 64 KB of memory.
+                {
+                    cpcByte* ramPage = outputSnapshot->CreateRamPageIfNecessary(0);
+                    inputStream.Read(ramPage, CPC::Snapshot::RamPageSize);
+                }
+
+                if (header.memSizeInKilobytes >= 128)    // Additional 64 KB of memory in the CPC 6128.
+                {
+                    cpcByte* ramPage = outputSnapshot->CreateRamPageIfNecessary(1);
+                    inputStream.Read(ramPage, CPC::Snapshot::RamPageSize);
+                }
+
+                // Read chunks (version 3 or higher).
+                if (header.version >= 3)
+                {
+                }
 
                 ret = true;
             }

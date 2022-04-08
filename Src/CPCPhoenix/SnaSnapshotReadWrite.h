@@ -15,9 +15,8 @@ class SnaSnapshotReadWrite
 {
 public:
 
-    /** Reads a .SNA snapshot's header from the specified stream.
-        Note that this function loads the header only. The stream is left positioned at the first byte of the memory dump contained in the snapshot. */
-    static bool LoadSnapshotHeader(kmbInputStream& inputStream, CPC::Snapshot* outputSnapshot);
+    /** Reads a snapshot in .SNA format from the specified stream. */
+    static bool LoadSnapshot(kmbInputStream& inputStream, CPC::Snapshot* outputSnapshot);
 
     ///////** Writes snapshot data contained in the specified Snapshot object to the specified stream. */
     //////static bool SaveSnapshotHeader(const Snapshot* inputSnapshot, kmbOutputStream* outputStream);

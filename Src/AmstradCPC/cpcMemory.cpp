@@ -175,26 +175,4 @@ namespace CPC {
         return m_ramBlocks[i];
     }
 
-    //----------------------------------------------------------------------------
-    /**
-    **
-    */
-    bool CPC::CMemory::LoadRam(kmbInputStream& inputStream)
-    {
-        bool ret = true;
-
-        int numBlocks = (GetNumRamPages() == 1 ? 4 : 8);
-
-        for (int i = 0; i < numBlocks; i++)
-        {
-            if (!m_ramBlocks[i]->FillContent(&inputStream))
-            {
-                ret = false;
-                break;
-            }
-        }
-
-        return ret;
-    }
-
 } //namespace CPC

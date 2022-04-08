@@ -6,6 +6,7 @@
 #include "cpcCpu.h"
 #include "cpcCpuToCpcInterface.h"
 #include "cpcMemory.h"
+#include "cpcMemoryBlock.h"
 #include "cpcGateArray.h"
 #include "cpcCrtc.h"
 #include "cpcPpi.h"
@@ -16,7 +17,7 @@
 #include "cpcVideoOutput.h"
 #include "cpcSoundOutput.h"
 #include "Snapshot.h"
-#include "Stream/kmbInputStream.h"
+#include "Stream/kmbMemoryInputStream.h"
 
 
 namespace CPC {
@@ -185,16 +186,32 @@ namespace CPC {
     /**
     **
     */
-    void CPC::CMachine::ApplySnapshot(const Snapshot& snapshot, kmbInputStream& ramDumpInputStream)
+    void CPC::CMachine::ApplySnapshot(const Snapshot& snapshot)
     {
         Reset();
 
+        // CPU, Gate Array, CRTC, etc.
         m_pCpu->SetRegisters(snapshot.GetCpuRegisters());
         m_pGateArray->ApplySnapshot(snapshot.GetGateArray());
         m_pCrtc->ApplySnapshot(snapshot.GetCrtc());
 
-        // Load the snapshot's RAM dump into the machine's RAM.
-        m_pMemory->LoadRam(ramDumpInputStream);
+        // RAM.
+        const cpcByte* ramPage;
+        for (int page = 0; page < Snapshot::MaxRamPageCount; page++)
+        {
+            ramPage = snapshot.GetRamPage(page);
+            if ((ramPage != nullptr) &&             // If RAM page exists in the snapshot...
+                m_pMemory->RamPageExists(page))        // If RAM page exists in the machine...
+            {
+                kmbMemoryInputStream pageStream;
+                pageStream.Init(ramPage, Snapshot::RamPageSize);
+
+                for (int block = (page * 4); block < (page * 4) + 4; block++)
+                {
+                    m_pMemory->GetRamBlock(block)->FillContent(&pageStream);
+                }
+            }
+        }
     }
 
     //----------------------------------------------------------------------------
