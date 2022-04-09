@@ -5,6 +5,8 @@
 
 static const char* SnaHeaderIdentification = "MV - SNA";
 
+#pragma pack (push)
+#pragma pack (1)
 struct Header
 {
     // All versions.
@@ -54,18 +56,41 @@ struct Header
     uint8_t ppiControlPort;
     uint8_t psgSelectedRegister;
     uint8_t psgRegisters[16];
-    uint8_t memSizeInKilobytes;             // E.g. 64 for 64K, 128 for 128K, of uncompressed memory. In .SNA version 3, it can also be 0, in which case there will be MEM chunks of compressed memory later on in the snapshot.
+    uint16_t memSizeInKilobytes;             // E.g. 64 for 64K, 128 for 128K, of uncompressed memory. In .SNA version 3, it can also be 0, in which case there will be MEM chunks of compressed memory later on in the snapshot.
 
     // Version 2 and higher.
-
-
+    uint8_t cpcType;                        // 0=CPC464, 1=CPC664, 2=CPC6128, 3=Unknown. If version 3 or higher, also 4=CPC6128+, 5=CPC464+, 6=GX4000.
+    uint8_t unusedV2[46];                   // Ignored, CPCPhoenix uses an accurate interrupt generation method and does not need this data.
 
     // Version 3.
-
-
-
-    uint8_t unused2[93 + 55];
+    uint8_t diskDriveMotorState;            // 0=off, 1=on.
+    uint8_t diskDriveCurrentPhysicalTracks[4];
+    uint8_t printerDataStrobeRegister;
+    uint8_t crtcType;                       // 0 = HD6845S/UM6845, 1 = UM6845R, 2 = MC6845, 3 = 6845 in CPC + ASIC, 4 = 6845 in Pre - ASIC.
+    uint8_t crtcHCharacterCounter;          // CRTC's HCC.
+    uint8_t unused2;
+    uint8_t crtcVCharacterCounter;          // CRTC's VCC.
+    uint8_t crtcVLineCounter;               // CRTC's VLC.
+    uint8_t crtcVerticalTotalAdjustCounter;
+    uint8_t crtcHSyncWidthCounter;
+    uint8_t crtcVSyncWidthCounter;
+    uint16_t crtcFlags;                     // Bit 0 = VSYNC active?, bit 1 = HSYNC active?, bit 7 = Vertical Total Adjust active?, other bits are reserved.
+    uint8_t gateArrayVSyncDelayCounter;
+    uint8_t gateArrayInterruptScanLineCounter;
+    uint8_t gateArrayInterruptRequestActive;
+    uint8_t unused3[81];
 };
+
+struct ChunkHeader
+{
+    char name[4];
+    uint32_t length;                        // Little-endian format. Does *not* include header size.
+};
+#pragma pack (pop)
+
+void ReadMemoryChunk(const ChunkHeader& chunkHeader, kmbInputStream& inputStream, CPC::Snapshot* outputSnapshot);
+
+static uint8_t CompressedMemControlByte = 0xE5;
 
 bool SnaSnapshotReadWrite::LoadSnapshot(kmbInputStream& inputStream, CPC::Snapshot* outputSnapshot)
 {
@@ -161,6 +186,27 @@ bool SnaSnapshotReadWrite::LoadSnapshot(kmbInputStream& inputStream, CPC::Snapsh
                 // Read chunks (version 3 or higher).
                 if (header.version >= 3)
                 {
+                    while (!inputStream.IsAtEnd())
+                    {
+                        // Read chunk header.
+                        ChunkHeader chunkHeader;
+                        if (inputStream.Read(&chunkHeader))
+                        {
+                            if (strncmp(chunkHeader.name, "MEM", 3) == 0)    // If it is a memory chunk...
+                            {
+                                ReadMemoryChunk(chunkHeader, inputStream, outputSnapshot);
+                            }
+                            else
+                            {
+                                // Chunk not supported. Skip it.
+                                char byte;
+                                for (uint32_t i = 0; i < chunkHeader.length; i++)
+                                {
+                                    inputStream.ReadChar(&byte);
+                                }
+                            }
+                        }
+                    }
                 }
 
                 ret = true;
@@ -169,4 +215,61 @@ bool SnaSnapshotReadWrite::LoadSnapshot(kmbInputStream& inputStream, CPC::Snapsh
     }
 
     return ret;
+}
+
+void ReadMemoryChunk(const ChunkHeader& chunkHeader, kmbInputStream& inputStream, CPC::Snapshot* outputSnapshot)
+{
+    // Get RAM page.
+    // Chunk name can be "MEM0", "MEM1", ..., up to "MEM8".
+    unsigned ramPageIndex = unsigned(chunkHeader.name[3] - '0');
+    cpcByte* ramPage = outputSnapshot->CreateRamPageIfNecessary(ramPageIndex);
+
+    // Memory data is compressed in a RLE format. 0xE5 is used as the control byte.
+    // E.g.
+    //   11 22 33 -> Interpret as 11 22 33
+    //   E5 03 11 -> Interpret as 11 11 11 (<control byte>, <count>, <data>)
+    //   E5 00    -> Interpret as E5
+    uint32_t compressedCounter = 0;
+    uint32_t uncompressedCounter = 0;
+    uint8_t byte;
+    uint8_t count;
+    while ((compressedCounter < chunkHeader.length) && !inputStream.IsAtEnd())
+    {
+        // Read next byte.
+        inputStream.Read(&byte);
+        compressedCounter++;
+        if (byte == CompressedMemControlByte)   // If it is the control byte...
+        {
+            // Read count.
+            inputStream.Read(&count);
+            compressedCounter++;
+            if (count == 0)
+            {
+                // Write 0xE5 to the uncompressed data.
+                *ramPage++ = CompressedMemControlByte;
+                uncompressedCounter++;
+            }
+            else
+            {
+                // Read the byte to be repeated 'count' times.
+                inputStream.Read(&byte);
+                compressedCounter++;
+                // Store uncompressed data.
+                for (uint8_t i = 0; i < count; i++)
+                {
+                    *ramPage++ = byte;
+                }
+                uncompressedCounter += count;
+            }
+        }
+        else
+        {
+            // This is an uncompressed byte so store it as-is.
+            *ramPage++ = byte;
+            uncompressedCounter++;
+        }
+    }
+
+    KMASSERT(compressedCounter == chunkHeader.length);
+    KMASSERT(uncompressedCounter == 64 * 1024/*64 KB*/);
 }

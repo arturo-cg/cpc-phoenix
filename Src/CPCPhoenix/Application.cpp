@@ -934,7 +934,7 @@ void Application::LoadSnapshot(string fullFilePath)
     kmbFileInputStream stream;
     if (stream.Init(fullFilePath))
     {
-        // Load the snapshot's header.
+        // Load the snapshot.
         CPC::Snapshot snapshot;
         if (SnaSnapshotReadWrite::LoadSnapshot(stream, &snapshot))
         {
