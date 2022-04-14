@@ -113,6 +113,7 @@ bool SnaSnapshotReadWrite::LoadSnapshot(kmbInputStream& inputStream, CPC::Snapsh
                 CPC::CCpu::Registers* cpuRegisters = &outputSnapshot->GetCpuRegisters();
                 CPC::CGateArray::Snapshot* gateArray = &outputSnapshot->GetGateArray();
                 CPC::CCrtc::Snapshot* crtc = &outputSnapshot->GetCrtc();
+                CPC::CPsg::Snapshot* psg = &outputSnapshot->GetPsg();
 
                 // All versions.
                 outputSnapshot->SetCpcType(header.memSizeInKilobytes == 64 ? CPC::Snapshot::CpcType::Cpc464 : CPC::Snapshot::CpcType::Cpc6128);   // Overwritten later on if .SNA version is 2 or higher.
@@ -157,16 +158,45 @@ bool SnaSnapshotReadWrite::LoadSnapshot(kmbInputStream& inputStream, CPC::Snapsh
                 gateArray->selectedUpperRom = header.gateArrayRomSelection;
                 crtc->selectedRegister = CPC::CCrtc::ERegister(header.crtcSelectedRegister);
                 std::copy(std::begin(header.crtcRegisters), std::end(header.crtcRegisters), std::begin(crtc->registers));
+                //
+                // TODO: Load PPI snapshot.
+                //
+                psg->selectedRegister = CPC::CPsg::ERegister(header.psgSelectedRegister);
+                std::copy(std::begin(header.psgRegisters), std::end(header.psgRegisters), std::begin(psg->registers));
 
                 // Version 2 or higher.
                 if (header.version >= 2)
                 {
-//                    outputSnapshot->SetCpcType(Snapshot::CpcType(header.cpcType));
+                    CPC::Snapshot::CpcType cpcType;
+                    switch (header.cpcType)
+                    {
+                        case 0: cpcType = CPC::Snapshot::CpcType::Cpc464; break;
+                        case 1: cpcType = CPC::Snapshot::CpcType::Cpc664; break;
+                        case 2: cpcType = CPC::Snapshot::CpcType::Cpc6128; break;
+                        default: cpcType = CPC::Snapshot::CpcType::Unknown; break;
+                    }
+                    outputSnapshot->SetCpcType(cpcType);
                 }
 
                 // Version 3 or higher.
                 if (header.version >= 3)
                 {
+                    CPC::Snapshot::CpcType cpcType;
+                    switch (header.cpcType)
+                    {
+                        case 0: cpcType = CPC::Snapshot::CpcType::Cpc464; break;
+                        case 1: cpcType = CPC::Snapshot::CpcType::Cpc664; break;
+                        case 2: cpcType = CPC::Snapshot::CpcType::Cpc6128; break;
+                        case 4: cpcType = CPC::Snapshot::CpcType::Cpc6128Plus; break;
+                        case 5: cpcType = CPC::Snapshot::CpcType::Cpc464Plus; break;
+                        case 6: cpcType = CPC::Snapshot::CpcType::Gx4000; break;
+                        default: cpcType = CPC::Snapshot::CpcType::Unknown; break;
+                    }
+                    outputSnapshot->SetCpcType(cpcType);
+
+                    //
+                    // Load all the extra data in version 3 snapshots.
+                    //
                 }
 
                 // Read uncompressed RAM, if it exists.

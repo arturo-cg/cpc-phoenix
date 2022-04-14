@@ -55,12 +55,21 @@ namespace CPC {
             REG_COUNT
         };
 
+        struct Snapshot
+        {
+            ERegister selectedRegister;         // Currently selected register.
+            cpcByte registers[REG_COUNT];       // Register values.
+        };
+
 
         CPsg(CMachine* pMachine);
         virtual                ~CPsg() { FreeVars(); }
 
         /** Resets the subsystem. */
         virtual void            Reset();
+
+        /** Applies the values from the specified snaphot. */
+        void                    ApplySnapshot(const Snapshot& snapshot);
 
         /** Selects the PSG function to perform. */
         void                    SelectFunction(EFunction eFunction);

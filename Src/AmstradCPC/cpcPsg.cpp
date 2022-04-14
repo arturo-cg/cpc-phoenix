@@ -65,6 +65,16 @@ namespace CPC {
     /**
     **
     */
+    void CPsg::ApplySnapshot(const Snapshot& snapshot)
+    {
+        m_eSelectedRegister = snapshot.selectedRegister;
+        std::copy(std::begin(snapshot.registers), std::end(snapshot.registers), std::begin(m_anRegisters));
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
     void CPsg::SelectFunction(EFunction eFunction)
     {
         switch (eFunction)
