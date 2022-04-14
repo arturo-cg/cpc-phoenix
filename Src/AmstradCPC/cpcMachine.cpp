@@ -194,6 +194,7 @@ namespace CPC {
         m_pCpu->SetRegisters(snapshot.GetCpuRegisters());
         m_pGateArray->ApplySnapshot(snapshot.GetGateArray());
         m_pCrtc->ApplySnapshot(snapshot.GetCrtc());
+        m_pPsg->ApplySnapshot(snapshot.GetPsg());
 
         // RAM.
         const cpcByte* ramPage;
