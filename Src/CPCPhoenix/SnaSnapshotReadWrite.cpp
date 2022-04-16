@@ -2,6 +2,7 @@
 #include "SnaSnapshotReadWrite.h"
 #include "Snapshot.h"
 #include "Stream/kmbInputStream.h"
+#include "Stream/kmbOutputStream.h"
 
 static const char* SnaHeaderIdentification = "MV - SNA";
 
@@ -162,7 +163,7 @@ bool SnaSnapshotReadWrite::LoadSnapshot(kmbInputStream& inputStream, CPC::Snapsh
                 // TODO: Load PPI snapshot.
                 //
                 psg->selectedRegister = CPC::CPsg::ERegister(header.psgSelectedRegister);
-                std::copy(std::begin(header.psgRegisters), std::end(header.psgRegisters), std::begin(psg->registers));
+                std::copy(std::begin(header.psgRegisters), std::end(header.psgRegisters) - 1/*.SNA header stores one more byte than we use*/, std::begin(psg->registers));
 
                 // Version 2 or higher.
                 if (header.version >= 2)
@@ -301,5 +302,100 @@ void ReadMemoryChunk(const ChunkHeader& chunkHeader, kmbInputStream& inputStream
     }
 
     KMASSERT(compressedCounter == chunkHeader.length);
-    KMASSERT(uncompressedCounter == 64 * 1024/*64 KB*/);
+    KMASSERT(uncompressedCounter == CPC::Snapshot::RamPageSize/*64 KB*/);
+}
+
+bool SnaSnapshotReadWrite::SaveSnapshot(kmbOutputStream& outputStream, const CPC::Snapshot& inputSnapshot)
+{
+    bool ret = false;
+
+    // Header.
+    Header header;
+    memset(&header, 0, sizeof(header));
+
+    const CPC::CCpu::Registers& cpuRegisters = inputSnapshot.GetCpuRegisters();
+    const CPC::CGateArray::Snapshot& gateArray = inputSnapshot.GetGateArray();
+    const CPC::CCrtc::Snapshot& crtc = inputSnapshot.GetCrtc();
+    const CPC::CPsg::Snapshot& psg = inputSnapshot.GetPsg();
+
+    memcpy(header.identification, SnaHeaderIdentification, sizeof(header.identification));
+    header.version = 2;
+
+    header.cpuF = cpuRegisters.F();
+    header.cpuA = cpuRegisters.A();
+    header.cpuC = cpuRegisters.C();
+    header.cpuB = cpuRegisters.B();
+    header.cpuE = cpuRegisters.E();
+    header.cpuD = cpuRegisters.D();
+    header.cpuL = cpuRegisters.L();
+    header.cpuH = cpuRegisters.H();
+    header.cpuR = cpuRegisters.R();
+    header.cpuI = cpuRegisters.I();
+    header.cpuIFF0 = cpuRegisters.IFF1;
+    header.cpuIFF1 = cpuRegisters.IFF2;
+    header.cpuIXLow = cpuRegisters.IXL();
+    header.cpuIXHigh = cpuRegisters.IXH();
+    header.cpuIYLow = cpuRegisters.IYL();
+    header.cpuIYHigh = cpuRegisters.IYH();
+    header.cpuSPLow = cpuRegisters.SP.b.l;
+    header.cpuSPHigh = cpuRegisters.SP.b.h;
+    header.cpuPCLow = cpuRegisters.PC.b.l;
+    header.cpuPCHigh = cpuRegisters.PC.b.h;
+    header.cpuIM = uint8_t(cpuRegisters.IM);
+    header.cpuAltF = cpuRegisters.altF();
+    header.cpuAltA = cpuRegisters.altA();
+    header.cpuAltC = cpuRegisters.altC();
+    header.cpuAltB = cpuRegisters.altB();
+    header.cpuAltE = cpuRegisters.altE();
+    header.cpuAltD = cpuRegisters.altD();
+    header.cpuAltL = cpuRegisters.altL();
+    header.cpuAltH = cpuRegisters.altH();
+    header.gateArraySelectedPen = gateArray.selectedPen;
+    std::copy(std::begin(gateArray.penColors), std::end(gateArray.penColors), std::begin(header.gateArrayPenColors));
+    header.gateArrayBorderColor = gateArray.borderColor;
+    header.gateArrayMultiConfiguration = (1 << 7) | ((gateArray.interruptControlState ? 1 : 0) << 4) | ((gateArray.upperRomVisible ? 0 : 1) << 3) | ((gateArray.lowerRomVisible ? 0 : 1) << 2) | uint8_t(gateArray.screenMode);
+    header.gateArrayRamConfiguration = (uint8_t(gateArray.secondaryRamPage - 1) << 3) | uint8_t(gateArray.ramConfig);
+    header.gateArrayRomSelection = gateArray.selectedUpperRom;
+    header.crtcSelectedRegister = uint8_t(crtc.selectedRegister);
+    std::copy(std::begin(crtc.registers), std::end(crtc.registers), std::begin(header.crtcRegisters));
+    //
+    // TODO: Load PPI snapshot.
+    //
+    header.psgSelectedRegister = uint8_t(psg.selectedRegister);
+    std::copy(std::begin(psg.registers), std::end(psg.registers), std::begin(header.psgRegisters));
+    header.memSizeInKilobytes = (inputSnapshot.GetRamPage(1) != nullptr ? 128 : 64);
+
+    // Version 2 data.
+    switch (inputSnapshot.GetCpcType())
+    {
+        case CPC::Snapshot::CpcType::Cpc464: header.cpcType = 0; break;
+        case CPC::Snapshot::CpcType::Cpc664: header.cpcType = 1; break;
+        case CPC::Snapshot::CpcType::Cpc6128: header.cpcType = 2; break;
+        default: header.cpcType = 3; break;
+    }
+
+    // Version 3 data.
+
+    //
+    // TODO: Store version 3 data.
+    //
+
+    // Write the header.
+    if (outputStream.Write(header))
+    {
+        // Write uncompressed RAM data.
+        // +- Write RAM page 0.
+        KMASSERT(inputSnapshot.GetRamPage(0) != nullptr);       // RAM page 0 (base 64 KB RAM) must exist.
+        if (outputStream.Write(inputSnapshot.GetRamPage(0), CPC::Snapshot::RamPageSize))
+        {
+            // +- Write RAM page 1, if it exists.
+            if ((inputSnapshot.GetRamPage(1) == nullptr) ||
+                outputStream.Write(inputSnapshot.GetRamPage(1), CPC::Snapshot::RamPageSize))
+            {
+                ret = true;
+            }
+        }
+    }
+
+    return ret;
 }

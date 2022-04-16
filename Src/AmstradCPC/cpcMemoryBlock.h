@@ -22,6 +22,8 @@ namespace CPC {
   {
   public:
 
+    static const unsigned   MEMORY_BLOCK_LENGTH = 0x4000; /*16384 bytes = 16K*/
+
                             CMemoryBlock              (const string& sLabel, kmbInputStream* pContentStream = NULL);
     virtual                ~CMemoryBlock              ()  { FreeVars(); }
 
@@ -36,6 +38,9 @@ namespace CPC {
     *** Valid range is &0000-&4000. Note that bits 15,14 of nAddress are ignored. */
     void                    WriteByte                 (cpcWord nAddress, cpcByte nValue)  { m_anBytes[nAddress & LAST_BYTE] = nValue; }
 
+    /** Gets a pointer to the memory data. */
+    const cpcByte*          GetData                   () const { return m_anBytes; }
+
     /** Fills the whole memory block with the provided content.
     *** This is used primarily for ROM blocks to write their content on creation, but it could be used in the future for a save state feature. */
     bool                    FillContent               (kmbInputStream* pContentStream);
@@ -43,7 +48,6 @@ namespace CPC {
 
   private:
 
-    static const unsigned   MEMORY_BLOCK_LENGTH = 0x4000; /*16384 bytes = 16K*/
     static const unsigned   LAST_BYTE           = MEMORY_BLOCK_LENGTH - 1;
 
 

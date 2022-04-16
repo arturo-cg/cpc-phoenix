@@ -81,6 +81,8 @@ namespace CPC {
         /** Resets the subsystem. */
         virtual void            Reset();
 
+        /** Takes a snapshot of the current state of the device. */
+        void                    TakeSnapshot(Snapshot* snapshot) const;
         /** Applies the values from the specified snaphot. */
         void                    ApplySnapshot(const Snapshot& snapshot);
 

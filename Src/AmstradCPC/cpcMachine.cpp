@@ -16,7 +16,6 @@
 #include "cpcDiskDrive.h"
 #include "cpcVideoOutput.h"
 #include "cpcSoundOutput.h"
-#include "Snapshot.h"
 #include "Stream/kmbMemoryInputStream.h"
 
 
@@ -48,6 +47,24 @@ namespace CPC {
         m_pDiskDrives[1] = new CDiskDrive(this);
         m_pVideoOutput = NULL;       // This object is provided by the front-end
         m_pSoundOutput = NULL;       // This object is provided by the front-end
+
+        // Figure out the type of this CPC machine by looking at the firmware ROM that it contains.
+        if (machineSpecifications.memorySpecifications.lowerRomFileName.compare("OS_464.ROM") == 0)
+        {
+            m_cachedCpcType = Snapshot::CpcType::Cpc464;
+        }
+        else if (machineSpecifications.memorySpecifications.lowerRomFileName.compare("OS_664.ROM") == 0)
+        {
+            m_cachedCpcType = Snapshot::CpcType::Cpc664;
+        }
+        else if (machineSpecifications.memorySpecifications.lowerRomFileName.compare("OS_6128.ROM") == 0)
+        {
+            m_cachedCpcType = Snapshot::CpcType::Cpc6128;
+        }
+        else
+        {
+            m_cachedCpcType = Snapshot::CpcType::Unknown;
+        }
     }
 
     //----------------------------------------------------------------------------
@@ -70,6 +87,7 @@ namespace CPC {
         m_pVideoOutput = NULL;
         m_pSoundOutput = NULL;
         m_accumulated4MhzCycles = 0;
+        m_cachedCpcType = Snapshot::CpcType::Unknown;
     }
 
     //----------------------------------------------------------------------------
@@ -178,6 +196,35 @@ namespace CPC {
 
                 // PSG (1Mhz clock)
                 GetPsg()->Run(1);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CMachine::TakeSnapshot(Snapshot* snapshot) const
+    {
+        snapshot->Reset();
+
+        // CPU, Gate Array, CRTC, etc.
+        snapshot->SetCpcType(m_cachedCpcType);
+        snapshot->SetCpuRegisters(m_pCpu->GetRegisters());
+        m_pGateArray->TakeSnapshot(&snapshot->GetGateArray());
+        m_pCrtc->TakeSnapshot(&snapshot->GetCrtc());
+        m_pPsg->TakeSnapshot(&snapshot->GetPsg());
+
+        // RAM.
+        for (int page = 0; page < m_pMemory->GetNumRamPages(); page++)
+        {
+            cpcByte* destRam = snapshot->CreateRamPageIfNecessary(page);
+
+            for (int block = (page * 4); block < (page * 4) + 4; block++)
+            {
+                CMemoryBlock* cpcRamBlock = m_pMemory->GetRamBlock(block);
+                memcpy(destRam, cpcRamBlock->GetData(), CMemoryBlock::MEMORY_BLOCK_LENGTH/*16K*/);
+                destRam += CMemoryBlock::MEMORY_BLOCK_LENGTH;
             }
         }
     }

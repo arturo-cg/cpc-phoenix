@@ -32,20 +32,21 @@ namespace CPC {
 
         void Reset();
 
-        CpcType GetCpcType() const { return m_cpcType; }
         void SetCpcType(CpcType cpcType) { m_cpcType = cpcType; }
+        CpcType GetCpcType() const { return m_cpcType; }
 
-        CPC::CCpu::Registers& GetCpuRegisters() { return m_cpuRegisters; }
-        const CPC::CCpu::Registers& GetCpuRegisters() const { return m_cpuRegisters; }
+        void SetCpuRegisters(const CCpu::Registers& cpuRegisters) { m_cpuRegisters = cpuRegisters; }
+        CCpu::Registers& GetCpuRegisters() { return m_cpuRegisters; }
+        const CCpu::Registers& GetCpuRegisters() const { return m_cpuRegisters; }
 
-        CPC::CGateArray::Snapshot& GetGateArray() { return m_gateArray; }
-        const CPC::CGateArray::Snapshot& GetGateArray() const { return m_gateArray; }
+        CGateArray::Snapshot& GetGateArray() { return m_gateArray; }
+        const CGateArray::Snapshot& GetGateArray() const { return m_gateArray; }
 
-        CPC::CCrtc::Snapshot& GetCrtc() { return m_crtc; }
-        const CPC::CCrtc::Snapshot& GetCrtc() const { return m_crtc; }
+        CCrtc::Snapshot& GetCrtc() { return m_crtc; }
+        const CCrtc::Snapshot& GetCrtc() const { return m_crtc; }
 
-        CPC::CPsg::Snapshot& GetPsg() { return m_psg; }
-        const CPC::CPsg::Snapshot& GetPsg() const { return m_psg; }
+        CPsg::Snapshot& GetPsg() { return m_psg; }
+        const CPsg::Snapshot& GetPsg() const { return m_psg; }
 
         /** Gets the RAM page (64 KB of memory) at the specified index, or nullptr if this RAM page does not exist.
             Base 64 KB is at index 0, CPC 6128's additional 64 KB is at index 1 (if it exists). */
@@ -59,10 +60,10 @@ namespace CPC {
         void FreeVars();
 
         CpcType m_cpcType;
-        CPC::CCpu::Registers m_cpuRegisters;
-        CPC::CGateArray::Snapshot m_gateArray;
-        CPC::CCrtc::Snapshot m_crtc;
-        CPC::CPsg::Snapshot m_psg;
+        CCpu::Registers m_cpuRegisters;
+        CGateArray::Snapshot m_gateArray;
+        CCrtc::Snapshot m_crtc;
+        CPsg::Snapshot m_psg;
         cpcByte* m_ramPages[MaxRamPageCount];       // RAM pages 0 to 8. Each RAM page is 64KB. Page 0 is the base 64KB of memory, page 1 is the additional 64KB in the CPC 6128. Page n is nullptr if it doesn't exist.
     };
 

@@ -20,6 +20,7 @@
 #include "Window/kmbWindow.h"
 #include "Msb/kmbMsbManager.h"
 #include "Stream/kmbFileInputStream.h"
+#include "Stream/kmbFileOutputStream.h"
 
 #include <CommCtrl.h>
 
@@ -765,10 +766,19 @@ void Application::DrawMainMenuGui()
             if (ImGui::MenuItem("Load Snapshot..."))
             {
                 string fullFilePath;
-                if (ShowLoadFileDialog("\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
+                if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
                 {
                     // Load the selected snapshot.
                     LoadSnapshot(fullFilePath);
+                }
+            }
+            if (ImGui::MenuItem("Save Snapshot..."))
+            {
+                string fullFilePath;
+                if (ShowLoadSaveFileDialog(false/*isLoad*/, "\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
+                {
+                    // Save the selected snapshot.
+                    SaveSnapshot(fullFilePath);
                 }
             }
             ImGui::Separator();
@@ -871,7 +881,7 @@ void Application::DrawDiskDriveMenuGui(int driveNumber)
     if (ImGui::MenuItem("Insert Disk..."))
     {
         string fullFilePath;
-        if (ShowLoadFileDialog("\\Disks", "DSK disk images (*.dsk)\0*.dsk\0\0", &fullFilePath))
+        if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Disks", "DSK disk images (*.dsk)\0*.dsk\0\0", &fullFilePath))
         {
             // "Insert" the disk into the emulated machine.
             SetDisk(driveNumber, fullFilePath);
@@ -962,7 +972,21 @@ void Application::LoadSnapshot(string fullFilePath)
     }
 }
 
-bool Application::ShowLoadFileDialog(string relativeInitialDir, const char* filter, string* outFullFilePath) const
+void Application::SaveSnapshot(string fullFilePath)
+{
+    // Take a snapshot of the machine.
+    CPC::Snapshot snapshot;
+    m_pMachine->TakeSnapshot(&snapshot);
+
+    // Save the snapshot to file.
+    kmbFileOutputStream stream;
+    if (stream.Init(fullFilePath))
+    {
+        SnaSnapshotReadWrite::SaveSnapshot(stream, snapshot);
+    }
+}
+
+bool Application::ShowLoadSaveFileDialog(bool isLoad, string relativeInitialDir, const char* filter, string* outFullFilePath) const
 {
     bool ret;
 
@@ -987,10 +1011,20 @@ bool Application::ShowLoadFileDialog(string relativeInitialDir, const char* filt
     openFileName.lpstrFileTitle = fileName;
     openFileName.nMaxFileTitle = sizeof(fileName);
     openFileName.lpstrInitialDir = initialDir.c_str();
-    openFileName.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;  // The flag OFN_NOCHANGEDIR is ignored on Windows XP and below.
+    openFileName.Flags = (isLoad ? OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR :  // The flag OFN_NOCHANGEDIR is ignored on Windows XP and below.
+                                   OFN_NOCHANGEDIR | OFN_OVERWRITEPROMPT);
     openFileName.FlagsEx = OFN_EX_NOPLACESBAR;
 
-    BOOL result = ::GetOpenFileName(&openFileName);
+    BOOL result;
+    if (isLoad)
+    {
+        result = ::GetOpenFileName(&openFileName);
+    }
+    else
+    {
+        result = ::GetSaveFileName(&openFileName);
+    }
+
     ::SetCurrentDirectory(currentDir);          // Restore the working directory, changed by the Open File Dialog
 
     ret = (result != FALSE);

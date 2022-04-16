@@ -231,6 +231,24 @@ namespace CPC {
     /**
     **
     */
+    void CGateArray::TakeSnapshot(Snapshot* snapshot) const
+    {
+        snapshot->selectedPen = m_nSelectedPen;
+        snapshot->screenMode = m_eScreenMode;
+        snapshot->lowerRomVisible = m_bLowerRomVisible;
+        snapshot->upperRomVisible = m_bUpperRomVisible;
+        snapshot->interruptControlState = (GetMachine()->GetCpu()->IsInterruptRequestActive() ? 1 : 0);
+        std::copy(std::begin(m_anPenColors), std::end(m_anPenColors), std::begin(snapshot->penColors));
+        snapshot->borderColor = m_nBorderColor;
+        snapshot->ramConfig = m_eRamConfig;
+        snapshot->secondaryRamPage = m_nSecondaryRamPage;
+        snapshot->selectedUpperRom = m_nSelectedUpperRom;
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
     void CGateArray::ApplySnapshot(const Snapshot& snapshot)
     {
         m_nSelectedPen = snapshot.selectedPen;

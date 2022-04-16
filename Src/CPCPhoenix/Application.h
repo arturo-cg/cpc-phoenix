@@ -136,8 +136,9 @@ private:
     void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
 
     void                      LoadSnapshot(string fullFilePath);
+    void                      SaveSnapshot(string fullFilePath);
 
-    bool                      ShowLoadFileDialog(string relativeInitialDir, const char* filter, string* outFullFilePath) const;
+    bool                      ShowLoadSaveFileDialog(bool isLoad, string relativeInitialDir, const char* filter, string* outFullFilePath) const;
 
     bool                      m_bOk;
 

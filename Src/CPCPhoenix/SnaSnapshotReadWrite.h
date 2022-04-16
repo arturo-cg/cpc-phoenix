@@ -1,7 +1,7 @@
 #pragma once
 
 class kmbInputStream;
-//////class kmbOutputStream;
+class kmbOutputStream;
 
 namespace CPC
 {
@@ -18,6 +18,6 @@ public:
     /** Reads a snapshot in .SNA format from the specified stream. */
     static bool LoadSnapshot(kmbInputStream& inputStream, CPC::Snapshot* outputSnapshot);
 
-    ///////** Writes snapshot data contained in the specified Snapshot object to the specified stream. */
-    //////static bool SaveSnapshotHeader(const Snapshot* inputSnapshot, kmbOutputStream* outputStream);
+    /** Writes snapshot data contained in the specified Snapshot object to the specified stream. */
+    static bool SaveSnapshot(kmbOutputStream& outputStream, const CPC::Snapshot& inputSnapshot);
 };

@@ -6,6 +6,7 @@
 
 
 #include "cpcMemory.h"
+#include "Snapshot.h"
 
 class kmbInputStream;
 
@@ -96,6 +97,8 @@ namespace CPC {
         *** Time is in cycles of a 4Mhz clock. */
         void                    Run(unsigned num4MhzCycles);
 
+        /** Takes a snapshot of the current state of the machine. */
+        void                    TakeSnapshot(Snapshot* snapshot) const;
         /** Applies the specified snapshot to the machine. */
         void                    ApplySnapshot(const Snapshot& snapshot);
 
@@ -127,6 +130,7 @@ namespace CPC {
         CSoundOutput*           m_pSoundOutput;
 
         unsigned                m_accumulated4MhzCycles;
+        Snapshot::CpcType       m_cachedCpcType;
     };
 
 

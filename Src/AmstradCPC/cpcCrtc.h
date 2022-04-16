@@ -71,10 +71,13 @@ namespace CPC {
         /** Resets the subsystem. */
         virtual void            Reset();
 
-        /** Returns the current value of the given internal register. */
-        inline cpcByte          GetRegisterValue(ERegister eRegister) const { return m_anRegisters[eRegister]; }
+        /** Takes a snapshot of the current state of the device. */
+        void                    TakeSnapshot(Snapshot* snapshot) const;
         /** Applies the values from the specified snaphot. */
         void                    ApplySnapshot(const Snapshot& snapshot);
+
+        /** Returns the current value of the given internal register. */
+        inline cpcByte          GetRegisterValue(ERegister eRegister) const { return m_anRegisters[eRegister]; }
 
         /** Returns the current state of the DISPLAY_ENABLED signal.
         *** On the CPC, the Gate-Array uses it to generate video signal. If enabled, it reads pixel data from RAM. Otherwise, it uses the border color. */
