@@ -146,7 +146,7 @@ void Debugger::DrawGui()
     // Keep pointer to the machine up-to-date, it can change at any time.
     m_machine = Application::Singleton()->GetEmulatedMachine();
 
-    ImGui::Begin("Debugger", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Debugger", nullptr/*, ImGuiWindowFlags_AlwaysAutoResize*/);
     // CPU.
     DrawCpu();
     // System (CRTC, Gate Array, PSG, etc.).
