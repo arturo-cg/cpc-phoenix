@@ -31,7 +31,8 @@ template<> Application* kmbSingleton<Application>::m_pSingleton = NULL;
 /*static*/ const string Application::StandardCpc664SpecificationsName = "cpc_664";
 /*static*/ const string Application::StandardCpc6128SpecificationsName = "cpc_6128";
 
-
+static const string QuickSnapshotDirectory = "Snapshots";
+static const string QuickSnapshotFile = "QuickSnapshot.sna";
 
 //----------------------------------------------------------------------------
 /**
@@ -318,10 +319,48 @@ bool Application::_OnAppWindowKeyDown(unsigned virtualKey, bool shift, bool ctrl
     }
     case VK_F5:
     {
-        if (shift && !ctrl && !alt)
+        if (!shift && !ctrl && !alt)
+        {
+            // Debugger on/off.
+            m_debugger->SetActive(!m_debugger->IsActive());
+            ret = true;
+        }
+        else if (shift && !ctrl && !alt)
         {
             // Reset machine.
             m_pMachine->Reset();
+            ret = true;
+        }
+        break;
+    }
+    case VK_F7:
+    {
+        if (!shift && !ctrl && !alt)
+        {
+            // Save snapshot (with file dialog).
+            SaveSnapshotWithFileDialog();
+            ret = true;
+        }
+        else if (shift && !ctrl && !alt)
+        {
+            // Save quick snapshot.
+            SaveQuickSnapshot();
+            ret = true;
+        }
+        break;
+    }
+    case VK_F8:
+    {
+        if (!shift && !ctrl && !alt)
+        {
+            // Load snapshot (with file dialog).
+            LoadSnapshotWithFileDialog();
+            ret = true;
+        }
+        else if (shift && !ctrl && !alt)
+        {
+            // Load quick snapshot.
+            LoadQuickSnapshot();
             ret = true;
         }
         break;
@@ -763,23 +802,22 @@ void Application::DrawMainMenuGui()
                 ImGui::EndMenu();
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("Load Snapshot..."))
+            if (ImGui::MenuItem("Save Quick Snapshot", "Shift+F7"))
             {
-                string fullFilePath;
-                if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
-                {
-                    // Load the selected snapshot.
-                    LoadSnapshot(fullFilePath);
-                }
+                SaveQuickSnapshot();
             }
-            if (ImGui::MenuItem("Save Snapshot..."))
+            if (ImGui::MenuItem("Load Quick Snapshot", "Shift+F8"))
             {
-                string fullFilePath;
-                if (ShowLoadSaveFileDialog(false/*isLoad*/, "\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
-                {
-                    // Save the selected snapshot.
-                    SaveSnapshot(fullFilePath);
-                }
+                LoadQuickSnapshot();
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Save Snapshot...", "F7"))
+            {
+                SaveSnapshotWithFileDialog();
+            }
+            if (ImGui::MenuItem("Load Snapshot...", "F8"))
+            {
+                LoadSnapshotWithFileDialog();
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Alt+F4"))
@@ -936,6 +974,46 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
 
     ImGui::EndGroup();
     ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
+}
+
+void Application::LoadQuickSnapshot()
+{
+    char directoryFullPath[MAX_PATH];
+    GetFullPathName(QuickSnapshotDirectory.c_str(), sizeof(directoryFullPath), directoryFullPath, nullptr);
+    string fileFullPath = string(directoryFullPath) + '\\' + QuickSnapshotFile;
+
+    LoadSnapshot(fileFullPath);
+}
+
+void Application::SaveQuickSnapshot()
+{
+    char directoryFullPath[MAX_PATH];
+    GetFullPathName(QuickSnapshotDirectory.c_str(), sizeof(directoryFullPath), directoryFullPath, nullptr);
+    // Create the directory if necessary.
+    CreateDirectory(directoryFullPath, nullptr);
+    string fileFullPath = string(directoryFullPath) + '\\' + QuickSnapshotFile;
+
+    SaveSnapshot(fileFullPath);
+}
+
+void Application::LoadSnapshotWithFileDialog()
+{
+    string fullFilePath;
+    if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
+    {
+        // Load the selected snapshot.
+        LoadSnapshot(fullFilePath);
+    }
+}
+
+void Application::SaveSnapshotWithFileDialog()
+{
+    string fullFilePath;
+    if (ShowLoadSaveFileDialog(false/*isLoad*/, "\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
+    {
+        // Save the selected snapshot.
+        SaveSnapshot(fullFilePath);
+    }
 }
 
 void Application::LoadSnapshot(string fullFilePath)

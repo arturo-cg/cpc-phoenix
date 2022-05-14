@@ -135,6 +135,10 @@ private:
     void                      DrawStatusBarGui();
     void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
 
+    void                      LoadQuickSnapshot();
+    void                      SaveQuickSnapshot();
+    void                      LoadSnapshotWithFileDialog();
+    void                      SaveSnapshotWithFileDialog();
     void                      LoadSnapshot(string fullFilePath);
     void                      SaveSnapshot(string fullFilePath);
 
