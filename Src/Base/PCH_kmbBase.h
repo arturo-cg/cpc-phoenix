@@ -41,5 +41,8 @@ using namespace std;    // No need to specify std:: for STL symbols
 #include "Debug/kmbAsserts.h"
 #include "Misc/kmbSingleton.h"
 
+// Third-party includes
+#include "Archive/miniz/miniz.h"
+
 
 #endif // _PCH_BASE_H_

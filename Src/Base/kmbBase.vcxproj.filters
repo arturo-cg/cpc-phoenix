@@ -22,6 +22,12 @@
     <Filter Include="Msb">
       <UniqueIdentifier>{64cb934f-cf5f-4556-a358-12a414320845}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Archive">
+      <UniqueIdentifier>{ab42a21e-9259-4855-ba7c-297a538ef078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archive\miniz">
+      <UniqueIdentifier>{8a0d8ff4-78f0-444d-bf2a-37b911d19ac1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Misc\kmbSingleton.h">
@@ -91,6 +97,9 @@
     <ClInclude Include="Misc\kmbSmartPtr.h">
       <Filter>Misc</Filter>
     </ClInclude>
+    <ClInclude Include="Archive\miniz\miniz.h">
+      <Filter>Archive\miniz</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Debug\kmbAsserts.cpp">
@@ -144,6 +153,9 @@
     </ClCompile>
     <ClCompile Include="Msb\kmbTextMsbWriter.cpp">
       <Filter>Msb</Filter>
+    </ClCompile>
+    <ClCompile Include="Archive\miniz\miniz.c">
+      <Filter>Archive\miniz</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
