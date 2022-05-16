@@ -100,6 +100,12 @@
     <ClInclude Include="Archive\miniz\miniz.h">
       <Filter>Archive\miniz</Filter>
     </ClInclude>
+    <ClInclude Include="Archive\kmbArchive.h">
+      <Filter>Archive</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive\kmbZipArchive.h">
+      <Filter>Archive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Debug\kmbAsserts.cpp">
@@ -156,6 +162,12 @@
     </ClCompile>
     <ClCompile Include="Archive\miniz\miniz.c">
       <Filter>Archive\miniz</Filter>
+    </ClCompile>
+    <ClCompile Include="Archive\kmbArchive.cpp">
+      <Filter>Archive</Filter>
+    </ClCompile>
+    <ClCompile Include="Archive\kmbZipArchive.cpp">
+      <Filter>Archive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

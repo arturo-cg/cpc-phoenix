@@ -155,6 +155,15 @@ void kmbFileInputStream::FreeVars()
 
 //----------------------------------------------------------------------------
 /**
+**
+*/
+bool kmbFileInputStream::Seek(unsigned newPosition)
+{
+    return m_pFile->Seek(int(newPosition));
+}
+
+//----------------------------------------------------------------------------
+/**
 ** 
 */
 /*virtual*/ bool kmbFileInputStream::Read(void* pBuffer, unsigned uNumBytes)

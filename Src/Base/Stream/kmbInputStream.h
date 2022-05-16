@@ -33,6 +33,15 @@ public:
   /** Returns true if the last read operation has attempted to read past the end of the stream. */
   virtual bool              IsAtEnd                   () const = 0;
 
+  /** It returns true if the stream allows Seek to be used, or false otherwise.
+  *   E.g. File or memory streams do allow it; other streams in the future may not.
+  */
+  virtual bool              IsSeekAllowed             () const = 0;
+  /** Sets the current position in the stream so that the next read operation starts from there.
+  *   The position is relative to the beginning of the stream, e.g. position 0 is the start of the stream.
+  *   It does nothing if IsSeekAllowed returns false. */
+  virtual bool              Seek                      (unsigned newPosition) = 0;
+
   /** Reads a variable. The variable size must be known at compile time; i.e., sizeof(pVar) must return
   *** the correct size (built-in types, structs made of built-in types, etc.). */
   template <typename T>

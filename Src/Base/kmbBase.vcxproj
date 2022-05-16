@@ -75,6 +75,8 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Archive\kmbArchive.h" />
+    <ClInclude Include="Archive\kmbZipArchive.h" />
     <ClInclude Include="Archive\miniz\miniz.h" />
     <ClInclude Include="Misc\kmbRefCountedObject.h" />
     <ClInclude Include="Misc\kmbSingleton.h" />
@@ -103,6 +105,8 @@
     <ClInclude Include="PCH_kmbBase.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Archive\kmbArchive.cpp" />
+    <ClCompile Include="Archive\kmbZipArchive.cpp" />
     <ClCompile Include="Archive\miniz\miniz.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>

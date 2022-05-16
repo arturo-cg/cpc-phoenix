@@ -95,6 +95,16 @@ void kmbMemoryInputStream::FreeVars()
 
 //----------------------------------------------------------------------------
 /**
+**
+*/
+bool kmbMemoryInputStream::Seek(unsigned newPosition)
+{
+    m_pCurrentPos = m_pSrcBuffer + newPosition;
+    return (newPosition < m_uSrcBufferSize);
+}
+
+//----------------------------------------------------------------------------
+/**
 ** 
 */
 /*virtual*/ bool kmbMemoryInputStream::Read(void* pBuffer, unsigned uNumBytes)

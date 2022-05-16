@@ -39,6 +39,15 @@ public:
   /** Returns true if the last read operation has attempted to read past the end of the source memory buffer. */
   virtual bool              IsAtEnd                   () const;
 
+  /** It returns true if the stream allows Seek to be used, or false otherwise.
+  *   A kmbMemoryInputStream always returns true.
+  */
+  virtual bool              IsSeekAllowed             () const { return true; }
+  /** Sets the current position in the stream so that the next read operation starts from there.
+  *   The position is relative to the beginning of the stream, e.g. position 0 is the start of the stream.
+  *   It does nothing if IsSeekAllowed returns false. */
+  virtual bool              Seek                      (unsigned newPosition);
+
   /** Reads the given number of bytes. */
   virtual bool              Read                      (void* pBuffer, unsigned uNumBytes);
 
