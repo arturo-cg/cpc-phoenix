@@ -216,7 +216,7 @@ namespace CPC {
         m_pPsg->TakeSnapshot(&snapshot->GetPsg());
 
         // RAM.
-        for (int page = 0; page < m_pMemory->GetNumRamPages(); page++)
+        for (int page = 0; page < int(m_pMemory->GetNumRamPages()); page++)
         {
             cpcByte* destRam = snapshot->CreateRamPageIfNecessary(page);
 
