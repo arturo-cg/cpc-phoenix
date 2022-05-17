@@ -15,6 +15,7 @@ class WindowsKeyStateProvider;
 class TextureVideoOutput;
 class CWinSoundOutput;
 class Debugger;
+class kmbZipArchive;
 
 namespace CPC
 {
@@ -59,7 +60,6 @@ public:
     void                      ChangeScaleSetting(float scale);
     void                      ChangeDrawScanLinesSetting(bool bDrawScanLines);
     void                      ChangeEmulationSpeedSetting(float fEmulationSpeed);
-    void                      SetDisk(unsigned nDrive, const std::string& sDiskImageFileName);
 
     /** Returns the machine being emulated. */
     CPC::CMachine*            GetEmulatedMachine() { return m_pMachine; }
@@ -135,6 +135,14 @@ private:
     void                      DrawStatusBarGui();
     void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
 
+    void                      InsertDisk(unsigned driveNumber, kmbInputStream& diskImageStream, const std::string& diskImageFileName, const std::string& archiveFilePath);
+    void                      EjectDisk(unsigned driveNumber);
+
+    void                      SetDiskFromFile(unsigned driveNumber, const std::string& diskImageFilePath);
+    void                      SetDiskFromArchive(unsigned driveNumber, const std::string& archiveFilePath);
+    void                      SetDiskFromArchive(unsigned driveNumber, kmbZipArchive& archive, const std::string& archiveFilePath, unsigned diskImageFileIndex, const std::string& diskImageFileName);
+    void                      SetDisk(unsigned driveNumber, const std::string& diskImageFileName, const std::string& archiveFilePath);
+
     void                      LoadQuickSnapshot();
     void                      SaveQuickSnapshot();
     void                      LoadSnapshotWithFileDialog();
@@ -143,6 +151,8 @@ private:
     void                      SaveSnapshot(string fullFilePath);
 
     bool                      ShowLoadSaveFileDialog(bool isLoad, string relativeInitialDir, const char* filter, string* outFullFilePath) const;
+
+    static bool               StringEndsWith(string str, string ending);
 
     bool                      m_bOk;
 

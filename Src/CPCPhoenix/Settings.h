@@ -65,8 +65,9 @@ public:
 
     const SMappedKey&         GetCpcKeyMapping(CPC::ECpcKey eCpcKey) const { return m_aKeyMappings[eCpcKey]; }
 
-    void                      SetDiskImage(unsigned nDrive, const std::string& sDiskImageFileName) { m_asDiskImages[nDrive] = sDiskImageFileName; }
-    const std::string&        GetDiskImage(unsigned nDrive) const { return m_asDiskImages[nDrive]; }
+    void                      SetDiskImageAndArchive(unsigned drive, const std::string& diskImageFileName, const std::string& archiveFileName) { m_diskImages[drive] = diskImageFileName; m_diskImageArchives[drive] = archiveFileName; }
+    const std::string&        GetDiskImage(unsigned drive) const { return m_diskImages[drive]; }
+    const std::string&        GetDiskImageArchive(unsigned drive) const { return m_diskImageArchives[drive]; }
 
 
 private:
@@ -87,8 +88,8 @@ private:
     bool                      m_bDrawScanLines;
     float                     m_fEmulationSpeed;
     SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];
-    std::string               m_asDiskImages[CPC::CMachine::DRIVE_COUNT];
-
+    std::string               m_diskImages[CPC::CMachine::DRIVE_COUNT];
+    std::string               m_diskImageArchives[CPC::CMachine::DRIVE_COUNT];
 };
 
 #endif // _SETTINGS_H_

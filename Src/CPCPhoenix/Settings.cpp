@@ -164,8 +164,11 @@ void Settings::ResetVars()
     m_scale = 0.0f;
     m_bDrawScanLines = false;
     m_fEmulationSpeed = 0.f;
-    m_asDiskImages[0].clear();
-    m_asDiskImages[1].clear();
+    for (unsigned i = 0; i < CPC::CMachine::DRIVE_COUNT; i++)
+    {
+        m_diskImages[i].clear();
+        m_diskImageArchives[i].clear();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -202,8 +205,10 @@ void Settings::LoadFromFile()
     m_machineSpecificationName = settingsMsb["MachineSpecificationsName"]->GetString(m_machineSpecificationName);
     m_eMonitorType = (CPC::CGateArray::ERgbConversionTableType) settingsMsb["MonitorColorOutput"]->GetInt(m_eMonitorType);
     m_scale = settingsMsb["Scale"]->GetFloat(m_scale);
-    m_asDiskImages[0] = settingsMsb["DriveA"]->GetString(m_asDiskImages[0]);
-    m_asDiskImages[1] = settingsMsb["DriveB"]->GetString(m_asDiskImages[1]);
+    m_diskImages[0] = settingsMsb["DriveA"]->GetString(m_diskImages[0]);
+    m_diskImages[1] = settingsMsb["DriveB"]->GetString(m_diskImages[1]);
+    m_diskImageArchives[0] = settingsMsb["DriveA_Archive"]->GetString(m_diskImageArchives[0]);
+    m_diskImageArchives[1] = settingsMsb["DriveB_Archive"]->GetString(m_diskImageArchives[1]);
 }
 
 //----------------------------------------------------------------------------
@@ -217,8 +222,10 @@ void Settings::SaveToFile()
     settingsMsb->AddChild("MachineSpecificationsName", kmbMsbManager::Singleton()->CreateStringMsb(m_machineSpecificationName));
     settingsMsb->AddChild("MonitorColorOutput", kmbMsbManager::Singleton()->CreateIntegerMsb(m_eMonitorType));
     settingsMsb->AddChild("Scale", kmbMsbManager::Singleton()->CreateRealMsb(m_scale));
-    settingsMsb->AddChild("DriveA", kmbMsbManager::Singleton()->CreateStringMsb(m_asDiskImages[0]));
-    settingsMsb->AddChild("DriveB", kmbMsbManager::Singleton()->CreateStringMsb(m_asDiskImages[1]));
+    settingsMsb->AddChild("DriveA", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImages[0]));
+    settingsMsb->AddChild("DriveB", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImages[1]));
+    settingsMsb->AddChild("DriveA_Archive", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImageArchives[0]));
+    settingsMsb->AddChild("DriveB_Archive", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImageArchives[1]));
     // Write the MSB to file.
     kmbFileOutputStream stream;
     if (stream.Init(SettingsFileName))
@@ -244,7 +251,10 @@ void Settings::RestoreDefaultValues()
     m_scale = 1.5f;
     m_bDrawScanLines = false;
     m_fEmulationSpeed = 1.f;
-    m_asDiskImages[0].clear();
-    m_asDiskImages[1].clear();
+    for (unsigned i = 0; i < CPC::CMachine::DRIVE_COUNT; i++)
+    {
+        m_diskImages[i].clear();
+        m_diskImageArchives[i].clear();
+    }
     ::memcpy(m_aKeyMappings, DEFAULT_KEY_MAPPINGS, sizeof(m_aKeyMappings));
 }

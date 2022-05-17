@@ -17,10 +17,12 @@
 #include "WindowsKeyStateProvider.h"
 #include "TextureVideoOutput.h"
 #include "WinSoundOutput.h"
+#include "Archive/kmbZipArchive.h"
 #include "Window/kmbWindow.h"
 #include "Msb/kmbMsbManager.h"
 #include "Stream/kmbFileInputStream.h"
 #include "Stream/kmbFileOutputStream.h"
+#include "Stream/kmbMemoryInputStream.h"
 
 #include <CommCtrl.h>
 
@@ -215,8 +217,8 @@ void Application::CreateMachine()
         // Monitor color output type (color, green).
         m_pMachine->GetGateArray()->SetRgbConversionTable(GetSettings()->GetMonitorType());
         // Insert disks into the drives, if required.
-        SetDisk(0, m_settings.GetDiskImage(0));
-        SetDisk(1, m_settings.GetDiskImage(1));
+        SetDisk(0, m_settings.GetDiskImage(0), m_settings.GetDiskImageArchive(0));
+        SetDisk(1, m_settings.GetDiskImage(1), m_settings.GetDiskImageArchive(1));
 
         m_pMachine->Reset();
     }
@@ -484,56 +486,6 @@ void Application::ChangeEmulationSpeedSetting(float fEmulationSpeed)
 {
     // Change application settings
     GetSettings()->SetEmulationSpeed(fEmulationSpeed);
-}
-
-//----------------------------------------------------------------------------
-/**
-**
-*/
-void Application::SetDisk(unsigned nDrive, const std::string& sDiskImageFileName)
-{
-    if (nDrive < CPC::CMachine::DRIVE_COUNT)
-    {
-        CPC::CDiskDrive* pDrive;
-        pDrive = m_pMachine->GetDiskDrive(nDrive);
-
-        // Eject current disk
-        CPC::CDisk* pOldDisk;
-        pOldDisk = pDrive->GetDisk();
-        if (pOldDisk != NULL)
-        {
-            pDrive->SetDisk(NULL);
-            delete pOldDisk;
-
-            GetSettings()->SetDiskImage(nDrive, "");
-        }
-
-        // Load the image, if any
-        if (!sDiskImageFileName.empty())
-        {
-            kmbFileInputStream stream;
-            if (stream.Init(sDiskImageFileName))
-            {
-                CPC::CDskDisk* pDisk;
-                pDisk = new CPC::CDskDisk;
-                if (pDisk->LoadImageFromStream(&stream))
-                {
-                    m_pMachine->GetDiskDrive(nDrive)->SetDisk(pDisk);
-                    GetSettings()->SetDiskImage(nDrive, sDiskImageFileName);
-                }
-                else
-                {
-                    delete pDisk;
-                    pDisk = NULL;
-                    ::MessageBox(NULL, "Unknown disk image format.", "Disk image error", MB_OK | MB_ICONEXCLAMATION);
-                }
-            }
-            else
-            {
-                ::MessageBox(NULL, "Could not open the disk image.", "Disk image error", MB_OK | MB_ICONEXCLAMATION);
-            }
-        }
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -919,15 +871,22 @@ void Application::DrawDiskDriveMenuGui(int driveNumber)
     if (ImGui::MenuItem("Insert Disk..."))
     {
         string fullFilePath;
-        if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Disks", "DSK disk images (*.dsk)\0*.dsk\0\0", &fullFilePath))
+        if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Disks", "All supported formats (*.dsk, *.zip)\0*.dsk;*.zip\0DSK disk images (*.dsk)\0*.dsk\0ZIP archives (*.zip)\0*.zip\0\0", &fullFilePath))
         {
-            // "Insert" the disk into the emulated machine.
-            SetDisk(driveNumber, fullFilePath);
+            // DSK or ZIP file selected?
+            if (StringEndsWith(fullFilePath, ".zip"))
+            {
+                SetDiskFromArchive(driveNumber, fullFilePath);
+            }
+            else
+            {
+                SetDiskFromFile(driveNumber, fullFilePath);
+            }
         }
     }
     if (ImGui::MenuItem("Eject Disk"))
     {
-        SetDisk(driveNumber, "");
+        EjectDisk(driveNumber);
     }
 }
 
@@ -965,15 +924,158 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
     }
     ImGui::SameLine();
     string diskImage = m_settings.GetDiskImage(driveNumber);
-    if (diskImage.size() == 0)
+    if (diskImage.empty())
     {
         diskImage = "<EMPTY>";
     }
+    else if (!m_settings.GetDiskImageArchive(driveNumber).empty())
+    {
+        diskImage = m_settings.GetDiskImageArchive(driveNumber) + " (" + diskImage + ")";
+    }
+
     ImGui::TextDisabled(diskImage.c_str());
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 200.f);       // This aligns the disk drive row to the right and leaves some space for the Speed field.
 
     ImGui::EndGroup();
     ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
+}
+
+void Application::InsertDisk(unsigned driveNumber, kmbInputStream& diskImageStream, const std::string& diskImageFileName, const std::string& archiveFileName)
+{
+    KMASSERT(driveNumber < CPC::CMachine::DRIVE_COUNT);
+    KMASSERT(diskImageStream.IsOk());
+
+    // Eject current disk.
+    EjectDisk(driveNumber);
+
+    // Load the new disk image.
+    CPC::CDskDisk* disk;
+    disk = new CPC::CDskDisk;
+    if (disk->LoadImageFromStream(&diskImageStream))
+    {
+        // Insert the disk in the drive.
+        m_pMachine->GetDiskDrive(driveNumber)->SetDisk(disk);
+        // Remember settings.
+        GetSettings()->SetDiskImageAndArchive(driveNumber, diskImageFileName, archiveFileName);
+    }
+    else
+    {
+        delete disk;
+        disk = nullptr;
+        ::MessageBox(NULL, "Unknown disk image format.", "Disk image error", MB_OK | MB_ICONEXCLAMATION);
+    }
+}
+
+void Application::EjectDisk(unsigned driveNumber)
+{
+    CPC::CDiskDrive* drive;
+    drive = m_pMachine->GetDiskDrive(driveNumber);
+
+    CPC::CDisk* disk;
+    disk = drive->GetDisk();
+
+    if (disk != nullptr)
+    {
+        drive->SetDisk(nullptr);
+        delete disk;
+
+        GetSettings()->SetDiskImageAndArchive(driveNumber, "", "");
+    }
+}
+
+void Application::SetDiskFromFile(unsigned driveNumber, const std::string& diskImageFilePath)
+{
+    kmbFileInputStream diskImageStream;
+    if (diskImageStream.Init(diskImageFilePath))
+    {
+        InsertDisk(driveNumber, diskImageStream, diskImageFilePath, "");
+    }
+    else
+    {
+        ::MessageBox(NULL, "Could not open the disk image.", "Disk image error", MB_OK | MB_ICONEXCLAMATION);
+    }
+}
+
+void Application::SetDiskFromArchive(unsigned driveNumber, const std::string& archiveFilePath)
+{
+    // Open the ZIP file.
+    kmbFileInputStream fileStream;
+    if (fileStream.Init(archiveFilePath))
+    {
+        kmbZipArchive archive;
+        if (archive.Init(fileStream))
+        {
+            //
+            // TODO: If multiple disks found, let user select one.
+            //
+
+            // Find the first disk image file in the archive.
+            for (unsigned i = 0; i < archive.GetNumFiles(); i++)
+            {
+                string diskImageFileName = archive.GetFileName(i);
+                if (StringEndsWith(diskImageFileName, ".dsk"))
+                {
+                    // Disk image found.
+                    SetDiskFromArchive(driveNumber, archive, archiveFilePath, i, diskImageFileName);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            KMASSERTM(false, ("Invalid ZIP archive file: '%0'", archiveFilePath.c_str()));
+        }
+    }
+}
+
+void Application::SetDiskFromArchive(unsigned driveNumber, kmbZipArchive& archive, const std::string& archiveFilePath, unsigned diskImageFileIndex, const std::string& diskImageFileName)
+{
+    // Extract the compressed file.
+    unsigned size = archive.GetUncompressedFileSize(diskImageFileIndex);
+    char* uncompressedData = new char[size];
+    archive.ExtractFileToMemory(diskImageFileIndex, uncompressedData, size);
+    // Insert the disk into the emulated machine.
+    kmbMemoryInputStream diskDataStream;
+    diskDataStream.Init(uncompressedData, size);
+    InsertDisk(driveNumber, diskDataStream, diskImageFileName, archiveFilePath);
+    // Clean up.
+    delete[] uncompressedData;
+}
+
+void Application::SetDisk(unsigned driveNumber, const std::string& diskImageFileName, const std::string& archiveFilePath)
+{
+    if (archiveFilePath.empty())
+    {
+        // Plain disk image file.
+        SetDiskFromFile(driveNumber, diskImageFileName);
+    }
+    else
+    {
+        // Compressed disk image file inside an archive.
+        // Open the ZIP file.
+        kmbFileInputStream fileStream;
+        if (fileStream.Init(archiveFilePath))
+        {
+            kmbZipArchive archive;
+            if (archive.Init(fileStream))
+            {
+                // Find the disk image file index.
+                unsigned fileIndex = archive.FindFileByName(diskImageFileName);
+                if (fileIndex != kmbArchive::InvalidFileIndex)
+                {
+                    SetDiskFromArchive(driveNumber, archive, archiveFilePath, fileIndex, diskImageFileName);
+                }
+                else
+                {
+                    KMASSERTM(false, ("Compressed disk image file '%0' not found in archive '%1'.", diskImageFileName.c_str(), archiveFilePath.c_str()));
+                }
+            }
+            else
+            {
+                KMASSERTM(false, ("Invalid ZIP archive file: '%0'", archiveFilePath.c_str()));
+            }
+        }
+    }
 }
 
 void Application::LoadQuickSnapshot()
@@ -1113,6 +1215,27 @@ bool Application::ShowLoadSaveFileDialog(bool isLoad, string relativeInitialDir,
     else
     {
         outFullFilePath->clear();
+    }
+
+    return ret;
+}
+
+bool Application::StringEndsWith(string str, string ending)
+{
+    bool ret = false;
+    const size_t strLength = str.length();
+    const size_t endingLength = ending.length();
+    if (strLength >= endingLength)
+    {
+        ret = true;
+        for (size_t i = 0; i < endingLength; i++)
+        {
+            if (std::tolower(str.at(strLength - endingLength + i)) != std::tolower(ending.at(i)))
+            {
+                ret = false;
+                break;
+            }
+        }
     }
 
     return ret;
