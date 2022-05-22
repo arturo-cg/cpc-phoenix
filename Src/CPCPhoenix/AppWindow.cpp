@@ -4,11 +4,11 @@
 #include "stdafx.h"
 #include "AppWindow.h"
 #include "Application.h"
-#include "WinVideoOutput.h"
 #include "Debugger.h"
 #include "RenderingApi.h"
 #include "cpcMachine.h"
 #include "cpcKeyboard.h"
+#include "cpcVideoOutput.h"
 
 #include <Windows.h>
 #include "resource.h"
@@ -23,7 +23,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 /**
 ** Init
 */
-bool AppWindow::Init()
+bool AppWindow::Init(int x, int y, int width, int height)
 {
     bool bRet = true;
 
@@ -36,12 +36,7 @@ bool AppWindow::Init()
         DWORD dwStyles;
         dwStyles = (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
-        static constexpr int ExtraWidth = 60;
-        static constexpr int ExtraHeight = 140;
-        int width = int(CPC::CVideoOutput::VIEWPORT_WIDTH) + ExtraWidth;
-        int height = int(CPC::CVideoOutput::VIEWPORT_HEIGHT * 2) + ExtraHeight;
-
-        bRet = Super::Init("CPCPhoenix", dwStyles, 0/*x*/, 0/*y*/, width, height, NULL/*hParentOrOwner*/);
+        bRet = Super::Init("CPCPhoenix", dwStyles, x, y, width, height, NULL/*hParentOrOwner*/);
     }
 
     // Check parameters
@@ -162,6 +157,16 @@ void AppWindow::ComputeDisplayWindowSize(int* out_width, int* out_height)
 /**
 **
 */
+LRESULT AppWindow::_OnMove(int clientAreaX, int clientAreaY)
+{
+    Application::Singleton()->_OnAppWindowMoved();
+    return 0;
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
 LRESULT AppWindow::_OnSizing(LPRECT prRect)
 {
     Application::Singleton()->_OnAppWindowSizing();
@@ -174,15 +179,18 @@ LRESULT AppWindow::_OnSizing(LPRECT prRect)
 */
 /*virtual*/ LRESULT AppWindow::_OnSize(int iWidth, int iHeight)
 {
+    // Resize rendering buffers.
     int displayWindowWidth;
     int displayWindowHeight;
     ComputeDisplayWindowSize(&displayWindowWidth, &displayWindowHeight);
 
-    // Resize rendering buffers.
     if ((Application::Singleton()->GetRenderingApi() != NULL)/* && (wParam != SIZE_MINIMIZED)*/)
     {
         Application::Singleton()->GetRenderingApi()->ResizeRenderTarget(displayWindowWidth, displayWindowHeight);
     }
+
+    // Notify Application.
+    Application::Singleton()->_OnAppWindowSizeChanged();
 
     return 0;
 }

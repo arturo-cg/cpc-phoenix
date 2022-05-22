@@ -99,6 +99,13 @@ LRESULT CALLBACK kmbWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     }
   break;
 
+  case WM_MOVE:
+  {
+      pWindow = EXTRACT_APPWINDOW_PTR(hWnd);
+      return pWindow->_OnMove(LOWORD(lParam), HIWORD(lParam));
+  }
+  break;
+
   case WM_SIZING:
     {
       pWindow = EXTRACT_APPWINDOW_PTR( hWnd );
@@ -597,6 +604,15 @@ LRESULT kmbWindow::_OnPaint(HDC hDc)
 LRESULT kmbWindow::_OnEraseBkgnd()
 {
     return 0;  // Default message behavior.
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+LRESULT kmbWindow::_OnMove(int clientAreaX, int clientAreaY)
+{
+    return TRUE;
 }
 
 //----------------------------------------------------------------------------

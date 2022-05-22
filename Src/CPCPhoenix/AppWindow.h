@@ -25,7 +25,7 @@ public:
     AppWindow() { }
     virtual                  ~AppWindow() { End(false); }
 
-    bool                      Init();
+    bool                      Init(int x, int y, int width, int height);
     virtual void              End(bool bIncludedSuper = true);
 
 
@@ -43,6 +43,7 @@ public:
     virtual bool              _OnWindowProcedureProlog(UINT uMsg, WPARAM wParam, LPARAM lParam);
     // Returns 0 to continue the window creation, or -1 to cancel it.
     virtual LRESULT           _OnClose();
+    virtual LRESULT           _OnMove(int clientAreaX, int clientAreaY);
     virtual LRESULT           _OnSizing(LPRECT prRect);
     virtual LRESULT           _OnSize(int iWidth, int iHeight);
     virtual LRESULT           _OnKeyDown(unsigned nVirtualKey);

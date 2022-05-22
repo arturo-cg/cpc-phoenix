@@ -59,7 +59,7 @@ bool Application::Init(HINSTANCE hInstance)
     ImGui_ImplWin32_EnableDpiAwareness();
     kmbWindow::RegisterWindowClass();    // This must be called only once, before creating any kmbWindow
     m_pAppWindow = new AppWindow;
-    m_pAppWindow->Init();
+    m_pAppWindow->Init(m_settings.GetMainWindowX(), m_settings.GetMainWindowY(), m_settings.GetMainWindowWidth(), m_settings.GetMainWindowHeight());
     // Rendering API (Direct3D 11).
     m_renderingApi = new RenderingApi();
     bRet = m_renderingApi->Init(m_pAppWindow->GetHWnd());
@@ -374,10 +374,26 @@ bool Application::_OnAppWindowKeyDown(unsigned virtualKey, bool shift, bool ctrl
     return ret;
 }
 
+void Application::_OnAppWindowMoved()
+{
+    // Remember new window position.
+    RECT mainWindowRect;
+    m_pAppWindow->GetRect(&mainWindowRect);
+    m_settings.SetMainWindowPosition(mainWindowRect.left, mainWindowRect.top);
+}
+
 void Application::_OnAppWindowSizing()
 {
     // Keep updating the window while the user is resizing it.
     Render();
+}
+
+void Application::_OnAppWindowSizeChanged()
+{
+    // Remember new window size.
+    RECT mainWindowRect;
+    m_pAppWindow->GetRect(&mainWindowRect);
+    m_settings.SetMainWindowSize(mainWindowRect.right - mainWindowRect.left, mainWindowRect.bottom - mainWindowRect.top);
 }
 
 void Application::_OnAppWindowCloseRequest(AppWindow* pAppWindow)

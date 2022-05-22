@@ -48,6 +48,13 @@ public:
     /** Restores setting default values. */
     void                      RestoreDefaultValues();
 
+    void                      SetMainWindowPosition(int x, int y) { m_mainWindowX = x; m_mainWindowY = y; }
+    void                      SetMainWindowSize(int width, int height) { m_mainWindowWidth = width; m_mainWindowHeight = height; }
+    int                       GetMainWindowX() const { return m_mainWindowX; }
+    int                       GetMainWindowY() const { return m_mainWindowY; }
+    int                       GetMainWindowWidth() const { return m_mainWindowWidth; }
+    int                       GetMainWindowHeight() const { return m_mainWindowHeight; }
+
     void                      SetMachineSpecificationName(string name) { m_machineSpecificationName = name; }
     string                    GetMachineSpecificationName() const { return m_machineSpecificationName; }
 
@@ -82,6 +89,10 @@ private:
 
     bool                      m_bOk;
 
+    int                       m_mainWindowX;
+    int                       m_mainWindowY;
+    int                       m_mainWindowWidth;
+    int                       m_mainWindowHeight;
     string                    m_machineSpecificationName;
     CPC::CGateArray::ERgbConversionTableType m_eMonitorType;
     float                     m_scale;

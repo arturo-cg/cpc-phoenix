@@ -8,7 +8,7 @@
 #include "Stream/kmbFileOutputStream.h"
 #include "Msb/kmbMsbManager.h"
 #include "Msb/kmbTextMsbWriter.h"
-
+#include "cpcVideoOutput.h"
 
 
 /*static*/ const char* Settings::SETTINGS_FILE_NAME = "CPCPhoenix.cfg";
@@ -159,6 +159,10 @@ bool Settings::Init()
 */
 void Settings::ResetVars()
 {
+    m_mainWindowX = 0;
+    m_mainWindowY = 0;
+    m_mainWindowWidth = 0;
+    m_mainWindowHeight = 0;
     m_machineSpecificationName.clear();
     m_eMonitorType = CPC::CGateArray::RGBCONVERSIONTABLE_INVALID;
     m_scale = 0.0f;
@@ -202,6 +206,10 @@ void Settings::LoadFromFile()
     // Not all the settings are saved to the file so this ensures that all our variables get sensible values.
     RestoreDefaultValues();
     // Get values from the MSB.
+    m_mainWindowX = settingsMsb["MainWindowX"]->GetInt(m_mainWindowX);
+    m_mainWindowY = settingsMsb["MainWindowY"]->GetInt(m_mainWindowY);
+    m_mainWindowWidth = settingsMsb["MainWindowWidth"]->GetInt(m_mainWindowWidth);
+    m_mainWindowHeight = settingsMsb["MainWindowHeight"]->GetInt(m_mainWindowHeight);
     m_machineSpecificationName = settingsMsb["MachineSpecificationsName"]->GetString(m_machineSpecificationName);
     m_eMonitorType = (CPC::CGateArray::ERgbConversionTableType) settingsMsb["MonitorColorOutput"]->GetInt(m_eMonitorType);
     m_scale = settingsMsb["Scale"]->GetFloat(m_scale);
@@ -219,6 +227,10 @@ void Settings::SaveToFile()
 {
     // Store settings in a new MSB.
     kmbMsbPtr settingsMsb = kmbMsbManager::Singleton()->CreateTaggedMsb();
+    settingsMsb->AddChild("MainWindowX", kmbMsbManager::Singleton()->CreateIntegerMsb(m_mainWindowX));
+    settingsMsb->AddChild("MainWindowY", kmbMsbManager::Singleton()->CreateIntegerMsb(m_mainWindowY));
+    settingsMsb->AddChild("MainWindowWidth", kmbMsbManager::Singleton()->CreateIntegerMsb(m_mainWindowWidth));
+    settingsMsb->AddChild("MainWindowHeight", kmbMsbManager::Singleton()->CreateIntegerMsb(m_mainWindowHeight));
     settingsMsb->AddChild("MachineSpecificationsName", kmbMsbManager::Singleton()->CreateStringMsb(m_machineSpecificationName));
     settingsMsb->AddChild("MonitorColorOutput", kmbMsbManager::Singleton()->CreateIntegerMsb(m_eMonitorType));
     settingsMsb->AddChild("Scale", kmbMsbManager::Singleton()->CreateRealMsb(m_scale));
@@ -246,6 +258,13 @@ void Settings::SaveToFile()
 */
 void Settings::RestoreDefaultValues()
 {
+    static constexpr int ExtraWidth = 60;
+    static constexpr int ExtraHeight = 140;
+    m_mainWindowX = 0;
+    m_mainWindowY = 0;
+    m_mainWindowWidth = int(CPC::CVideoOutput::VIEWPORT_WIDTH) + ExtraWidth;
+    m_mainWindowHeight = int(CPC::CVideoOutput::VIEWPORT_HEIGHT * 2) + ExtraHeight;
+
     m_machineSpecificationName = Application::StandardCpc6128SpecificationsName;
     m_eMonitorType = CPC::CGateArray::RGBCONVERSIONTABLE_COLOR;
     m_scale = 1.5f;
