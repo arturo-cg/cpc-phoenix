@@ -152,8 +152,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 0,9,0,0
+ PRODUCTVERSION 0,9,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -168,14 +168,14 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "TODO: <Company name>"
-            VALUE "FileDescription", "TODO: <File description>"
-            VALUE "FileVersion", "1.0.0.1"
+            VALUE "CompanyName", "Arturo Colorado"
+            VALUE "FileDescription", "CPCPhoenix - An Amstrad CPC emulator"
+            VALUE "FileVersion", "0.9.0.0"
             VALUE "InternalName", "CPCPhoenix.exe"
-            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "LegalCopyright", "(c) Arturo Colorado.  All rights reserved."
             VALUE "OriginalFilename", "CPCPhoenix.exe"
-            VALUE "ProductName", "TODO: <Product name>"
-            VALUE "ProductVersion", "1.0.0.1"
+            VALUE "ProductName", "CPCPhoenix"
+            VALUE "ProductVersion", "0.9.0.0"
         END
     END
     BLOCK "VarFileInfo"
