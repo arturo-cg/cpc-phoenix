@@ -36,6 +36,8 @@ template<> Application* kmbSingleton<Application>::m_pSingleton = NULL;
 static const string QuickSnapshotDirectory = "Snapshots";
 static const string QuickSnapshotFile = "QuickSnapshot.sna";
 
+static const float StatusBarHeight = 58.f;
+
 //----------------------------------------------------------------------------
 /**
 ** Init
@@ -734,17 +736,19 @@ void Application::DrawMainWindowGui()
     // Main Dear ImGui window is always inside the application OS window.
     ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
     // Main window begin.
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
     ImGui::Begin("Main", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_MenuBar);
+    ImGui::PopStyleVar();
     // Main menu.
     DrawMainMenuGui();
     // Emulator video output.
-    m_videoOutput->DrawGui();
+    m_videoOutput->DrawGui(StatusBarHeight);
     if (m_debugger->IsActive())
     {
         m_debugger->DrawVideoOutputOverlays();
     }
     // Status bar.
-    ImGui::SetCursorPosY(ImGui::GetWindowViewport()->WorkSize.y - (ImGui::GetTextLineHeightWithSpacing() * 3.5f));
+    ImGui::SetCursorPosY(ImGui::GetWindowViewport()->WorkSize.y - StatusBarHeight);
     DrawStatusBarGui();
     // Main window end.
     ImGui::End();
@@ -822,6 +826,8 @@ void Application::DrawMainMenuGui()
             {
                 ChangeMonitorTypeSetting(selectedMonitorType == 0 ? CPC::CGateArray::RGBCONVERSIONTABLE_COLOR : CPC::CGateArray::RGBCONVERSIONTABLE_GREEN);
             }
+            ImGui::Separator();
+
             if (ImGui::Button("25%"))
             {
                 ChangeEmulationSpeedSetting(0.25f);
@@ -908,8 +914,10 @@ void Application::DrawDiskDriveMenuGui(int driveNumber)
 
 void Application::DrawStatusBarGui()
 {
-    ImGui::Spacing();
-    ImGui::Separator();
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
+    ImGui::BeginChild("StatusBar", ImVec2(0, 0)/*size*/, true/*border*/);
+    ImGui::PopStyleColor();
+
     // Disk drives.
     ImGui::BeginGroup();
     DrawDiskDriveBarGui('A', 0);
@@ -920,6 +928,8 @@ void Application::DrawStatusBarGui()
     ImGui::Text("Speed: ");
     ImGui::SameLine();
     ImGui::TextDisabled("%.1f%%", m_measuredEmulationSpeed);
+
+    ImGui::EndChild();
 }
 
 void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)

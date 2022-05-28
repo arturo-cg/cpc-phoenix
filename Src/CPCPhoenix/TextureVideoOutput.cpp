@@ -96,7 +96,7 @@ void TextureVideoOutput::CaptureVideoOutputMidFrame()
 {
     // At this point, front and back buffers contain:
     //   - Front buffer: frame n (the one visible).
-    //   - Back buffer: frame n+1 (the frame currently being drawn by the monitor) / frame n-1 (two frames ago).
+    //   - Back buffer: frame n+1 (the frame currently being drawn by the emulated monitor) / frame n-1 (two frames ago).
     //                  The point where frame n+1 ends and frame n-1 starts is determined by the monitor beam position.
 
     // Map front buffer.
@@ -132,21 +132,37 @@ void TextureVideoOutput::UnmapBackBufferTexture()
     m_bufferProperties.data = nullptr;
 }
 
-void TextureVideoOutput::DrawGui()
+void TextureVideoOutput::DrawGui(float bottomMargin)
 {
+    static const ImVec2 DisplayMargin = ImVec2(6.f, 6.f);
+
+    ImVec2 cursorPos = ImGui::GetCursorPos();
+    cursorPos.x += DisplayMargin.x;
+    cursorPos.y += DisplayMargin.y;
+    ImGui::SetCursorPos(cursorPos);
+    ImGui::BeginChild("Display", ImVec2(-DisplayMargin.x, -DisplayMargin.y), false/*border*/, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoSavedSettings);
+
+    ImVec2 availableSize = ImGui::GetContentRegionAvail();
+    availableSize.y -= bottomMargin;
+
     // Video output.
-    // +- Zoom - Fixed for now. Uncomment commented code to automatically zoom based on the window width.
-    float zoom = 1.f;  ////float zoom = availableWidth / float(VIEWPORT_WIDTH);
-    ImVec2 size = ImVec2(float(VIEWPORT_WIDTH) * zoom,
-                         float(VIEWPORT_HEIGHT) * 2.f * zoom);
+    // Zoom - Fit to window.
+    float horizontalScale = availableSize.x / float(VIEWPORT_WIDTH);
+    float verticalScale = availableSize.y / float(VIEWPORT_HEIGHT * 2);
+    float scale = (horizontalScale < verticalScale ? horizontalScale : verticalScale);
+    ImVec2 imageSize = ImVec2(float(VIEWPORT_WIDTH) * scale,
+                         float(VIEWPORT_HEIGHT) * 2.f * scale);
     ImVec2 uv0 = ImVec2(float(VIEWPORT_LEFT) / float(TEXTURE_SIZE - 1),
                         float(VIEWPORT_TOP) / float(TEXTURE_SIZE - 1));
     ImVec2 uv1 = ImVec2(float(VIEWPORT_LEFT + VIEWPORT_WIDTH) / float(TEXTURE_SIZE),
                         float(VIEWPORT_TOP + VIEWPORT_HEIGHT) / float(TEXTURE_SIZE));
-    ImGui::PushAllowKeyboardFocus(false);
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);     // Center image horizontally.
-    ImGui::Image(m_textureSrvs[m_frontBuffer], size, uv0, uv1);
+    //ImGui::PushAllowKeyboardFocus(false);
+    ImGui::SetCursorPosX((availableSize.x - imageSize.x) * 0.5f);     // Center image horizontally.
+    ImGui::SetCursorPosY((availableSize.y - imageSize.y) * 0.5f);     // Center image vertically.
+    ImGui::Image(m_textureSrvs[m_frontBuffer], imageSize, uv0, uv1);
     m_guiRectMin = ImGui::GetItemRectMin();
     m_guiRectMax = ImGui::GetItemRectMax();
-    ImGui::PopAllowKeyboardFocus();
+    //ImGui::PopAllowKeyboardFocus();
+
+    ImGui::EndChild();
 }

@@ -23,7 +23,7 @@ public:
     bool                    Init();
     void                    End();
 
-    void                    DrawGui();
+    void                    DrawGui(float bottomMargin);
 
     ImVec2                  GetGuiRectMin() const { return m_guiRectMin; }      // In screen space.
     ImVec2                  GetGuiRectMax() const { return m_guiRectMax; }      // In screen space.
