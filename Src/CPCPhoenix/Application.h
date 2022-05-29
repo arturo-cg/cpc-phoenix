@@ -57,7 +57,7 @@ public:
 
     void                      ChangeMachineSpecificationName(string machineSpecificationName);
     void                      ChangeMonitorTypeSetting(CPC::CGateArray::ERgbConversionTableType eMonitorType);
-    void                      ChangeScaleSetting(float scale);
+    void                      ChangeDisplayScaleSetting(float scale);
     void                      ChangeDrawScanLinesSetting(bool bDrawScanLines);
     void                      ChangeEmulationSpeedSetting(float fEmulationSpeed);
 

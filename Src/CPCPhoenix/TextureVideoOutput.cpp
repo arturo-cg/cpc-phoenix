@@ -132,7 +132,7 @@ void TextureVideoOutput::UnmapBackBufferTexture()
     m_bufferProperties.data = nullptr;
 }
 
-void TextureVideoOutput::DrawGui(float bottomMargin)
+void TextureVideoOutput::DrawGui(float scale, float bottomMargin)
 {
     static const ImVec2 DisplayMargin = ImVec2(6.f, 6.f);
 
@@ -146,10 +146,14 @@ void TextureVideoOutput::DrawGui(float bottomMargin)
     availableSize.y -= bottomMargin;
 
     // Video output.
-    // Zoom - Fit to window.
-    float horizontalScale = availableSize.x / float(VIEWPORT_WIDTH);
-    float verticalScale = availableSize.y / float(VIEWPORT_HEIGHT * 2);
-    float scale = (horizontalScale < verticalScale ? horizontalScale : verticalScale);
+    // Scale - Fit to window if 'scale' < 0.
+    if (scale <= 0.f)
+    {
+        float horizontalScale = availableSize.x / float(VIEWPORT_WIDTH);
+        float verticalScale = availableSize.y / float(VIEWPORT_HEIGHT * 2);
+        scale = (horizontalScale < verticalScale ? horizontalScale : verticalScale);
+    }
+
     ImVec2 imageSize = ImVec2(float(VIEWPORT_WIDTH) * scale,
                          float(VIEWPORT_HEIGHT) * 2.f * scale);
     ImVec2 uv0 = ImVec2(float(VIEWPORT_LEFT) / float(TEXTURE_SIZE - 1),

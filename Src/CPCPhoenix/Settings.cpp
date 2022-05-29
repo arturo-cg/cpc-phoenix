@@ -165,7 +165,7 @@ void Settings::ResetVars()
     m_mainWindowHeight = 0;
     m_machineSpecificationName.clear();
     m_eMonitorType = CPC::CGateArray::RGBCONVERSIONTABLE_INVALID;
-    m_scale = 0.0f;
+    m_displayScale = 0.0f;
     m_bDrawScanLines = false;
     m_fEmulationSpeed = 0.f;
     for (unsigned i = 0; i < CPC::CMachine::DRIVE_COUNT; i++)
@@ -212,7 +212,7 @@ void Settings::LoadFromFile()
     m_mainWindowHeight = settingsMsb["MainWindowHeight"]->GetInt(m_mainWindowHeight);
     m_machineSpecificationName = settingsMsb["MachineSpecificationsName"]->GetString(m_machineSpecificationName);
     m_eMonitorType = (CPC::CGateArray::ERgbConversionTableType) settingsMsb["MonitorColorOutput"]->GetInt(m_eMonitorType);
-    m_scale = settingsMsb["Scale"]->GetFloat(m_scale);
+    m_displayScale = settingsMsb["DisplayScale"]->GetFloat(m_displayScale);
     m_diskImages[0] = settingsMsb["DriveA"]->GetString(m_diskImages[0]);
     m_diskImages[1] = settingsMsb["DriveB"]->GetString(m_diskImages[1]);
     m_diskImageArchives[0] = settingsMsb["DriveA_Archive"]->GetString(m_diskImageArchives[0]);
@@ -233,7 +233,7 @@ void Settings::SaveToFile()
     settingsMsb->AddChild("MainWindowHeight", kmbMsbManager::Singleton()->CreateIntegerMsb(m_mainWindowHeight));
     settingsMsb->AddChild("MachineSpecificationsName", kmbMsbManager::Singleton()->CreateStringMsb(m_machineSpecificationName));
     settingsMsb->AddChild("MonitorColorOutput", kmbMsbManager::Singleton()->CreateIntegerMsb(m_eMonitorType));
-    settingsMsb->AddChild("Scale", kmbMsbManager::Singleton()->CreateRealMsb(m_scale));
+    settingsMsb->AddChild("DisplayScale", kmbMsbManager::Singleton()->CreateRealMsb(m_displayScale));
     settingsMsb->AddChild("DriveA", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImages[0]));
     settingsMsb->AddChild("DriveB", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImages[1]));
     settingsMsb->AddChild("DriveA_Archive", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImageArchives[0]));
@@ -267,7 +267,7 @@ void Settings::RestoreDefaultValues()
 
     m_machineSpecificationName = Application::StandardCpc6128SpecificationsName;
     m_eMonitorType = CPC::CGateArray::RGBCONVERSIONTABLE_COLOR;
-    m_scale = 1.5f;
+    m_displayScale = -1.f/*Fit to Window*/;
     m_bDrawScanLines = false;
     m_fEmulationSpeed = 1.f;
     for (unsigned i = 0; i < CPC::CMachine::DRIVE_COUNT; i++)

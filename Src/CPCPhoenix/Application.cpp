@@ -474,13 +474,13 @@ void Application::ChangeMonitorTypeSetting(CPC::CGateArray::ERgbConversionTableT
 /**
 **
 */
-void Application::ChangeScaleSetting(float scale)
+void Application::ChangeDisplayScaleSetting(float scale)
 {
     // Change application settings
-    GetSettings()->SetScale(scale);
+    GetSettings()->SetDisplayScale(scale);
 
     // Resize the window.
-    m_pAppWindow->ResizeToScale(scale);
+    ////////////////////////////m_pAppWindow->ResizeToScale(scale);
 }
 
 //----------------------------------------------------------------------------
@@ -742,7 +742,7 @@ void Application::DrawMainWindowGui()
     // Main menu.
     DrawMainMenuGui();
     // Emulator video output.
-    m_videoOutput->DrawGui(StatusBarHeight);
+    m_videoOutput->DrawGui(m_settings.GetDisplayScale(), StatusBarHeight);
     if (m_debugger->IsActive())
     {
         m_debugger->DrawVideoOutputOverlays();
@@ -827,6 +827,44 @@ void Application::DrawMainMenuGui()
                 ChangeMonitorTypeSetting(selectedMonitorType == 0 ? CPC::CGateArray::RGBCONVERSIONTABLE_COLOR : CPC::CGateArray::RGBCONVERSIONTABLE_GREEN);
             }
             ImGui::Separator();
+
+            ImVec2 buttonSize = ImVec2(35.f, 0.f);
+            if (ImGui::Button("50%", buttonSize))
+            {
+                ChangeDisplayScaleSetting(0.5f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("75%", buttonSize))
+            {
+                ChangeDisplayScaleSetting(0.75f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("100%", buttonSize))
+            {
+                ChangeDisplayScaleSetting(1.f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("125%", buttonSize))
+            {
+                ChangeDisplayScaleSetting(1.25f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("150%", buttonSize))
+            {
+                ChangeDisplayScaleSetting(1.5f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("200%", buttonSize))
+            {
+                ChangeDisplayScaleSetting(2.0f);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Fit", buttonSize))
+            {
+                ChangeDisplayScaleSetting(-1.f);
+            }
+            ImGui::SameLine();
+            ImGui::Text("Display Scale");
 
             if (ImGui::Button("25%"))
             {

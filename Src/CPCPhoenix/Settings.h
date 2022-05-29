@@ -61,8 +61,8 @@ public:
     void                                     SetMonitorType(CPC::CGateArray::ERgbConversionTableType eType) { m_eMonitorType = eType; }
     CPC::CGateArray::ERgbConversionTableType GetMonitorType() const { return m_eMonitorType; }
 
-    void                      SetScale(float scale) { m_scale = scale; }
-    float                     GetScale() const { return m_scale; }
+    void                      SetDisplayScale(float scale) { m_displayScale = scale; }
+    float                     GetDisplayScale() const { return m_displayScale; }
 
     void                      SetDrawScanLines(bool bScanLines) { m_bDrawScanLines = bScanLines; }
     bool                      GetDrawScanLines() const { return m_bDrawScanLines; }
@@ -95,7 +95,7 @@ private:
     int                       m_mainWindowHeight;
     string                    m_machineSpecificationName;
     CPC::CGateArray::ERgbConversionTableType m_eMonitorType;
-    float                     m_scale;
+    float                     m_displayScale;
     bool                      m_bDrawScanLines;
     float                     m_fEmulationSpeed;
     SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];
