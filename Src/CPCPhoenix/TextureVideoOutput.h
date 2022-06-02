@@ -17,6 +17,8 @@ class TextureVideoOutput : public CPC::CVideoOutput
 {
 public:
 
+    static const char*      DisplayImGuiWindowName;
+
                             TextureVideoOutput() { }
     virtual                ~TextureVideoOutput() { FreeVars(); }
 

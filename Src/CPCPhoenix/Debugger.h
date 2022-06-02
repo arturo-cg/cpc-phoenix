@@ -77,5 +77,5 @@ private:
     bool m_stopAtVSync;
     bool m_scrollToAddressRequested;
     cpcWord m_scrollToAddress;
-    bool m_showMonitorOverlay;
+    bool m_showMonitorBeam;
 };

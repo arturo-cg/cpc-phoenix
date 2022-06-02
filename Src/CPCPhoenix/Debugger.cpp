@@ -62,7 +62,7 @@ void Debugger::ResetVars()
     m_stopAtVSync = false;
     m_scrollToAddressRequested = false;
     m_scrollToAddress = 0x0000;
-    m_showMonitorOverlay = true;
+    m_showMonitorBeam = true;
 }
 
 void Debugger::FreeVars()
@@ -157,28 +157,42 @@ void Debugger::DrawGui()
 
 void Debugger::DrawVideoOutputOverlays()
 {
-    TextureVideoOutput* textureVideoOuput = Application::Singleton()->GetTextureVideoOutput();
+    TextureVideoOutput* textureVideoOutput = Application::Singleton()->GetTextureVideoOutput();
     // Monitor beam position.
-    if (m_showMonitorOverlay)
+    if (m_showMonitorBeam)
     {
-        float adjustedBeamX = float(textureVideoOuput->GetBeamX()) - float(TextureVideoOutput::VIEWPORT_LEFT);
-        float adjustedBeamY = float(textureVideoOuput->GetBeamY()) - float(TextureVideoOutput::VIEWPORT_TOP);
-        ImVec2 beamGuiPos(textureVideoOuput->GetGuiRectMin().x + adjustedBeamX,        // In screen space.
-            textureVideoOuput->GetGuiRectMin().y + (adjustedBeamY * 2.f));
-        static constexpr float BeamGuideAlpha = 0.4f;
+        // Beam in viewport space.
+        float adjustedBeamX = float(textureVideoOutput->GetBeamX()) - float(TextureVideoOutput::VIEWPORT_LEFT);
+        float adjustedBeamY = float(textureVideoOutput->GetBeamY()) - float(TextureVideoOutput::VIEWPORT_TOP);
+        // Beam in UI space.
+        float guiRectWidth = textureVideoOutput->GetGuiRectMax().x - textureVideoOutput->GetGuiRectMin().x;
+        float guiRectHeight = textureVideoOutput->GetGuiRectMax().y - textureVideoOutput->GetGuiRectMin().y;
+        float beamGuiPosX = textureVideoOutput->GetGuiRectMin().x + (adjustedBeamX / float(TextureVideoOutput::VIEWPORT_WIDTH - 1) * guiRectWidth);
+        float beamGuiPosY = textureVideoOutput->GetGuiRectMin().y + (adjustedBeamY / float(TextureVideoOutput::VIEWPORT_HEIGHT - 1) * guiRectHeight);
+        //float thicknessX = 1.f / float(TextureVideoOutput::VIEWPORT_WIDTH - 1) * guiRectWidth;
+        //float thicknessY = 1.f / float(TextureVideoOutput::VIEWPORT_HEIGHT - 1) * guiRectHeight;
+
+        ImGui::BeginChild(TextureVideoOutput::DisplayImGuiWindowName);  // Append to the Dear ImGui window that contains the display output.
+
+        static constexpr float BeamAlpha = 0.4f;
+        static constexpr float BeamThickness = 2.f;
         if ((adjustedBeamX >= 0.f) && (adjustedBeamX <= TextureVideoOutput::VIEWPORT_WIDTH - 1))        // If currently inside the visible area of the screen...
         {
-            ImGui::GetWindowDrawList()->AddLine(ImVec2(beamGuiPos.x, textureVideoOuput->GetGuiRectMin().y),
-                ImVec2(beamGuiPos.x, textureVideoOuput->GetGuiRectMax().y),
-                ImColor(1.f, 1.f, 1.f, BeamGuideAlpha));
+            ImGui::GetWindowDrawList()->AddLine(ImVec2(beamGuiPosX, textureVideoOutput->GetGuiRectMin().y),
+                                                ImVec2(beamGuiPosX, textureVideoOutput->GetGuiRectMax().y),
+                                                ImColor(1.f, 1.f, 1.f, BeamAlpha),
+                                                BeamThickness);
         }
 
         if ((adjustedBeamY >= 0.f) && (adjustedBeamY <= TextureVideoOutput::VIEWPORT_HEIGHT - 1))       // If currently inside the visible area of the screen...
         {
-            ImGui::GetWindowDrawList()->AddLine(ImVec2(textureVideoOuput->GetGuiRectMin().x, beamGuiPos.y),
-                ImVec2(textureVideoOuput->GetGuiRectMax().x, beamGuiPos.y),
-                ImColor(1.f, 1.f, 1.f, BeamGuideAlpha));
+            ImGui::GetWindowDrawList()->AddLine(ImVec2(textureVideoOutput->GetGuiRectMin().x, beamGuiPosY),
+                                                ImVec2(textureVideoOutput->GetGuiRectMax().x, beamGuiPosY),
+                                                ImColor(1.f, 1.f, 1.f, BeamAlpha),
+                                                BeamThickness);
         }
+
+        ImGui::EndChild();
     }
 }
 
@@ -438,7 +452,7 @@ void Debugger::DrawMonitor()
 {
     const CPC::CVideoOutput* monitor = m_machine->GetVideoOutput();
 
-    ImGui::Checkbox("Show Overlay", &m_showMonitorOverlay);
+    ImGui::Checkbox("Show Beam", &m_showMonitorBeam);
     ImGui::Text("Beam: %d,%d", monitor->GetBeamX(), monitor->GetBeamY());
 }
 

@@ -7,6 +7,8 @@
 #include "RenderingApi.h"
 
 
+/*static*/ const char* TextureVideoOutput::DisplayImGuiWindowName = "Display";
+
 
 //----------------------------------------------------------------------------
 /**
@@ -140,7 +142,7 @@ void TextureVideoOutput::DrawGui(float scale, float bottomMargin)
     cursorPos.x += DisplayMargin.x;
     cursorPos.y += DisplayMargin.y;
     ImGui::SetCursorPos(cursorPos);
-    ImGui::BeginChild("Display", ImVec2(-DisplayMargin.x, -DisplayMargin.y), false/*border*/, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::BeginChild(DisplayImGuiWindowName, ImVec2(-DisplayMargin.x, -DisplayMargin.y), false/*border*/, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoSavedSettings);
 
     ImVec2 availableSize = ImGui::GetContentRegionAvail();
     availableSize.y -= bottomMargin;
