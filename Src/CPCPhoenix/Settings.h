@@ -70,6 +70,9 @@ public:
     void                      SetEmulationSpeed(float fSpeed) { m_fEmulationSpeed = fSpeed; }
     float                     GetEmulationSpeed() const { return m_fEmulationSpeed; }
 
+    void                      SetVolume(float volume) { m_volume = volume; }
+    float                     GetVolume() const { return m_volume; }
+
     const SMappedKey&         GetCpcKeyMapping(CPC::ECpcKey eCpcKey) const { return m_aKeyMappings[eCpcKey]; }
 
     void                      SetDiskImageAndArchive(unsigned drive, const std::string& diskImageFileName, const std::string& archiveFileName) { m_diskImages[drive] = diskImageFileName; m_diskImageArchives[drive] = archiveFileName; }
@@ -98,6 +101,7 @@ private:
     float                     m_displayScale;
     bool                      m_bDrawScanLines;
     float                     m_fEmulationSpeed;
+    float                     m_volume;
     SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];
     std::string               m_diskImages[CPC::CMachine::DRIVE_COUNT];
     std::string               m_diskImageArchives[CPC::CMachine::DRIVE_COUNT];

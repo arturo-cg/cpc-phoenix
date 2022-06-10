@@ -168,6 +168,7 @@ void Settings::ResetVars()
     m_displayScale = 0.0f;
     m_bDrawScanLines = false;
     m_fEmulationSpeed = 0.f;
+    m_volume = 0.1f;
     for (unsigned i = 0; i < CPC::CMachine::DRIVE_COUNT; i++)
     {
         m_diskImages[i].clear();
@@ -213,6 +214,7 @@ void Settings::LoadFromFile()
     m_machineSpecificationName = settingsMsb["MachineSpecificationsName"]->GetString(m_machineSpecificationName);
     m_eMonitorType = (CPC::CGateArray::ERgbConversionTableType) settingsMsb["MonitorColorOutput"]->GetInt(m_eMonitorType);
     m_displayScale = settingsMsb["DisplayScale"]->GetFloat(m_displayScale);
+    m_volume = settingsMsb["Volume"]->GetFloat(m_volume);
     m_diskImages[0] = settingsMsb["DriveA"]->GetString(m_diskImages[0]);
     m_diskImages[1] = settingsMsb["DriveB"]->GetString(m_diskImages[1]);
     m_diskImageArchives[0] = settingsMsb["DriveA_Archive"]->GetString(m_diskImageArchives[0]);
@@ -234,6 +236,7 @@ void Settings::SaveToFile()
     settingsMsb->AddChild("MachineSpecificationsName", kmbMsbManager::Singleton()->CreateStringMsb(m_machineSpecificationName));
     settingsMsb->AddChild("MonitorColorOutput", kmbMsbManager::Singleton()->CreateIntegerMsb(m_eMonitorType));
     settingsMsb->AddChild("DisplayScale", kmbMsbManager::Singleton()->CreateRealMsb(m_displayScale));
+    settingsMsb->AddChild("Volume", kmbMsbManager::Singleton()->CreateRealMsb(m_volume));
     settingsMsb->AddChild("DriveA", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImages[0]));
     settingsMsb->AddChild("DriveB", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImages[1]));
     settingsMsb->AddChild("DriveA_Archive", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImageArchives[0]));
@@ -270,6 +273,7 @@ void Settings::RestoreDefaultValues()
     m_displayScale = -1.f/*Fit to Window*/;
     m_bDrawScanLines = false;
     m_fEmulationSpeed = 1.f;
+    m_volume = 0.1f;
     for (unsigned i = 0; i < CPC::CMachine::DRIVE_COUNT; i++)
     {
         m_diskImages[i].clear();

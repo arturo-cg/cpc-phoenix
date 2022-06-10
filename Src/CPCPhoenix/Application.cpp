@@ -86,7 +86,7 @@ bool Application::Init(HINSTANCE hInstance)
         // Sound output.
         m_pSoundOutput = new CWinSoundOutput();
         m_pSoundOutput->Init();
-        m_pSoundOutput->SetVolume(0.1f);   // TODO - Move volume to CSettings
+        m_pSoundOutput->SetVolume(m_settings.GetVolume());
         // Emulated machine.
         CreateMachine();
     }
@@ -892,6 +892,16 @@ void Application::DrawMainMenuGui()
             }
             ImGui::SameLine();
             ImGui::Text("Emulation Speed");
+            ImGui::Separator();
+
+            float volume = m_settings.GetVolume() * 100.f;
+            if (ImGui::SliderFloat("Volume", &volume, 0.f, 100.f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp))
+            {
+                volume /= 100.f;
+                m_settings.SetVolume(volume);
+                m_pSoundOutput->SetVolume(volume);
+            }
+
             ImGui::Separator();
             if (ImGui::MenuItem("Reset", "Shift+F5"))
             {

@@ -35,6 +35,8 @@ public:
 
     /** Sets the volume of the sound sent to the device. Range [0,1]. */
     void                    SetVolume(float fVolume) { m_fVolume = fVolume; }
+    /** Gets the volume of the sound sent to the device. Range [0,1]. */
+    float                   GetVolume() const { return m_fVolume; }
 
     /** Starts recording to a WAV file. */
     bool                    StartRecording(const string& sFileName);
