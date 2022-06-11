@@ -168,7 +168,7 @@ void Settings::ResetVars()
     m_displayScale = 0.0f;
     m_bDrawScanLines = false;
     m_fEmulationSpeed = 0.f;
-    m_volume = 0.1f;
+    m_volume = 0.f;
     for (unsigned i = 0; i < CPC::CMachine::DRIVE_COUNT; i++)
     {
         m_diskImages[i].clear();
@@ -273,7 +273,7 @@ void Settings::RestoreDefaultValues()
     m_displayScale = -1.f/*Fit to Window*/;
     m_bDrawScanLines = false;
     m_fEmulationSpeed = 1.f;
-    m_volume = 0.1f;
+    m_volume = 0.7f;
     for (unsigned i = 0; i < CPC::CMachine::DRIVE_COUNT; i++)
     {
         m_diskImages[i].clear();

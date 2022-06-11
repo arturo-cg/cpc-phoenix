@@ -34,9 +34,9 @@ public:
     virtual void            WriteSample(float fSample);
 
     /** Sets the volume of the sound sent to the device. Range [0,1]. */
-    void                    SetVolume(float fVolume) { m_fVolume = fVolume; }
+    void                    SetVolume(float fVolume) { m_linearVolume = fVolume; m_exponentialVolume = ComputeExponentialVolumeFromLinear(m_linearVolume); }
     /** Gets the volume of the sound sent to the device. Range [0,1]. */
-    float                   GetVolume() const { return m_fVolume; }
+    float                   GetVolume() const { return m_linearVolume; }
 
     /** Starts recording to a WAV file. */
     bool                    StartRecording(const string& sFileName);
@@ -94,9 +94,12 @@ private:
 
     void                    SendSoundBlockToDevice(SSoundBlock* pBlock);
 
+    float                   ComputeExponentialVolumeFromLinear(float linearVolume) const;
+
 
     HWAVEOUT                m_hDevice;
-    float                   m_fVolume;
+    float                   m_linearVolume;
+    float                   m_exponentialVolume;
 
     SSoundBlock             m_soundBlocks[NUM_BLOCKS];
     unsigned                m_nCurrBlock;

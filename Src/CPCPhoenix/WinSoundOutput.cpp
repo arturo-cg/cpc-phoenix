@@ -139,7 +139,8 @@ CWinSoundOutput::CWinSoundOutput()
 void CWinSoundOutput::ResetVars()
 {
     m_hDevice = 0;
-    m_fVolume = 1.f;
+    m_linearVolume = 1.f;
+    m_exponentialVolume = ComputeExponentialVolumeFromLinear(m_linearVolume);
 
     unsigned i;
     for (i = 0; i < NUM_BLOCKS; i++)
@@ -247,7 +248,7 @@ void CWinSoundOutput::DestroySoundBlocks()
     {
         // Convert the sample to the device format
         short nSample;
-        nSample = (short)(fSample * m_fVolume * 32767.f);
+        nSample = (short)(fSample * m_exponentialVolume * 32767.f);
 
         // Write the sample to the current block
         *(writeBlock.pSamples + m_nCurrPos) = nSample;
@@ -291,6 +292,17 @@ void CWinSoundOutput::SendSoundBlockToDevice(SSoundBlock* pBlock)
 
     // Mark the block as being played
     pBlock->bIsPlaying = true;
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+float CWinSoundOutput::ComputeExponentialVolumeFromLinear(float linearVolume) const
+{
+    static constexpr float a = 1e-3f;
+    static constexpr float b = 6.908f;
+    return a * expf(b * linearVolume);
 }
 
 //----------------------------------------------------------------------------
