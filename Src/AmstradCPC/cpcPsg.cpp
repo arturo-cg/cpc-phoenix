@@ -235,7 +235,7 @@ namespace CPC {
                 float fSample;
                 fSample = (fSampleA + fSampleB + fSampleC) / 3.f/*num channels*/;
 
-                GetMachine()->GetSoundOutput()->WriteSample(fSample);
+                GetMachine()->GetSoundOutput()->WriteSample(fSample, fSampleA, fSampleB, fSampleC);
 
                 // Update cycle accumulator, angle, etc.
                 m_fAccumCycles -= CYCLES_PER_SAMPLE;

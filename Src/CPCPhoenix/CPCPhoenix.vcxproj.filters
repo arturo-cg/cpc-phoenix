@@ -36,6 +36,7 @@
     <ClInclude Include="TextureVideoOutput.h" />
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="SnaSnapshotReadWrite.h" />
+    <ClInclude Include="SoundAnalyzer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -49,5 +50,6 @@
     <ClCompile Include="TextureVideoOutput.cpp" />
     <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="SnaSnapshotReadWrite.cpp" />
+    <ClCompile Include="SoundAnalyzer.cpp" />
   </ItemGroup>
 </Project>

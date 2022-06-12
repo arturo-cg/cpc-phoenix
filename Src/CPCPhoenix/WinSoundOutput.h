@@ -9,6 +9,11 @@
 
 class kmbFile;
 
+class IWinSoundOutputListener
+{
+public:
+    virtual void OnNewSoundSample(float sampleMixed, float sampleChannelA, float sampleChannelB, float sampleChannelC) = 0;
+};
 
 /**
 ** This class implements the CPC::CSoundOutput interface to provide sound output functionality to the emulator
@@ -21,6 +26,8 @@ class CWinSoundOutput : public CPC::CSoundOutput
 
 public:
 
+    static const unsigned   SAMPLES_PER_SEC = 44100;                      // 44.1 kHz sample rate
+
     CWinSoundOutput();
     virtual                ~CWinSoundOutput() { FreeVars(); }
 
@@ -31,7 +38,7 @@ public:
     virtual void            Reset();
 
     /** From CPC::CSoundOutput */
-    virtual void            WriteSample(float fSample);
+    virtual void            WriteSample(float sampleMixed, float sampleChannelA, float sampleChannelB, float sampleChannelC) override;
 
     /** Sets the volume of the sound sent to the device. Range [0,1]. */
     void                    SetVolume(float fVolume) { m_linearVolume = fVolume; m_exponentialVolume = ComputeExponentialVolumeFromLinear(m_linearVolume); }
@@ -45,10 +52,11 @@ public:
     /** Returns true if it is currently recording to a WAV file. */
     bool                    IsRecording() const { return (m_pRecordFile != NULL); }
 
+    void                     SetListener(IWinSoundOutputListener* listener) { m_listener = listener; }
+    IWinSoundOutputListener* GetListener() const { return m_listener; }
 
 private:
 
-    static const unsigned   SAMPLES_PER_SEC = 44100;                      // 44.1 kHz sample rate
     static const unsigned   BYTES_PER_SAMPLE = 2;                         // 8-bit samples
 
     static const unsigned   NUM_BLOCKS = 3;                               // Triple buffer
@@ -100,6 +108,7 @@ private:
     HWAVEOUT                m_hDevice;
     float                   m_linearVolume;
     float                   m_exponentialVolume;
+    IWinSoundOutputListener* m_listener;
 
     SSoundBlock             m_soundBlocks[NUM_BLOCKS];
     unsigned                m_nCurrBlock;

@@ -15,6 +15,7 @@ class WindowsKeyStateProvider;
 class TextureVideoOutput;
 class CWinSoundOutput;
 class Debugger;
+class SoundAnalyzer;
 class kmbZipArchive;
 
 namespace CPC
@@ -73,6 +74,9 @@ public:
 
     TextureVideoOutput*       GetTextureVideoOutput() { return m_videoOutput; }
     const TextureVideoOutput* GetTextureVideoOutput() const { return m_videoOutput; }
+
+    CWinSoundOutput*          GetSoundOutput() { return m_pSoundOutput; }
+    const CWinSoundOutput*    GetSoundOutput() const { return m_pSoundOutput; }
 
     /** Returns the debugger. */
     Debugger*                 GetDebugger() { return m_debugger; }
@@ -165,6 +169,7 @@ private:
     AppWindow*                m_pAppWindow;
     RenderingApi*             m_renderingApi;
     Debugger*                 m_debugger;
+    SoundAnalyzer*            m_soundAnalyzer;
 
     CPC::CMachine*            m_pMachine;
     WindowsKeyStateProvider*  m_pKeyStateProvider;

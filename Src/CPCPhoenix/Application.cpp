@@ -14,6 +14,7 @@
 #include "Debugger.h"
 #include "Snapshot.h"
 #include "SnaSnapshotReadWrite.h"
+#include "SoundAnalyzer.h"
 #include "WindowsKeyStateProvider.h"
 #include "TextureVideoOutput.h"
 #include "WinSoundOutput.h"
@@ -90,11 +91,14 @@ bool Application::Init(HINSTANCE hInstance)
         // Emulated machine.
         CreateMachine();
     }
-    // Debugger.
+    // Debugger, sound analyzer.
     if (bRet)
     {
         m_debugger = new Debugger();
         bRet = m_debugger->Init();
+
+        m_soundAnalyzer = new SoundAnalyzer();
+        bRet = m_soundAnalyzer->Init();
     }
     // Others.
     if (bRet)
@@ -718,6 +722,11 @@ void Application::DrawGui()
     {
         m_debugger->DrawGui();
     }
+    // Sound analyzer.
+    if (m_soundAnalyzer->IsActive())
+    {
+        m_soundAnalyzer->DrawGui();
+    }
     // Dear ImGui demo window.
     // It should be removed at some point.
     if (m_showDearImGuiDemoWindow)
@@ -893,7 +902,6 @@ void Application::DrawMainMenuGui()
             ImGui::SameLine();
             ImGui::Text("Emulation Speed");
             ImGui::Separator();
-
             float volume = m_settings.GetVolume() * 100.f;
             if (ImGui::SliderFloat("Volume", &volume, 0.f, 100.f, "%.0f%%", ImGuiSliderFlags_AlwaysClamp))
             {
@@ -901,7 +909,11 @@ void Application::DrawMainMenuGui()
                 m_settings.SetVolume(volume);
                 m_pSoundOutput->SetVolume(volume);
             }
-
+            bool soundAnalyzerActive = m_soundAnalyzer->IsActive();
+            if (ImGui::Checkbox("Sound Analyzer", &soundAnalyzerActive))
+            {
+                m_soundAnalyzer->SetActive(soundAnalyzerActive);
+            }
             ImGui::Separator();
             if (ImGui::MenuItem("Reset", "Shift+F5"))
             {

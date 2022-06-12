@@ -141,6 +141,7 @@ void CWinSoundOutput::ResetVars()
     m_hDevice = 0;
     m_linearVolume = 1.f;
     m_exponentialVolume = ComputeExponentialVolumeFromLinear(m_linearVolume);
+    m_listener = nullptr;
 
     unsigned i;
     for (i = 0; i < NUM_BLOCKS; i++)
@@ -238,7 +239,7 @@ void CWinSoundOutput::DestroySoundBlocks()
 /**
 **
 */
-/*virtual*/ void CWinSoundOutput::WriteSample(float fSample)
+void CWinSoundOutput::WriteSample(float sampleMixed, float sampleChannelA, float sampleChannelB, float sampleChannelC)
 {
     SSoundBlock& writeBlock = m_soundBlocks[m_nCurrBlock];
 
@@ -248,7 +249,7 @@ void CWinSoundOutput::DestroySoundBlocks()
     {
         // Convert the sample to the device format
         short nSample;
-        nSample = (short)(fSample * m_exponentialVolume * 32767.f);
+        nSample = (short)(sampleMixed * m_exponentialVolume * 32767.f);
 
         // Write the sample to the current block
         *(writeBlock.pSamples + m_nCurrPos) = nSample;
@@ -266,11 +267,17 @@ void CWinSoundOutput::DestroySoundBlocks()
         }
     }
 
+    // Pass the sample to the listener, if any.
+    if (m_listener != nullptr)
+    {
+        m_listener->OnNewSoundSample(sampleMixed, sampleChannelA, sampleChannelB, sampleChannelC);
+    }
+
     // If recording is active, write the sample to the file
     if (IsRecording())
     {
         short nWavSample;
-        nWavSample = short(fSample * 32767.f);
+        nWavSample = short(sampleMixed * 32767.f);
 
         m_pRecordFile->WriteBytes(nWavSample);
         m_nRecordedSampleCount++;
