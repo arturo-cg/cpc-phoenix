@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "SoundAnalyzer.h"
 #include "Application.h"
+#include "cpcPsg.h"
 
 bool SoundAnalyzer::Init()
 {
@@ -99,16 +100,34 @@ void SoundAnalyzer::DrawGui()
     bool keepOpen = IsActive();
     if (ImGui::Begin("SoundAnalyzer", &keepOpen/*, ImGuiWindowFlags_AlwaysAutoResize*/))
     {
+        // Mixed samples.
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetFrameHeight() + ImGui::GetStyle().ItemSpacing.x);
         ImVec2 graphSize = ImVec2(ImGui::GetContentRegionAvail().x - 100.f, ImGui::GetContentRegionAvail().y / 4.f);
         ImGui::PlotLines("Mixed", m_samplesMixed, NumSamples, m_nextPosition, nullptr/*overlay_text*/, -1.f, 1.f, graphSize, 4/*stride*/);
-        ImGui::PlotLines("Channel A", m_samplesChannelA, NumSamples, m_nextPosition, nullptr/*overlay_text*/, -1.f, 1.f, graphSize, 4/*stride*/);
-        ImGui::PlotLines("Channel B", m_samplesChannelB, NumSamples, m_nextPosition, nullptr/*overlay_text*/, -1.f, 1.f, graphSize, 4/*stride*/);
-        ImGui::PlotLines("Channel C", m_samplesChannelC, NumSamples, m_nextPosition, nullptr/*overlay_text*/, -1.f, 1.f, graphSize, 4/*stride*/);
+        // Channels.
+        DrawChannel("Channel A", 0, m_samplesChannelA, graphSize);
+        DrawChannel("Channel B", 1, m_samplesChannelB, graphSize);
+        DrawChannel("Channel C", 2, m_samplesChannelC, graphSize);
     }
     ImGui::End();
 
     if (!keepOpen)
     {
         SetActive(false);
+    }
+}
+
+void SoundAnalyzer::DrawChannel(const char* label, int channelIndex, float* samples, ImVec2 graphSize)
+{
+    CPC::CPsg* psg = Application::Singleton()->GetEmulatedMachine()->GetPsg();
+    bool channelEnabled = psg->IsChannelEnabled(channelIndex);
+    string checkboxId = string("##Enable_") + string(label);
+    ImGui::Checkbox(checkboxId.c_str(), &channelEnabled);
+    ImGui::SameLine();
+    ImGui::PlotLines(label, samples, NumSamples, m_nextPosition, nullptr/*overlay_text*/, -1.f, 1.f, graphSize, 4/*stride*/);
+
+    if (channelEnabled != psg->IsChannelEnabled(channelIndex))
+    {
+        psg->SetChannelEnabled(channelIndex, channelEnabled);
     }
 }

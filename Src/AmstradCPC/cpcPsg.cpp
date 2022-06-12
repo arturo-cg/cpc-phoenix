@@ -41,6 +41,9 @@ namespace CPC {
         memset(m_anRegisters, 0, sizeof(m_anRegisters));
         m_fAccumCycles = 0.f;
         m_fAngle = 0.f;
+        m_channelEnabled[0] = true;
+        m_channelEnabled[1] = true;
+        m_channelEnabled[2] = true;
     }
 
     //----------------------------------------------------------------------------
@@ -227,9 +230,9 @@ namespace CPC {
                 float fSampleA;
                 float fSampleB;
                 float fSampleC;
-                fSampleA = GenerateChannelSample(REG_A_TONE_PERIOD_LOW, REG_A_TONE_PERIOD_HIGH, REG_A_AMPLITUDE, 0, fNoiseSample);
-                fSampleB = GenerateChannelSample(REG_B_TONE_PERIOD_LOW, REG_B_TONE_PERIOD_HIGH, REG_B_AMPLITUDE, 1, fNoiseSample);
-                fSampleC = GenerateChannelSample(REG_C_TONE_PERIOD_LOW, REG_C_TONE_PERIOD_HIGH, REG_C_AMPLITUDE, 2, fNoiseSample);
+                fSampleA = m_channelEnabled[0] ? GenerateChannelSample(REG_A_TONE_PERIOD_LOW, REG_A_TONE_PERIOD_HIGH, REG_A_AMPLITUDE, 0, fNoiseSample) : 0.f;
+                fSampleB = m_channelEnabled[1] ? GenerateChannelSample(REG_B_TONE_PERIOD_LOW, REG_B_TONE_PERIOD_HIGH, REG_B_AMPLITUDE, 1, fNoiseSample) : 0.f;
+                fSampleC = m_channelEnabled[2] ? GenerateChannelSample(REG_C_TONE_PERIOD_LOW, REG_C_TONE_PERIOD_HIGH, REG_C_AMPLITUDE, 2, fNoiseSample) : 0.f;
 
                 // Mix samples from each channel and write the resulting sample to the sound output
                 float fSample;

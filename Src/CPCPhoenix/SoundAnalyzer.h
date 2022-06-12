@@ -38,6 +38,8 @@ private:
 
     void ClearBuffers();
 
+    void DrawChannel(const char* label, int channelIndex, float* samples, ImVec2 graphSize);
+
     bool m_bOk;
     bool m_active;
 

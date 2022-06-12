@@ -84,6 +84,10 @@ namespace CPC {
         /** Returns the value of the currently selected value. */
         cpcByte                 GetSelectedRegisterValue() const { return m_anRegisters[m_eSelectedRegister]; }
 
+        /** Enables or disables (aka mutes) the specified channel. This is an emulator feature, it doesn't represent a hardware feature. */
+        void                    SetChannelEnabled(int channelIndex, bool enabled) { if ((channelIndex >= 0) && (channelIndex < 3)) { m_channelEnabled[channelIndex] = enabled; } }
+        bool                    IsChannelEnabled(int channelIndex) const { return ((channelIndex >= 0) && (channelIndex < 3)) ? m_channelEnabled[channelIndex] : false; }
+
         /** Runs the PSG for the given number of cycles. */
         void                    Run(unsigned nNumCycles);
 
@@ -117,6 +121,7 @@ namespace CPC {
         float                   m_fAccumCycles;           // Used to determine when to compute a new sound sample.
         float                   m_fAngle;
 
+        bool                    m_channelEnabled[3];      // 0 = channel A, 1 = channel B, 2 = channel C.
     };
 
 
