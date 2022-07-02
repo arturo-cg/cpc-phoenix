@@ -6,8 +6,6 @@
 
 #include "stdafx.h"
 #include "cpcCpu.h"
-#include <sstream>
-#include <string>
 #include "cpcMachine.h"
 #include "cpcGateArray.h"
 #include "cpcCpuInterface.h"
@@ -250,20 +248,6 @@ namespace CPC {
         // Execute instruction or remember prefix.
         const OpcodeInfo* table = m_opcodes[m_prefix];
         const OpcodeInfo* opcodeInfo = &table[opcode];
-        //{
-        //    std::ostringstream ss;
-        //    ss << std::hex << m_registers.PC.w - 1 << "\t\t" << opcodeInfo->mnemonicOperation;
-        //    if (opcodeInfo->mnemonicLeftOperand[0] != '\0')
-        //    {
-        //        ss << "\t" << opcodeInfo->mnemonicLeftOperand;
-        //    }
-        //    if (opcodeInfo->mnemonicRightOperand[0] != '\0')
-        //    {
-        //        ss << ", " << opcodeInfo->mnemonicRightOperand;
-        //    }
-        //    ss << "\n";
-        //    OutputDebugString(ss.str().c_str());
-        //}
         DoInstructionTiming(s_instructionTimings[opcodeInfo->timingType]);
         std::invoke(opcodeInfo->microcodeFn, this);
         if (opcodeInfo->isInstruction)   // If we just executed an instruction...
@@ -315,6 +299,7 @@ namespace CPC {
         m_cpuInterface->OnInterruptAcknowledge(this);
         m_interruptWasAcknowledged = true;
 
+        cpcWord pointerToJumpAddress;
         switch (m_registers.IM)
         {
         case 0:
@@ -324,15 +309,16 @@ namespace CPC {
             break;
 
         case 1:
-            // 2 wait states automatically added.
             ConsumeTStates(2);
             StepOpcode(0xFF/*RST 38H*/);
             break;
 
         case 2:
-            //
-            // TODO
-            //
+            ConsumeTStates(19);
+            pointerToJumpAddress = (cpcWord(m_registers.I()) << 8) | cpcWord(m_interruptVector & 0xFE);
+            Push(m_registers.PC);
+            m_registers.PC.b.l = ReadByteFromMemory(pointerToJumpAddress);
+            m_registers.PC.b.h = ReadByteFromMemory(pointerToJumpAddress + 1);
             break;
 
         default:

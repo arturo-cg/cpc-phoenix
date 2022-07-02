@@ -292,6 +292,8 @@ namespace CPC {
     */
     void CGateArray::OnCrtcHSyncEnd()
     {
+        static const cpcByte InterruptVectorValue = 0xFF;        // When the Z80 is in IM 0, this corresponds to a RST 38h instruction.
+
         // Interrupt generation logic.
         // +- Increment the 6-bit counter
         m_nCrtcHSyncCounter = (m_nCrtcHSyncCounter + 1) & 0x3F;
@@ -302,6 +304,7 @@ namespace CPC {
             if (m_nCrtcHSyncCounter >= 32)
             {
                 // Request interrupt.
+                GetMachine()->GetCpu()->SetInterruptVector(InterruptVectorValue);
                 GetMachine()->GetCpu()->SetInterruptRequestActive(true);
             }
             // Reset counter.
@@ -312,6 +315,7 @@ namespace CPC {
             if (m_nCrtcHSyncCounter >= 52)
             {
                 m_nCrtcHSyncCounter = 0;
+                GetMachine()->GetCpu()->SetInterruptVector(InterruptVectorValue);
                 GetMachine()->GetCpu()->SetInterruptRequestActive(true);
             }
         }
