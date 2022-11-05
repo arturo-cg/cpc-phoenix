@@ -35,10 +35,10 @@ namespace CPC {
 
     /** [Internal use only] Sets current side and track. */
     void                    _SetCurrentSideAndTrack   (unsigned nSide, unsigned nTrack)  { m_nSide = nSide; m_nTrack = nTrack; }
-    /** [Internal use only] Gets current side. */
-    unsigned                _GetCurrentSide           () const  { return m_nSide; }
-    /** [Internal use only] Gets current track. */
-    unsigned                _GetCurrentTrack          () const  { return m_nTrack; }
+    /** Gets current side. */
+    unsigned                GetCurrentSide            () const  { return m_nSide; }
+    /** Gets current track. */
+    unsigned                GetCurrentTrack           () const  { return m_nTrack; }
 
 
   private:

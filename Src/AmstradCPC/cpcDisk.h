@@ -51,6 +51,8 @@ namespace CPC {
         virtual unsigned GetSideCount() const = 0;
         /** Returns how many tracks the disk has. */
         virtual unsigned GetTrackCount() const = 0;
+        /** Returns how many sectors the given track has. */
+        virtual unsigned GetSectorCount(unsigned side, unsigned track) const = 0;
 
         /** Returns information about a specific sector. */
         virtual const SSectorInfo* GetSectorInfo(unsigned nSide, unsigned nTrack, unsigned nSector) const = 0;

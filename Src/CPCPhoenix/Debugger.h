@@ -40,6 +40,8 @@ public:
 
 private:
 
+    static const unsigned INVALID_DRIVE_NUMBER = 0xFFFFFFFF;
+
     void ResetVars();
     void FreeVars();
 
@@ -58,6 +60,12 @@ private:
     void DrawCrtc();
     void DrawGateArray();
     void DrawMonitor();
+    void DrawFdc();
+    void DrawDiskDrive(unsigned driveNumber, const char* imguiChildName, float contentRegionAvailProportion);
+
+    void ShowDiskStructure(unsigned drive, unsigned side, unsigned track);
+    void HideDiskStructure();
+    void DrawDiskStructure();
 
     void DrawUnsignedByte(const char* label, cpcByte byte, bool verticalLayout = false, const char* tooltip = nullptr, ...);
     void DrawUnsignedWord(const char* label, cpcWord word, bool verticalLayout = false, const char* tooltip = nullptr, ...);
@@ -78,4 +86,9 @@ private:
     bool m_scrollToAddressRequested;
     cpcWord m_scrollToAddress;
     bool m_showMonitorBeam;
+
+    // Disk Structure window.
+    unsigned m_diskDrive;
+    unsigned m_diskSide;
+    unsigned m_diskTrack;
 };

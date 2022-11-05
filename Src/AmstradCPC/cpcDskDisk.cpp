@@ -202,6 +202,23 @@ namespace CPC {
     /**
     **
     */
+    /*virtual*/ unsigned CDskDisk::GetSectorCount(unsigned sideNumber, unsigned trackNumber) const
+    {
+        unsigned ret = 0;
+
+        const SDskTrack* track = GetTrack(sideNumber, trackNumber);
+        if (track != nullptr)
+        {
+            ret = track->lSectors.size();
+        }
+
+        return ret;
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
     /*virtual*/ const CDisk::SSectorInfo* CDskDisk::GetSectorInfo(unsigned nSide, unsigned nTrack, unsigned nSector) const
     {
         const SSectorInfo* pRet = NULL;

@@ -61,6 +61,8 @@ namespace CPC {
         const SDskDiskInfo* GetDiskInfo() const { return &m_diskInfo; }
         /** Returns information about a specific track. */
         const SDskTrackInfo* GetTrackInfo(unsigned nSide, unsigned nTrack) const;
+        /** Returns how many sectors the given track has. */
+        virtual unsigned GetSectorCount(unsigned side, unsigned track) const override;
         /** Returns information about a sector given its index. */
         virtual const SSectorInfo* GetSectorInfo(unsigned nSide, unsigned nTrack, unsigned nSector) const;
         /** Returns information about a sector given its ID. */

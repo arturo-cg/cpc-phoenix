@@ -5,8 +5,10 @@
 #include "Debugger.h"
 #include "Application.h"
 #include "TextureVideoOutput.h"
-#include "cpcMachine.h"
 #include "cpcCpu.h"
+#include "cpcDisk.h"
+#include "cpcDiskDrive.h"
+#include "cpcMachine.h"
 
 
 bool Debugger::Init()
@@ -63,6 +65,9 @@ void Debugger::ResetVars()
     m_scrollToAddressRequested = false;
     m_scrollToAddress = 0x0000;
     m_showMonitorBeam = true;
+    m_diskDrive = INVALID_DRIVE_NUMBER;
+    m_diskSide = 0;
+    m_diskTrack = 0;
 }
 
 void Debugger::FreeVars()
@@ -151,6 +156,8 @@ void Debugger::DrawGui()
     DrawCpu();
     // System (CRTC, Gate Array, PSG, etc.).
     DrawSystem();
+    // Disk Structure.
+    DrawDiskStructure();
 
     ImGui::End();
 }
@@ -380,6 +387,11 @@ void Debugger::DrawSystem()
         DrawMonitor();
     }
 
+    if (ImGui::CollapsingHeader("FDC", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        DrawFdc();
+    }
+
     ImGui::End();
 }
 
@@ -454,6 +466,151 @@ void Debugger::DrawMonitor()
 
     ImGui::Checkbox("Show Beam", &m_showMonitorBeam);
     ImGui::Text("Beam: %d,%d", monitor->GetBeamX(), monitor->GetBeamY());
+}
+
+void Debugger::DrawFdc()
+{
+    DrawDiskDrive(0, "Drive0", 0.5f);
+    ImGui::SameLine();
+    DrawDiskDrive(1, "Drive1", 1.f);
+}
+
+void Debugger::DrawDiskDrive(unsigned driveNumber, const char* imguiChildName, float contentRegionAvailProportion)
+{
+    const CPC::CDiskDrive* drive = m_machine->GetDiskDrive(driveNumber);
+    const CPC::CDisk* disk = (drive != nullptr ? drive->GetDisk() : nullptr);
+
+    ImGui::BeginChild(imguiChildName, ImVec2(ImGui::GetContentRegionAvail().x * contentRegionAvailProportion, ImGui::GetTextLineHeightWithSpacing() * 3.f + ImGui::GetFrameHeightWithSpacing()), false, ImGuiWindowFlags_None);
+
+    // Header.
+    ImGui::TextDisabled("Drive %d (%c:)", driveNumber, driveNumber == 0 ? 'A' : 'B');
+    // Current side and track.
+    if (disk != nullptr)
+    {
+        ImGui::Text("Side: %d (total: %d)", drive->GetCurrentSide(), disk->GetSideCount());
+        ImGui::Text("Track: %d (total: %d)", drive->GetCurrentTrack(), disk->GetTrackCount());
+        if (ImGui::Button("Disk Structure"))
+        {
+            ShowDiskStructure(driveNumber, drive->GetCurrentSide(), drive->GetCurrentTrack());
+        }
+    }
+    else
+    {
+        ImGui::Text("No disk");
+    }
+
+    ImGui::EndChild();
+}
+
+void Debugger::ShowDiskStructure(unsigned drive, unsigned side, unsigned track)
+{
+    m_diskDrive = drive;
+    m_diskSide = side;
+    m_diskTrack = track;
+}
+
+void Debugger::HideDiskStructure()
+{
+    m_diskDrive = INVALID_DRIVE_NUMBER;
+    m_diskSide = 0;
+    m_diskTrack = 0;
+}
+
+void Debugger::DrawDiskStructure()
+{
+    const CPC::CDisk* disk = nullptr;
+    if (m_diskDrive != INVALID_DRIVE_NUMBER)
+    {
+        disk = m_machine->GetDiskDrive(m_diskDrive)->GetDisk();
+
+        if (disk == nullptr)
+        {
+            // The disk has been ejected with the Disk Structure window open.
+            // Hide the window.
+            HideDiskStructure();
+        }
+    }
+
+    if (disk != nullptr)
+    {
+        bool keepOpen = true;
+        if (ImGui::Begin("DiskStructure", &keepOpen, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            // Side and track selectors.
+            char label[10];
+            snprintf(label, sizeof(label), "%d", m_diskSide);
+            if (ImGui::BeginCombo("Side", label, ImGuiComboFlags_HeightSmall))
+            {
+                for (unsigned i = 0; i < disk->GetSideCount(); i++)
+                {
+                    snprintf(label, sizeof(label), "%d", i);
+                    if (ImGui::Selectable(label, i == m_diskSide))
+                    {
+                        m_diskSide = i;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            snprintf(label, sizeof(label), "%d", m_diskTrack);
+            if (ImGui::BeginCombo("Track", label, ImGuiComboFlags_HeightLargest))
+            {
+                for (unsigned i = 0; i < disk->GetTrackCount(); i++)
+                {
+                    snprintf(label, sizeof(label), "%d", i);
+                    if (ImGui::Selectable(label, i == m_diskTrack))
+                    {
+                        m_diskTrack = i;
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            // Sectors in current track.
+            ImGuiTableFlags tableFlags = ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit;
+            if (ImGui::BeginTable("DiskInfo", 7/*columns_count*/, tableFlags, ImVec2(0.f, 0.f)))
+            {
+                ImGui::TableSetupColumn("Side", ImGuiTableColumnFlags_None);
+                ImGui::TableSetupColumn("Track", ImGuiTableColumnFlags_None);
+                ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_None);
+                ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_None);
+                ImGui::TableSetupColumn("Status1", ImGuiTableColumnFlags_None);
+                ImGui::TableSetupColumn("Status2", ImGuiTableColumnFlags_None);
+                ImGui::TableSetupColumn("DataLength", ImGuiTableColumnFlags_None);
+
+                ImGui::TableHeadersRow();
+
+                unsigned sectorCount = disk->GetSectorCount(m_diskSide, m_diskTrack);
+                for (unsigned sector = 0; sector < sectorCount; sector++)
+                {
+                    const CPC::CDisk::SSectorInfo* sectorInfo = disk->GetSectorInfo(m_diskSide, m_diskTrack, sector);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", sectorInfo->nSide);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", sectorInfo->nTrack);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%02hhX", sectorInfo->nId);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", sectorInfo->nSize);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%02hhX", sectorInfo->nStatusRegister1);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%02hhX", sectorInfo->nStatusRegister2);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", sectorInfo->nDataLength);
+                }
+
+                ImGui::EndTable();
+            }
+        }
+        ImGui::End();
+
+        if (!keepOpen)
+        {
+            HideDiskStructure();
+        }
+    }
 }
 
 void Debugger::DrawUnsignedByte(const char* label, cpcByte byte, bool verticalLayout, const char* tooltip, ...)

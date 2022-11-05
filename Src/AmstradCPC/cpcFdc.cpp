@@ -255,7 +255,7 @@ namespace CPC
         if (drive != NULL)          // If drive exists...
         {
             bit5 = 1;
-            bit4 = (drive->_GetCurrentTrack() == 0 ? 1 : 0);    // At track 0?
+            bit4 = (drive->GetCurrentTrack() == 0 ? 1 : 0);    // At track 0?
             bit3 = (drive->GetDisk() != nullptr && drive->GetDisk()->GetSideCount() >= 2 ? 1 : 0);    // Two-sided disk?
         }
 
@@ -487,7 +487,7 @@ namespace CPC
         pDrive = GetMachine()->GetDiskDrive(m_nDesiredDrive);
 
         m_anResult[0] = ReadStatusRegister0();
-        m_anResult[1] = (pDrive != NULL ? pDrive->_GetCurrentTrack() : 0);
+        m_anResult[1] = (pDrive != NULL ? pDrive->GetCurrentTrack() : 0);
 
         // Reset 'Seek End' flag (returned in Status Register 0).
         // TODO: Check whether this is how this flag actually works or not.
@@ -510,7 +510,7 @@ namespace CPC
         if ((pDrive != NULL) && (pDrive->GetDisk() != NULL))
         {
             const CDisk::SSectorInfo* pSectorInfo;
-            pSectorInfo = pDrive->GetDisk()->GetSectorInfo(m_nDesiredSide, pDrive->_GetCurrentTrack(), 0);
+            pSectorInfo = pDrive->GetDisk()->GetSectorInfo(m_nDesiredSide, pDrive->GetCurrentTrack(), 0);
             KMASSERT(pSectorInfo != NULL);
 
             m_anResult[0] = ReadStatusRegister0();
