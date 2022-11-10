@@ -8,6 +8,7 @@
 
 namespace CPC {
 
+    class IFdcListener;
 
     /**
     ** The 765 FDC (Floppy Disk Controller).
@@ -15,22 +16,6 @@ namespace CPC {
     class CFdc : public CSubSystem
     {
     public:
-
-        CFdc(CMachine* pMachine);
-        virtual ~CFdc() { FreeVars(); }
-
-        /** Resets the subsystem. */
-        virtual void Reset();
-
-        /** We are notified that the machine is trying to read a byte from this subsystem. */
-        virtual bool RespondToReadPortRequest(cpcWord nPort, cpcByte* pnValue);
-        /** We are notified that the machine is trying to write a byte to this subsystem. */
-        virtual void RespondToWritePortRequest(cpcWord nPort, cpcByte nValue);
-
-
-    private:
-
-        typedef CSubSystem inherited;
 
         enum EPhase
         {
@@ -63,6 +48,34 @@ namespace CPC {
 
             COMMAND_INVALID = 0xFFFFFFFF,
         };
+
+        CFdc(CMachine* pMachine);
+        virtual ~CFdc() { FreeVars(); }
+
+        /** Resets the subsystem. */
+        virtual void Reset();
+
+        void SetListener(IFdcListener* listener) { m_listener = listener; }
+
+        EPhase GetPhase() const { return m_eCurrentPhase; }
+        ECommand GetCommand() const { return m_eCurrentCommand; }
+
+        /** We are notified that the machine is trying to read a byte from this subsystem. */
+        virtual bool RespondToReadPortRequest(cpcWord nPort, cpcByte* pnValue);
+        /** We are notified that the machine is trying to write a byte to this subsystem. */
+        virtual void RespondToWritePortRequest(cpcWord nPort, cpcByte nValue);
+
+        // Various utility methods for showing info in a debugger or a plain log.
+        static const char* GetPhaseName(EPhase phase);
+        static const char* GetCommandName(ECommand command);
+        static void GetParametersLog(ECommand command, const cpcByte* parameters, string* log);
+        void GetCurrentParametersLog(string* log) const;
+        static void GetResultLog(ECommand command, const cpcByte* results, string* log);
+        void GetCurrentResultLog(string* log) const;
+
+    private:
+
+        typedef CSubSystem inherited;
 
         enum EDataDirection
         {
@@ -129,6 +142,7 @@ namespace CPC {
         const cpcByte* m_pDataPointer;
         unsigned m_nBytesToTransfer;
 
+        IFdcListener* m_listener;
     };
 
 } //namespace CPC

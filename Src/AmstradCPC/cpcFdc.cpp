@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "cpcFdc.h"
+#include "cpcFdcListener.h"
 #include "cpcMachine.h"
 #include "cpcDiskDrive.h"
 
@@ -20,41 +21,45 @@ namespace CPC
     {
         unsigned nParameterCount;
         unsigned nResultCount;
+        const char* name;
     };
 
     static const SCommandInfo s_aCommandInfos[] =
     {
-      { 0, 0 },  /*Not used*/
-      { 0, 0 },  /*Not used*/
-      { 8, 7 },  /*COMMAND_READ_TRACK*/
-      { 2, 0 },  /*COMMAND_SPECIFY_SPD_DMA*/
-      { 1, 1 },  /*COMMAND_SENSE_DRIVE_STATE*/
-      { 8, 7 },  /*COMMAND_WRITE_SECTORS*/
-      { 8, 7 },  /*COMMAND_READ_SECTORS*/
-      { 1, 0 },  /*COMMAND_RECALIBRATE_SEEK*/
-      { 0, 2 },  /*COMMAND_SENSE_INT_STATE*/
-      { 8, 7 },  /*COMMAND_WRITE_DELETED_SECTORS*/
-      { 1, 7 },  /*COMMAND_READ_ID*/
-      { 0, 0 },  /*Not used*/
-      { 8, 7 },  /*COMMAND_READ_DELETED_SECTORS*/
-      { 5, 7 },  /*COMMAND_FORMAT_TRACK*/
-      { 0, 0 },  /*Not used*/
-      { 2, 0 },  /*COMMAND_SEEK_TRACK_N*/
-      { 0, 0 },  /*Not used*/
-      { 8, 7 },  /*COMMAND_SCAN_EQUAL*/
-      { 0, 0 },  /*Not used*/
-      { 0, 0 },  /*Not used*/
-      { 0, 0 },  /*Not used*/
-      { 0, 0 },  /*Not used*/
-      { 0, 0 },  /*Not used*/
-      { 0, 0 },  /*Not used*/
-      { 0, 0 },  /*Not used*/
-      { 8, 7 },  /*COMMAND_SCAN_LOW_OR_EQUAL*/
-      { 0, 0 },  /*Not used*/
-      { 0, 0 },  /*Not used*/
-      { 0, 0 },  /*Not used*/
-      { 8, 7 },  /*COMMAND_SCAN_HIGH_OR_EQUAL*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 8, 7, "Read track" },  /*COMMAND_READ_TRACK*/
+      { 2, 0, "Specify speed & DMA" },  /*COMMAND_SPECIFY_SPD_DMA*/
+      { 1, 1, "Sense drive state" },  /*COMMAND_SENSE_DRIVE_STATE*/
+      { 8, 7, "Write sectors" },  /*COMMAND_WRITE_SECTORS*/
+      { 8, 7, "Read sectors" },  /*COMMAND_READ_SECTORS*/
+      { 1, 0, "Recalibrate / Seek track 0" },  /*COMMAND_RECALIBRATE_SEEK*/
+      { 0, 2, "Sense interrupt state" },  /*COMMAND_SENSE_INT_STATE*/
+      { 8, 7, "Write deleted sectors" },  /*COMMAND_WRITE_DELETED_SECTORS*/
+      { 1, 7, "Read ID" },  /*COMMAND_READ_ID*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 8, 7, "Read deleted sectors" },  /*COMMAND_READ_DELETED_SECTORS*/
+      { 5, 7, "Format track" },  /*COMMAND_FORMAT_TRACK*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 2, 0, "Seek track" },  /*COMMAND_SEEK_TRACK_N*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 8, 7, "Scan equal" },  /*COMMAND_SCAN_EQUAL*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 8, 7, "Scan low or equal" },  /*COMMAND_SCAN_LOW_OR_EQUAL*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 0, 0, "<Invalid>" },  /*Not used*/
+      { 8, 7, "Scan high or equal" },  /*COMMAND_SCAN_HIGH_OR_EQUAL*/
     };
+
+    // Must match values in CFdc::EPhase.
+    static const char* s_fdcPhaseStrings[] = { "Idle", "Command", "Execution", "Result" };
 
 
     //----------------------------------------------------------------------------
@@ -81,8 +86,9 @@ namespace CPC
         m_nCurrentResult = 0;
         m_nCurrentDataDir = DIRECTION_TO_FDC;
         m_seekEnd = false;
-        m_pDataPointer = NULL;
+        m_pDataPointer = nullptr;
         m_nBytesToTransfer = 0;
+        m_listener = nullptr;
     }
 
     //----------------------------------------------------------------------------
@@ -339,6 +345,12 @@ namespace CPC
             // If all parameters for the selected command have been written, execute the command
             if (m_nParameterCount >= s_aCommandInfos[m_eCurrentCommand].nParameterCount)    // If this was the last parameter...
             {
+                // Notify the listener.
+                if (m_listener != nullptr)
+                {
+                    m_listener->OnFdcCommandReceived(this);
+                }
+
                 // Execute the command
                 m_eCurrentPhase = PHASE_EXECUTION;
 
@@ -389,6 +401,12 @@ namespace CPC
     {
         m_eCurrentPhase = PHASE_NONE;
         m_nCurrentDataDir = DIRECTION_TO_FDC;
+
+        // Notify the listener.
+        if (m_listener != nullptr)
+        {
+            m_listener->OnFdcCommandFinished(this);
+        }
     }
 
     //----------------------------------------------------------------------------
@@ -587,6 +605,146 @@ namespace CPC
         }
 
         return nRet;
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    const char* CFdc::GetPhaseName(EPhase phase)
+    {
+        return s_fdcPhaseStrings[phase];
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    const char* CFdc::GetCommandName(ECommand command)
+    {
+        return s_aCommandInfos[command].name;
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CFdc::GetParametersLog(ECommand command, const cpcByte* parameters, string* log)
+    {
+        char parameterLog[200] = "";
+
+        switch (command)
+        {
+            //case CPC::CFdc::COMMAND_READ_TRACK:
+            //    break;
+            case CPC::CFdc::COMMAND_SPECIFY_SPD_DMA:
+                snprintf(parameterLog, sizeof(parameterLog), "DMA:%s", (parameters[1] & 0x01) != 0 ? "No" : "Yes");
+                break;
+            //case CPC::CFdc::COMMAND_SENSE_DRIVE_STATE:
+            //    break;
+            //case CPC::CFdc::COMMAND_WRITE_SECTORS:
+            //    break;
+            //case CPC::CFdc::COMMAND_READ_SECTORS:
+            //    break;
+            case CPC::CFdc::COMMAND_RECALIBRATE_SEEK_0:
+                snprintf(parameterLog, sizeof(parameterLog), "Drive:%d", parameters[0] & 0x03);
+                break;
+            //case CPC::CFdc::COMMAND_SENSE_INT_STATE:
+            //    break;
+            //case CPC::CFdc::COMMAND_WRITE_DELETED_SECTORS:
+            //    break;
+            //case CPC::CFdc::COMMAND_READ_ID:
+            //    break;
+            //case CPC::CFdc::COMMAND_READ_DELETED_SECTORS:
+            //    break;
+            //case CPC::CFdc::COMMAND_FORMAT_TRACK:
+            //    break;
+            //case CPC::CFdc::COMMAND_SEEK_TRACK_N:
+            //    break;
+            //case CPC::CFdc::COMMAND_SCAN_EQUAL:
+            //    break;
+            //case CPC::CFdc::COMMAND_SCAN_LOW_OR_EQUAL:
+            //    break;
+            //case CPC::CFdc::COMMAND_SCAN_HIGH_OR_EQUAL:
+            //    break;
+            //case CPC::CFdc::COMMAND_INVALID:
+            //    break;
+            default:
+                break;
+        }
+
+        log->assign(parameterLog);
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CFdc::GetCurrentParametersLog(string* log) const
+    {
+        GetParametersLog(m_eCurrentCommand, m_anParameters, log);
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CFdc::GetResultLog(ECommand command, const cpcByte* results, string* log)
+    {
+        char resultLog[200] = "";
+
+        switch (command)
+        {
+            //case CPC::CFdc::COMMAND_READ_TRACK:
+            //    break;
+            //case CPC::CFdc::COMMAND_SPECIFY_SPD_DMA:
+            //    break;
+            //case CPC::CFdc::COMMAND_SENSE_DRIVE_STATE:
+            //    break;
+            //case CPC::CFdc::COMMAND_WRITE_SECTORS:
+            //    break;
+            //case CPC::CFdc::COMMAND_READ_SECTORS:
+            //    break;
+            //case CPC::CFdc::COMMAND_RECALIBRATE_SEEK_0:
+            //    break;
+            case CPC::CFdc::COMMAND_SENSE_INT_STATE:
+                snprintf(resultLog, sizeof(resultLog), "Seek-End:%s Track:%d", (results[0] & 0x20) != 0 ? "Yes" : "No", results[1]);
+                break;
+            //case CPC::CFdc::COMMAND_WRITE_DELETED_SECTORS:
+            //    break;
+            case CPC::CFdc::COMMAND_READ_ID:
+                // TODO: Show status registers too.
+                // TODO: Refactor this - Many commands output the same info.
+                snprintf(resultLog, sizeof(resultLog), "Track:%d Side:%d SectorID:%02hhX N:%d", results[3], results[4], results[5], results[6]);
+                break;
+            //case CPC::CFdc::COMMAND_READ_DELETED_SECTORS:
+            //    break;
+            //case CPC::CFdc::COMMAND_FORMAT_TRACK:
+            //    break;
+            //case CPC::CFdc::COMMAND_SEEK_TRACK_N:
+            //    break;
+            //case CPC::CFdc::COMMAND_SCAN_EQUAL:
+            //    break;
+            //case CPC::CFdc::COMMAND_SCAN_LOW_OR_EQUAL:
+            //    break;
+            //case CPC::CFdc::COMMAND_SCAN_HIGH_OR_EQUAL:
+            //    break;
+            //case CPC::CFdc::COMMAND_INVALID:
+            //    break;
+            default:
+                break;
+        }
+
+        log->assign(resultLog);
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    void CFdc::GetCurrentResultLog(string* log) const
+    {
+        GetResultLog(m_eCurrentCommand, m_anResult, log);
     }
 
 } //namespace CPC

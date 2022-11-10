@@ -55,6 +55,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <deque>
 #include <algorithm>
 
 using namespace std;    // No need to specify std:: for STL symbols

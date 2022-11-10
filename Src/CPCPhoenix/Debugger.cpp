@@ -8,6 +8,7 @@
 #include "cpcCpu.h"
 #include "cpcDisk.h"
 #include "cpcDiskDrive.h"
+#include "cpcFdc.h"
 #include "cpcMachine.h"
 
 
@@ -17,19 +18,6 @@ bool Debugger::Init()
 
     End();
     ResetVars();
-
-    // Check parameters
-    if (bRet)
-    {
-        //...
-    }
-
-    // Initialize class members
-    if (bRet)
-    {
-        //...
-    }
-
 
     if (bRet)
     {
@@ -65,6 +53,8 @@ void Debugger::ResetVars()
     m_scrollToAddressRequested = false;
     m_scrollToAddress = 0x0000;
     m_showMonitorBeam = true;
+    m_fdcOperations.clear();
+    m_fdcOperationCounter = 0;
     m_diskDrive = INVALID_DRIVE_NUMBER;
     m_diskSide = 0;
     m_diskTrack = 0;
@@ -72,7 +62,20 @@ void Debugger::ResetVars()
 
 void Debugger::FreeVars()
 {
-    //...
+    if (m_machine != nullptr)
+    {
+        m_machine->GetFdc()->SetListener(nullptr);
+    }
+}
+
+void Debugger::SetMachine(CPC::CMachine* newMachine)
+{
+    m_machine = newMachine;
+
+    if (newMachine != nullptr)
+    {
+        newMachine->GetFdc()->SetListener(this);
+    }
 }
 
 void Debugger::SetActive(bool active)
@@ -80,8 +83,6 @@ void Debugger::SetActive(bool active)
     m_active = active;
     if (active)
     {
-        // Keep pointer to the machine up-to-date, it can change at any time.
-        m_machine = Application::Singleton()->GetEmulatedMachine();
         // Finish current instruction.
         ExecuteCurrentInstruction();
         // Scroll to PC.
@@ -91,8 +92,6 @@ void Debugger::SetActive(bool active)
 
 void Debugger::RunMachine()
 {
-    // Keep pointer to the machine up-to-date, it can change at any time.
-    m_machine = Application::Singleton()->GetEmulatedMachine();
     // If "Run To" is active, run the machine for a 4-MHz clock cycle.
     if (m_running)
     {
@@ -144,6 +143,32 @@ void Debugger::RunSingleCycle()
     Application::Singleton()->GetTextureVideoOutput()->CaptureVideoOutputMidFrame();
     // Scroll to PC.
     RequestScrollToAddress(m_machine->GetCpu()->GetRegisters().PC.w);
+}
+
+void Debugger::OnFdcCommandReceived(const CPC::CFdc* fdc)
+{
+    KMASSERT(fdc == m_machine->GetFdc());
+
+    FdcOperation operation;
+    operation.command = (int)fdc->GetCommand();
+    fdc->GetCurrentParametersLog(&operation.parameters);
+    operation.result.clear();
+
+    m_fdcOperations.push_front(operation);
+    m_fdcOperationCounter++;
+
+    if (m_fdcOperations.size() > MAX_FDC_OPERATION_COUNT)
+    {
+        // Remove oldest.
+        m_fdcOperations.pop_back();
+    }
+}
+
+void Debugger::OnFdcCommandFinished(const CPC::CFdc* fdc)
+{
+    KMASSERT(fdc == m_machine->GetFdc());
+
+    fdc->GetCurrentResultLog(&m_fdcOperations.front().result);
 }
 
 void Debugger::DrawGui()
@@ -470,6 +495,43 @@ void Debugger::DrawMonitor()
 
 void Debugger::DrawFdc()
 {
+    // FDC.
+    CPC::CFdc* fdc = m_machine->GetFdc();
+
+    ImGui::Text("Phase: %s", CPC::CFdc::GetPhaseName(fdc->GetPhase()));
+
+    ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
+    if (ImGui::BeginTable("FdcOperations", 4/*columns_count*/, tableFlags, ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 5.f)))
+    {
+        ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_None);
+        ImGui::TableSetupColumn("Command", ImGuiTableColumnFlags_None);
+        ImGui::TableSetupColumn("Parameters", ImGuiTableColumnFlags_None);
+        ImGui::TableSetupColumn("Result", ImGuiTableColumnFlags_None);
+
+        ImGui::TableHeadersRow();
+
+        unsigned operationNumber = m_fdcOperationCounter;
+        for (FdcOperationDeque::const_iterator iter = m_fdcOperations.begin(); iter != m_fdcOperations.end(); ++iter)
+        {
+            const FdcOperation& operation = *iter;
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%d", operationNumber);
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", CPC::CFdc::GetCommandName((CPC::CFdc::ECommand)operation.command));
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", operation.parameters.c_str());
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", operation.result.c_str());
+
+            operationNumber--;
+        }
+
+        ImGui::EndTable();
+    }
+
+    // Disk drives.
     DrawDiskDrive(0, "Drive0", 0.5f);
     ImGui::SameLine();
     DrawDiskDrive(1, "Drive1", 1.f);
@@ -537,6 +599,8 @@ void Debugger::DrawDiskStructure()
         if (ImGui::Begin("DiskStructure", &keepOpen, ImGuiWindowFlags_AlwaysAutoResize))
         {
             // Side and track selectors.
+            ImGui::PushItemWidth(50.f);
+
             char label[10];
             snprintf(label, sizeof(label), "%d", m_diskSide);
             if (ImGui::BeginCombo("Side", label, ImGuiComboFlags_HeightSmall))
@@ -552,6 +616,8 @@ void Debugger::DrawDiskStructure()
                 ImGui::EndCombo();
             }
 
+            ImGui::SameLine();
+
             snprintf(label, sizeof(label), "%d", m_diskTrack);
             if (ImGui::BeginCombo("Track", label, ImGuiComboFlags_HeightLargest))
             {
@@ -565,6 +631,9 @@ void Debugger::DrawDiskStructure()
                 }
                 ImGui::EndCombo();
             }
+
+            ImGui::PopItemWidth();
+
             // Sectors in current track.
             ImGuiTableFlags tableFlags = ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit;
             if (ImGui::BeginTable("DiskInfo", 7/*columns_count*/, tableFlags, ImVec2(0.f, 0.f)))

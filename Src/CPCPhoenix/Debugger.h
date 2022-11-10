@@ -3,16 +3,19 @@
 
 #pragma once
 
+#include "cpcFdcListener.h"
+
 namespace CPC
 {
     class CMachine;
     class CCpu;
+    class CFdc;
 }
 
 /**
 **
 */
-class Debugger
+class Debugger : CPC::IFdcListener
 {
 public:
 
@@ -23,6 +26,9 @@ public:
     virtual void End();
     bool IsOk() const { return m_bOk; }
 
+    // Called by the application when the emulated machine changes, for example when the emulator is started or when the user changes the CPC model.
+    void SetMachine(CPC::CMachine* newMachine);
+
     // Start or stop the debugger.
     void SetActive(bool active);
     // Whether the emulated machine is being debugged or not.
@@ -31,6 +37,10 @@ public:
     bool IsRunning() const { return m_running; }
 
     void RunMachine();
+
+    // From IFdcListener.
+    virtual void OnFdcCommandReceived(const CPC::CFdc* fdc) override;
+    virtual void OnFdcCommandFinished(const CPC::CFdc* fdc) override;
 
     void DrawGui();
     void DrawVideoOutputOverlays();
@@ -41,6 +51,16 @@ public:
 private:
 
     static const unsigned INVALID_DRIVE_NUMBER = 0xFFFFFFFF;
+    static const unsigned MAX_FDC_OPERATION_COUNT = 20;
+
+    struct FdcOperation
+    {
+        int/*CPC::CFdc::ECommand*/ command;     // Stored as an int to avoid including cpcFdc.h here.
+        string parameters;
+        string result;
+    };
+
+    using FdcOperationDeque = std::deque<FdcOperation>;
 
     void ResetVars();
     void FreeVars();
@@ -86,6 +106,9 @@ private:
     bool m_scrollToAddressRequested;
     cpcWord m_scrollToAddress;
     bool m_showMonitorBeam;
+
+    FdcOperationDeque m_fdcOperations;
+    unsigned m_fdcOperationCounter;
 
     // Disk Structure window.
     unsigned m_diskDrive;

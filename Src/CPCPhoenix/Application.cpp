@@ -96,6 +96,7 @@ bool Application::Init(HINSTANCE hInstance)
     {
         m_debugger = new Debugger();
         bRet = m_debugger->Init();
+        m_debugger->SetMachine(m_pMachine);
 
         m_soundAnalyzer = new SoundAnalyzer();
         bRet = m_soundAnalyzer->Init();
@@ -136,6 +137,7 @@ void Application::ResetVars()
     m_bExitApp = false;
     m_pAppWindow = NULL;
     m_renderingApi = nullptr;
+    m_debugger = nullptr;
     m_pMachine = NULL;
     m_pKeyStateProvider = NULL;
     m_videoOutput = NULL;
@@ -225,6 +227,11 @@ void Application::CreateMachine()
         // Insert disks into the drives, if required.
         SetDisk(0, m_settings.GetDiskImage(0), m_settings.GetDiskImageArchive(0));
         SetDisk(1, m_settings.GetDiskImage(1), m_settings.GetDiskImageArchive(1));
+        // Let the debugger know about the new machine.
+        if (m_debugger != nullptr)
+        {
+            m_debugger->SetMachine(m_pMachine);
+        }
 
         m_pMachine->Reset();
     }
@@ -242,6 +249,11 @@ void Application::CreateMachine()
 */
 void Application::DestroyMachine()
 {
+    if (m_debugger != nullptr)
+    {
+        m_debugger->SetMachine(nullptr);
+    }
+
     if (m_pMachine != NULL)
     {
         delete m_pMachine;

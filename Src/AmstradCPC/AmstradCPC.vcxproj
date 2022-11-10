@@ -127,6 +127,7 @@
     <ClInclude Include="cpcSubSystem.h" />
     <ClInclude Include="cpcTypes.h" />
     <ClInclude Include="cpcVideoOutput.h" />
+    <ClInclude Include="cpcFdcListener.h" />
     <ClInclude Include="Snapshot.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
