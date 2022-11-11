@@ -91,8 +91,8 @@ namespace CPC {
         {
             //unsigned nDrive;   <--- Stored in m_nDesiredDrive
             //unsigned nSide;    <--- Stored in m_nDesiredSide
-            unsigned nTrackId;
-            unsigned nSideId;
+            unsigned nTrack;
+            unsigned nSide;
             unsigned nFirstSectorId;
             unsigned nSectorSize;
             unsigned nLastSectorId;

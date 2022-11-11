@@ -6,55 +6,56 @@
 
 
 #include "cpcSubSystem.h"
-
+#include "cpcDisk.h"
 
 namespace CPC {
 
-  class CDisk;
+
+    /**
+    ** A disk drive connected to the machine.
+    */
+    class CDiskDrive : public CSubSystem
+    {
+    public:
+
+        CDiskDrive(CMachine* pMachine);
+        virtual ~CDiskDrive() { FreeVars(); }
+
+        /** Resets the subsystem. */
+        virtual void Reset();
+
+        /** Inserts a new disk, or ejects the current one if NULL is specified. */
+        void SetDisk(CDisk* disk) { m_disk = disk; }
+        /** Returns the disk currently inserted, or NULL if no disk is inside. */
+        CDisk* GetDisk() { return m_disk; }
+        /** Returns the disk currently inserted, or NULL if no disk is inside (const version). */
+        const CDisk* GetDisk() const { return m_disk; }
+
+        /** Moves the R/W head to the given track. */
+        void SetTrack(unsigned track) { m_track = track; }
+        /** Gets the track where the R/W head is currently at. */
+        unsigned GetTrack() const { return m_track; }
+
+        /** Reads the info of the sector at the given index on the current side and track. */
+        virtual const CDisk::SSectorInfo* GetSectorInfoByIndex(unsigned side, unsigned sectorIndex) const;
+        /** Reads the info of the sector with the given ID on the current side and track. */
+        virtual const CDisk::SSectorInfo* GetSectorInfoById(unsigned side, unsigned sectorId) const;
+        /** Reads the data of the sector with the given ID on the current side and track. */
+        virtual const cpcByte* GetSectorDataById(unsigned side, unsigned sectorId) const;
 
 
-  /**
-  ** A disk drive connected to the machine.
-  */
-  class CDiskDrive : public CSubSystem
-  {
-  public:
+    private:
 
-                            CDiskDrive                (CMachine *pMachine);
-    virtual                ~CDiskDrive                ()  { FreeVars(); }
-
-    /** Resets the subsystem. */
-    virtual void            Reset                     ();
-
-    /** Inserts a new disk, or ejects the current one if NULL is specified. */
-    void                    SetDisk                   (CDisk* pDisk)  { m_pDisk = pDisk; }
-    /** Returns the disk currently inserted, or NULL if no disk is inside. */
-    CDisk*                  GetDisk                   ()              { return m_pDisk; }
-    /** Returns the disk currently inserted, or NULL if no disk is inside (const version). */
-    const CDisk*            GetDisk                   () const        { return m_pDisk; }
-
-    /** [Internal use only] Sets current side and track. */
-    void                    _SetCurrentSideAndTrack   (unsigned nSide, unsigned nTrack)  { m_nSide = nSide; m_nTrack = nTrack; }
-    /** Gets current side. */
-    unsigned                GetCurrentSide            () const  { return m_nSide; }
-    /** Gets current track. */
-    unsigned                GetCurrentTrack           () const  { return m_nTrack; }
+        typedef CSubSystem inherited;
 
 
-  private:
-
-    typedef                 CSubSystem                inherited;
-
-
-    void                    ResetVars                 ();
-    void                    FreeVars                  ();
+        void ResetVars();
+        void FreeVars();
 
 
-    CDisk*                  m_pDisk;
-    unsigned                m_nSide;          // Current side (=head)
-    unsigned                m_nTrack;         // Current track
-
-  };
+        CDisk* m_disk;
+        unsigned m_track;         // Current track
+    };
 
 
 } //namespace CPC

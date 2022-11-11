@@ -549,11 +549,10 @@ void Debugger::DrawDiskDrive(unsigned driveNumber, const char* imguiChildName, f
     // Current side and track.
     if (disk != nullptr)
     {
-        ImGui::Text("Side: %d (total: %d)", drive->GetCurrentSide(), disk->GetSideCount());
-        ImGui::Text("Track: %d (total: %d)", drive->GetCurrentTrack(), disk->GetTrackCount());
+        ImGui::Text("Track: %d (total: %d)", drive->GetTrack(), disk->GetTrackCount());
         if (ImGui::Button("Disk Structure"))
         {
-            ShowDiskStructure(driveNumber, drive->GetCurrentSide(), drive->GetCurrentTrack());
+            ShowDiskStructure(driveNumber, 0/*side*/, drive->GetTrack());
         }
     }
     else

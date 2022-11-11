@@ -261,7 +261,7 @@ namespace CPC
         if (drive != NULL)          // If drive exists...
         {
             bit5 = 1;
-            bit4 = (drive->GetCurrentTrack() == 0 ? 1 : 0);    // At track 0?
+            bit4 = (drive->GetTrack() == 0 ? 1 : 0);    // At track 0?
             bit3 = (drive->GetDisk() != nullptr && drive->GetDisk()->GetSideCount() >= 2 ? 1 : 0);    // Two-sided disk?
         }
 
@@ -418,8 +418,8 @@ namespace CPC
         if (pParams != NULL)
         {
             DECODE_HU;
-            pParams->nTrackId = m_anParameters[1];
-            pParams->nSideId = m_anParameters[2];
+            pParams->nTrack = m_anParameters[1];
+            pParams->nSide = m_anParameters[2];
             pParams->nFirstSectorId = m_anParameters[3];
             pParams->nSectorSize = m_anParameters[4];
             pParams->nLastSectorId = m_anParameters[5];
@@ -464,7 +464,7 @@ namespace CPC
         pDrive = GetMachine()->GetDiskDrive(m_nDesiredDrive);
         if (pDrive != NULL)
         {
-            pDrive->_SetCurrentSideAndTrack(m_nDesiredSide, 0);
+            pDrive->SetTrack(0);
             m_seekEnd = true;
         }
 
@@ -485,7 +485,7 @@ namespace CPC
         pDrive = GetMachine()->GetDiskDrive(m_nDesiredDrive);
         if (pDrive != NULL)
         {
-            pDrive->_SetCurrentSideAndTrack(m_nDesiredSide, m_anParameters[1]);
+            pDrive->SetTrack(m_anParameters[1]);
             m_seekEnd = true;
         }
 
@@ -505,7 +505,7 @@ namespace CPC
         pDrive = GetMachine()->GetDiskDrive(m_nDesiredDrive);
 
         m_anResult[0] = ReadStatusRegister0();
-        m_anResult[1] = (pDrive != NULL ? pDrive->GetCurrentTrack() : 0);
+        m_anResult[1] = (pDrive != NULL ? pDrive->GetTrack() : 0);
 
         // Reset 'Seek End' flag (returned in Status Register 0).
         // TODO: Check whether this is how this flag actually works or not.
@@ -528,7 +528,7 @@ namespace CPC
         if ((pDrive != NULL) && (pDrive->GetDisk() != NULL))
         {
             const CDisk::SSectorInfo* pSectorInfo;
-            pSectorInfo = pDrive->GetDisk()->GetSectorInfo(m_nDesiredSide, pDrive->GetCurrentTrack(), 0);
+            pSectorInfo = pDrive->GetSectorInfoByIndex(m_nDesiredSide, 0);
             KMASSERT(pSectorInfo != NULL);
 
             m_anResult[0] = ReadStatusRegister0();
@@ -564,11 +564,11 @@ namespace CPC
         pDrive = GetMachine()->GetDiskDrive(m_nDesiredDrive);
         if ((pDrive != NULL) && (pDrive->GetDisk() != NULL))
         {
-            pDrive->_SetCurrentSideAndTrack(m_nDesiredSide, params.nTrackId);
+            KMASSERT(params.nTrack == pDrive->GetTrack());
 
-            m_pSectorInfo = pDrive->GetDisk()->GetSectorInfoById(m_nDesiredSide, params.nTrackId, params.nFirstSectorId);
+            m_pSectorInfo = pDrive->GetSectorInfoById(m_nDesiredSide, params.nFirstSectorId);
             KMASSERT(m_pSectorInfo != NULL);
-            m_pDataPointer = pDrive->GetDisk()->GetSectorDataById(m_nDesiredSide, params.nTrackId, params.nFirstSectorId);
+            m_pDataPointer = pDrive->GetSectorDataById(m_nDesiredSide, params.nFirstSectorId);
             KMASSERT(m_pDataPointer != NULL);
             m_nBytesToTransfer = params.nSectorSize << 8;
             KMASSERT(m_nBytesToTransfer > 0);
