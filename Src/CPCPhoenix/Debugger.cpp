@@ -499,6 +499,21 @@ void Debugger::DrawFdc()
     CPC::CFdc* fdc = m_machine->GetFdc();
 
     ImGui::Text("Phase: %s", CPC::CFdc::GetPhaseName(fdc->GetPhase()));
+    if (ImGui::Button("Clear Operations"))
+    {
+        // If the FDC is in Executing or Result phases, leave the latest operation. Otherwise, remove all operations.
+        if ((fdc->GetPhase() == CPC::CFdc::PHASE_EXECUTION) || (fdc->GetPhase() == CPC::CFdc::PHASE_RESULT))
+        {
+            if (m_fdcOperations.size() >= 2)
+            {
+                m_fdcOperations.erase(++m_fdcOperations.begin(), m_fdcOperations.end());
+            }
+        }
+        else
+        {
+            m_fdcOperations.clear();
+        }
+    }
 
     ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
     if (ImGui::BeginTable("FdcOperations", 4/*columns_count*/, tableFlags, ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 5.f)))

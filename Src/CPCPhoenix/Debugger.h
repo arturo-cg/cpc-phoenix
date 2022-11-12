@@ -51,7 +51,7 @@ public:
 private:
 
     static const unsigned INVALID_DRIVE_NUMBER = 0xFFFFFFFF;
-    static const unsigned MAX_FDC_OPERATION_COUNT = 20;
+    static const unsigned MAX_FDC_OPERATION_COUNT = 80;
 
     struct FdcOperation
     {

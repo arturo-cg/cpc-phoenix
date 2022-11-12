@@ -560,6 +560,10 @@ namespace CPC
         STypicalParameters params;
         DecodeTypicalParameters(&params);
 
+        //
+        // TODO: Error handling (no disk, side 1 requested on single-sided disk, sector ID not found).
+        //
+
         CDiskDrive* pDrive;
         pDrive = GetMachine()->GetDiskDrive(m_nDesiredDrive);
         if ((pDrive != NULL) && (pDrive->GetDisk() != NULL))
@@ -644,8 +648,9 @@ namespace CPC
             //    break;
             //case CPC::CFdc::COMMAND_WRITE_SECTORS:
             //    break;
-            //case CPC::CFdc::COMMAND_READ_SECTORS:
-            //    break;
+            case CPC::CFdc::COMMAND_READ_SECTORS:
+                snprintf(parameterLog, sizeof(parameterLog), "Drive:%d Side:%d ID:%02hhX", parameters[0] & 0x03, (parameters[0] % 0x04) >> 2, parameters[3]);
+                break;
             case CPC::CFdc::COMMAND_RECALIBRATE_SEEK_0:
                 snprintf(parameterLog, sizeof(parameterLog), "Drive:%d", parameters[0] & 0x03);
                 break;
@@ -659,8 +664,9 @@ namespace CPC
             //    break;
             //case CPC::CFdc::COMMAND_FORMAT_TRACK:
             //    break;
-            //case CPC::CFdc::COMMAND_SEEK_TRACK_N:
-            //    break;
+            case CPC::CFdc::COMMAND_SEEK_TRACK_N:
+                snprintf(parameterLog, sizeof(parameterLog), "Drive:%d Track:%d", parameters[0] & 0x03, parameters[1]);
+                break;
             //case CPC::CFdc::COMMAND_SCAN_EQUAL:
             //    break;
             //case CPC::CFdc::COMMAND_SCAN_LOW_OR_EQUAL:
@@ -715,7 +721,7 @@ namespace CPC
             case CPC::CFdc::COMMAND_READ_ID:
                 // TODO: Show status registers too.
                 // TODO: Refactor this - Many commands output the same info.
-                snprintf(resultLog, sizeof(resultLog), "Track:%d Side:%d SectorID:%02hhX N:%d", results[3], results[4], results[5], results[6]);
+                snprintf(resultLog, sizeof(resultLog), "Track:%d Side:%d ID:%02hhX N:%d", results[3], results[4], results[5], results[6]);
                 break;
             //case CPC::CFdc::COMMAND_READ_DELETED_SECTORS:
             //    break;
