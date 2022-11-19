@@ -1083,14 +1083,21 @@ void Application::EjectDisk(unsigned driveNumber)
 
 void Application::SetDiskFromFile(unsigned driveNumber, const std::string& diskImageFilePath)
 {
-    kmbFileInputStream diskImageStream;
-    if (diskImageStream.Init(diskImageFilePath))
+    if (!diskImageFilePath.empty())
     {
-        InsertDisk(driveNumber, diskImageStream, diskImageFilePath, "");
+        kmbFileInputStream diskImageStream;
+        if (diskImageStream.Init(diskImageFilePath))
+        {
+            InsertDisk(driveNumber, diskImageStream, diskImageFilePath, "");
+        }
+        else
+        {
+            ::MessageBox(NULL, "Could not open the disk image.", "Disk image error", MB_OK | MB_ICONEXCLAMATION);
+        }
     }
     else
     {
-        ::MessageBox(NULL, "Could not open the disk image.", "Disk image error", MB_OK | MB_ICONEXCLAMATION);
+        EjectDisk(driveNumber);
     }
 }
 
