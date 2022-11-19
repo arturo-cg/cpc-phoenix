@@ -574,7 +574,7 @@ namespace CPC
             KMASSERT(m_pSectorInfo != NULL);
             m_pDataPointer = pDrive->GetSectorDataById(m_nDesiredSide, params.nFirstSectorId);
             KMASSERT(m_pDataPointer != NULL);
-            m_nBytesToTransfer = params.nSectorSize << 8;
+            m_nBytesToTransfer = 256 << (params.nSectorSize - 1);
             KMASSERT(m_nBytesToTransfer > 0);
 
             m_nCurrentDataDir = DIRECTION_TO_CPU;

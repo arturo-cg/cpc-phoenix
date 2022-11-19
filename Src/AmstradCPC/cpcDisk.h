@@ -36,7 +36,7 @@ namespace CPC {
             cpcByte nSize;               // Sector size (equivalent to N parameter in NEC765 commands).
             cpcByte nStatusRegister1;    // FDC status register 1 (equivalent to NEC765 ST1 status register).
             cpcByte nStatusRegister2;    // FDC status register 2 (equivalent to NEC765 ST2 status register).
-            cpcWord nDataLength;         // [Extended only] Actual data length in bytes (little endian notation). Special case: When N=6, only 1800h bytes are stored.
+            cpcWord nDataLength;         // [Extended only] Actual data length in bytes (little endian notation).
         };
 
 #pragma pack(pop, Structs_Pack_Section)

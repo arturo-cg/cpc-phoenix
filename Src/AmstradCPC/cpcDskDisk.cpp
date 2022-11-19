@@ -31,6 +31,7 @@ namespace CPC {
         m_diskInfo.nTrackCount = 0;
         m_lTracks.clear();
         m_pRawData = NULL;
+        m_dataSelector = 0;
     }
 
     //----------------------------------------------------------------------------
@@ -167,10 +168,10 @@ namespace CPC {
             newSector.pData = sectorData;
 
             // Determine sector data length and number of copies.
-            unsigned N = (newSector.pInfo->nSize > 0 ? newSector.pInfo->nSize : 8);
-            unsigned dataLength = N << 8;
-            unsigned totalDataLength = (m_eFormat == FORMAT_EXTENDED_DSK ? newSector.pInfo->nDataLength : dataLength);
-            newSector.numDatas = totalDataLength / dataLength;
+            unsigned N = (newSector.pInfo->nSize & 0x07);
+            newSector.singleDataLength = 256 << (N - 1);
+            unsigned totalDataLength = (m_eFormat == FORMAT_EXTENDED_DSK ? newSector.pInfo->nDataLength : newSector.singleDataLength);
+            newSector.numDatas = totalDataLength / newSector.singleDataLength;
 
             track.lSectors.push_back(newSector);
             track.lIdsToIndex.insert(SDskTrack::TIndexMap::value_type(newSector.pInfo->nId, i));
@@ -184,18 +185,18 @@ namespace CPC {
     /**
     **
     */
-    /*virtual*/ const CDskDisk::SDskTrackInfo* CDskDisk::GetTrackInfo(unsigned nSide, unsigned nTrack) const
+    /*virtual*/ const CDskDisk::SDskTrackInfo* CDskDisk::GetTrackInfo(unsigned sideIndex, unsigned trackIndex) const
     {
-        const SDskTrackInfo* pRet = NULL;
+        const SDskTrackInfo* ret = nullptr;
 
-        const SDskTrack* pTrack;
-        pTrack = GetTrack(nSide, nTrack);
-        if (pTrack != NULL)
+        const SDskTrack* track;
+        track = GetDskTrack(sideIndex, trackIndex);
+        if (track != nullptr)
         {
-            pRet = pTrack->pInfo;
+            ret = track->pInfo;
         }
 
-        return pRet;
+        return ret;
     }
 
     //----------------------------------------------------------------------------
@@ -206,7 +207,7 @@ namespace CPC {
     {
         unsigned ret = 0;
 
-        const SDskTrack* track = GetTrack(sideNumber, trackNumber);
+        const SDskTrack* track = GetDskTrack(sideNumber, trackNumber);
         if (track != nullptr)
         {
             ret = track->lSectors.size();
@@ -219,98 +220,139 @@ namespace CPC {
     /**
     **
     */
-    /*virtual*/ const CDisk::SSectorInfo* CDskDisk::GetSectorInfo(unsigned nSide, unsigned nTrack, unsigned nSector) const
+    /*virtual*/ const CDisk::SSectorInfo* CDskDisk::GetSectorInfo(unsigned sideIndex, unsigned trackIndex, unsigned sectorIndex) const
     {
-        const SSectorInfo* pRet = NULL;
+        const SSectorInfo* ret = nullptr;
 
-        const SDskTrack* pTrack;
-        pTrack = GetTrack(nSide, nTrack);
-        if (pTrack != NULL)
+        const SDskTrack* track;
+        track = GetDskTrack(sideIndex, trackIndex);
+        if (track != nullptr)
         {
-            if (nSector < pTrack->pInfo->nSectorCount)
+            if (sectorIndex < track->pInfo->nSectorCount)
             {
-                pRet = pTrack->lSectors[nSector].pInfo;
+                ret = track->lSectors[sectorIndex].pInfo;
             }
         }
 
-        return pRet;
+        return ret;
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    /*virtual*/ const CDisk::SSectorInfo* CDskDisk::GetSectorInfoById(unsigned nSide, unsigned nTrack, unsigned nSectorId) const
+    /*virtual*/ const CDisk::SSectorInfo* CDskDisk::GetSectorInfoById(unsigned sideIndex, unsigned trackIndex, unsigned sectorId) const
     {
-        const SSectorInfo* pRet = NULL;
+        const SSectorInfo* ret = nullptr;
 
-        const SDskTrack* pTrack;
-        pTrack = GetTrack(nSide, nTrack);
-        if (pTrack != NULL)
+        const SDskTrack* track;
+        track = GetDskTrack(sideIndex, trackIndex);
+        if (track != nullptr)
         {
             SDskTrack::TIndexMap::const_iterator iter;
-            iter = pTrack->lIdsToIndex.find(nSectorId);
-            pRet = (iter != pTrack->lIdsToIndex.end() ? pTrack->lSectors[iter->second].pInfo : NULL);
+            iter = track->lIdsToIndex.find(sectorId);
+            ret = (iter != track->lIdsToIndex.end() ? track->lSectors[iter->second].pInfo : nullptr);
         }
 
-        return pRet;
+        return ret;
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    /*virtual*/ const cpcByte* CDskDisk::GetSectorData(unsigned nSide, unsigned nTrack, unsigned nSector) const
+    /*virtual*/ const cpcByte* CDskDisk::GetSectorData(unsigned sideIndex, unsigned trackIndex, unsigned sectorIndex) const
     {
-        const cpcByte* pRet = NULL;
+        const cpcByte* ret = nullptr;
 
-        const SDskTrack* pTrack;
-        pTrack = GetTrack(nSide, nTrack);
-        if (pTrack != NULL)
+        const SDskTrack* track;
+        track = GetDskTrack(sideIndex, trackIndex);
+        if (track != nullptr)
         {
-            if (nSector < pTrack->pInfo->nSectorCount)
+            if (sectorIndex < track->pInfo->nSectorCount)
             {
-                pRet = pTrack->lSectors[nSector].pData;
+                const SDskSector& sector = track->lSectors[sectorIndex];
+                ret = GetCopyOfSectorData(sector);
             }
         }
 
-        return pRet;
+        return ret;
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    /*virtual*/ const cpcByte* CDskDisk::GetSectorDataById(unsigned nSide, unsigned nTrack, unsigned nSectorId) const
+    /*virtual*/ const cpcByte* CDskDisk::GetSectorDataById(unsigned sideIndex, unsigned trackIndex, unsigned sectorId) const
     {
-        const cpcByte* pRet = NULL;
+        const cpcByte* ret = nullptr;
 
-        const SDskTrack* pTrack;
-        pTrack = GetTrack(nSide, nTrack);
-        if (pTrack != NULL)
+        const SDskTrack* track;
+        track = GetDskTrack(sideIndex, trackIndex);
+        if (track != nullptr)
         {
             SDskTrack::TIndexMap::const_iterator iter;
-            iter = pTrack->lIdsToIndex.find(nSectorId);
-            pRet = (iter != pTrack->lIdsToIndex.end() ? pTrack->lSectors[iter->second].pData : NULL);
+            iter = track->lIdsToIndex.find(sectorId);
+            if (iter != track->lIdsToIndex.end())
+            {
+                const SDskSector& sector = track->lSectors[iter->second];
+                ret = GetCopyOfSectorData(sector);
+            }
         }
 
-        return pRet;
+        return ret;
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    const CDskDisk::SDskTrack* CDskDisk::GetTrack(unsigned nSide, unsigned nTrack) const
+    const CDskDisk::SDskTrack* CDskDisk::GetDskTrack(unsigned sideIndex, unsigned trackIndex) const
     {
-        const SDskTrack* pRet = NULL;
-        if ((nSide < m_diskInfo.nSideCount) && (nTrack < m_diskInfo.nTrackCount))
+        const SDskTrack* ret = nullptr;
+        if ((sideIndex < m_diskInfo.nSideCount) && (trackIndex < m_diskInfo.nTrackCount))
         {
-            unsigned nIndex;
-            nIndex = (nTrack * m_diskInfo.nSideCount) + nSide;
-            pRet = &m_lTracks[nIndex];
+            unsigned index = (trackIndex * m_diskInfo.nSideCount) + sideIndex;
+            ret = &m_lTracks[index];
         }
-        return pRet;
+        return ret;
+    }
+
+    ////----------------------------------------------------------------------------
+    ///**
+    //**
+    //*/
+    //const CDskDisk::SDskSector* CDskDisk::GetDskSectorByIndex(unsigned sideIndex, unsigned trackIndex, unsigned sectorIndex) const
+    //{
+    //    const SDskSector* ret = nullptr;
+
+    //    const SDskTrack* track;
+    //    track = GetDskTrack(sideIndex, trackIndex);
+    //    if (track != nullptr)
+    //    {
+    //        if (sectorIndex < track->pInfo->nSectorCount)
+    //        {
+    //            ret = &track->lSectors[sectorIndex];
+    //        }
+    //    }
+
+    //    return ret;
+    //}
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    const cpcByte* CDskDisk::GetCopyOfSectorData(const CDskDisk::SDskSector& sector) const
+    {
+        unsigned dataIndex = m_dataSelector % sector.numDatas;
+        cpcByte* ret = sector.pData + (sector.singleDataLength * dataIndex);
+
+        // Ugly hack to be able to modify m_dataSelector from a const method.
+        CDskDisk* nonConstThis = const_cast<CDskDisk*>(this);
+        nonConstThis->m_dataSelector++;
+
+        return ret;
     }
 
 } //namespace CPC
