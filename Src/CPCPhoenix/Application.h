@@ -134,20 +134,29 @@ private:
     void                      Render();
     void                      SleepIfIdle();
 
+    float                     CalculateStatusBarHeight();
     void                      DrawGui();
     void                      DrawMainWindowGui();
     void                      DrawMainMenuGui();
     void                      DrawDiskDriveMenuGui(int driveNumber);
+    void                      DrawTapeDeckMenuGui();
     void                      DrawStatusBarGui();
     void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
+    void                      DrawTapeDeckBarGui();
 
     void                      InsertDisk(unsigned driveNumber, kmbInputStream& diskImageStream, const std::string& diskImageFileName, const std::string& archiveFilePath);
     void                      EjectDisk(unsigned driveNumber);
-
     void                      SetDiskFromFile(unsigned driveNumber, const std::string& diskImageFilePath);
     void                      SetDiskFromArchive(unsigned driveNumber, const std::string& archiveFilePath);
     void                      SetDiskFromArchive(unsigned driveNumber, kmbZipArchive& archive, const std::string& archiveFilePath, unsigned diskImageFileIndex, const std::string& diskImageFileName);
     void                      SetDisk(unsigned driveNumber, const std::string& diskImageFileName, const std::string& archiveFilePath);
+
+    void                      InsertTape(kmbInputStream& tapeImageStream, const std::string& tapeImageFileName, const std::string& archiveFilePath);
+    void                      EjectTape();
+    void                      SetTapeFromFile(const std::string& tapeImageFilePath);
+    void                      SetTapeFromArchive(const std::string& archiveFilePath);
+    void                      SetTapeFromArchive(kmbZipArchive& archive, const std::string& archiveFilePath, unsigned tapeImageFileIndex, const std::string& tapeImageFileName);
+    void                      SetTape(const std::string& tapeImageFileName, const std::string& archiveFilePath);
 
     void                      LoadQuickSnapshot();
     void                      SaveQuickSnapshot();

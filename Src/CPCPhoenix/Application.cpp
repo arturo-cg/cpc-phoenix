@@ -9,6 +9,9 @@
 #include "cpcGateArray.h"
 #include "cpcDiskDrive.h"
 #include "cpcDskDisk.h"
+#include "cpcCdtTape.h"
+#include "cpcTape.h"
+#include "cpcTapeDeck.h"
 #include "AppWindow.h"
 #include "RenderingApi.h"
 #include "Debugger.h"
@@ -36,8 +39,6 @@ template<> Application* kmbSingleton<Application>::m_pSingleton = NULL;
 
 static const string QuickSnapshotDirectory = "Snapshots";
 static const string QuickSnapshotFile = "QuickSnapshot.sna";
-
-static const float StatusBarHeight = 58.f;
 
 //----------------------------------------------------------------------------
 /**
@@ -224,9 +225,13 @@ void Application::CreateMachine()
         m_pMachine->SetSoundOutput(m_pSoundOutput);
         // Monitor color output type (color, green).
         m_pMachine->GetGateArray()->SetRgbConversionTable(GetSettings()->GetMonitorType());
-        // Insert disks into the drives, if required.
+        // Insert disks and tape into the drives, if required.
         SetDisk(0, m_settings.GetDiskImage(0), m_settings.GetDiskImageArchive(0));
         SetDisk(1, m_settings.GetDiskImage(1), m_settings.GetDiskImageArchive(1));
+        if (m_pMachine->GetTapeDeck() != nullptr)
+        {
+            SetTape(m_settings.GetTapeImage(), m_settings.GetTapeImageArchive());
+        }
         // Let the debugger know about the new machine.
         if (m_debugger != nullptr)
         {
@@ -763,16 +768,26 @@ void Application::DrawMainWindowGui()
     // Main menu.
     DrawMainMenuGui();
     // Emulator video output.
-    m_videoOutput->DrawGui(m_settings.GetDisplayScale(), StatusBarHeight);
+    float statusBarHeight = CalculateStatusBarHeight();
+    m_videoOutput->DrawGui(m_settings.GetDisplayScale(), statusBarHeight);
     if (m_debugger->IsActive())
     {
         m_debugger->DrawVideoOutputOverlays();
     }
     // Status bar.
-    ImGui::SetCursorPosY(ImGui::GetWindowViewport()->WorkSize.y - StatusBarHeight);
+    ImGui::SetCursorPosY(ImGui::GetWindowViewport()->WorkSize.y - statusBarHeight);
     DrawStatusBarGui();
     // Main window end.
     ImGui::End();
+}
+
+float Application::CalculateStatusBarHeight()
+{
+    int rowCount = 2/*disk drives*/ + (m_pMachine->GetTapeDeck() != nullptr ? 1 : 0);
+
+    static const float rowHeight = 30.f;
+    static const float extra = 3.f;
+    return (rowHeight * rowCount) + extra;
 }
 
 void Application::DrawMainMenuGui()
@@ -795,6 +810,15 @@ void Application::DrawMainMenuGui()
                 ImGui::EndMenu();
             }
             ImGui::Separator();
+            if (m_pMachine->GetTapeDeck() != nullptr)
+            {
+                if (ImGui::BeginMenu("Tape"))
+                {
+                    DrawTapeDeckMenuGui();
+                    ImGui::EndMenu();
+                }
+                ImGui::Separator();
+            }
             if (ImGui::MenuItem("Save Quick Snapshot", "Shift+F7"))
             {
                 SaveQuickSnapshot();
@@ -984,6 +1008,61 @@ void Application::DrawDiskDriveMenuGui(int driveNumber)
     }
 }
 
+void Application::DrawTapeDeckMenuGui()
+{
+    KMASSERT(m_pMachine->GetTapeDeck() != nullptr);
+
+    if (ImGui::MenuItem("Insert Tape..."))
+    {
+        string fullFilePath;
+        if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Tapes", "All supported formats (*.cdt, *.zip)\0*.cdt;*.zip\0CDT tape images (*.cdt)\0*.cdt\0ZIP archives (*.zip)\0*.zip\0\0", &fullFilePath))
+        {
+            // CDT or ZIP file selected?
+            if (StringEndsWith(fullFilePath, ".zip"))
+            {
+                SetTapeFromArchive(fullFilePath);
+            }
+            else
+            {
+                SetTapeFromFile(fullFilePath);
+            }
+        }
+    }
+    if (ImGui::MenuItem("Eject Tape"))
+    {
+        EjectTape();
+    }
+    ImGui::Separator();
+
+    CPC::CTapeDeck* tapeDeck = m_pMachine->GetTapeDeck();
+    bool playPressed = tapeDeck->IsPlayButtonPressed();
+    string label = (playPressed ? "Release Play###PlayButtonState" : "Press Play###PlayButtonState");
+    if (ImGui::Checkbox(label.c_str(), &playPressed))
+    {
+        tapeDeck->SetPlayButtonPressed(playPressed);
+    }
+    CPC::CTape* tape = tapeDeck->GetTape();
+    if (ImGui::MenuItem("Rewind Tape"))
+    {
+        if (tape != nullptr)
+        {
+            tape->Rewind();
+        }
+    }
+    string markerPreview = (tape->GetCurrentMarker() < tape->GetMarkerCount() ? tape->GetMarkerName(tape->GetCurrentMarker()) : "<N/A>");
+    if (ImGui::BeginCombo("Jump To...", markerPreview.c_str(), ImGuiComboFlags_HeightLargest))
+    {
+        for (unsigned i = 0; i < tape->GetMarkerCount(); i++)
+        {
+            if (ImGui::Selectable(tape->GetMarkerName(i).c_str(), i == tape->GetCurrentMarker()))
+            {
+                tape->SeekToMarker(i);
+            }
+        }
+        ImGui::EndCombo();
+    }
+}
+
 void Application::DrawStatusBarGui()
 {
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
@@ -994,6 +1073,10 @@ void Application::DrawStatusBarGui()
     ImGui::BeginGroup();
     DrawDiskDriveBarGui('A', 0);
     DrawDiskDriveBarGui('B', 1);
+    if (m_pMachine->GetTapeDeck() != nullptr)
+    {
+        DrawTapeDeckBarGui();
+    }
     ImGui::EndGroup();
     // Emulation speed.
     ImGui::SameLine();
@@ -1033,6 +1116,40 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
 
     ImGui::TextDisabled(diskImage.c_str());
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 200.f);       // This aligns the disk drive row to the right and leaves some space for the Speed field.
+
+    ImGui::EndGroup();
+    ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
+}
+
+void Application::DrawTapeDeckBarGui()
+{
+    KMASSERT(m_pMachine->GetTapeDeck() != nullptr);
+
+    ImGui::BeginGroup();
+
+    string label = (m_pMachine->GetTapeDeck()->IsPlayButtonPressed() ? "Tape (Play pressed)" : "Tape");
+    if (ImGui::Button(label.c_str()))
+    {
+        ImGui::OpenPopup("TapeButton");
+    }
+    if (ImGui::BeginPopup("TapeButton"))
+    {
+        DrawTapeDeckMenuGui();
+        ImGui::EndPopup();
+    }
+    ImGui::SameLine();
+    string tapeImage = m_settings.GetTapeImage();
+    if (tapeImage.empty())
+    {
+        tapeImage = "<EMPTY>";
+    }
+    else if (!m_settings.GetTapeImageArchive().empty())
+    {
+        tapeImage = m_settings.GetTapeImageArchive() + " (" + tapeImage + ")";
+    }
+
+    ImGui::TextDisabled(tapeImage.c_str());
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 200.f);       // This aligns the tape deck row to the right and leaves some space for the Speed field.
 
     ImGui::EndGroup();
     ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
@@ -1173,6 +1290,146 @@ void Application::SetDisk(unsigned driveNumber, const std::string& diskImageFile
                 else
                 {
                     KMASSERTM(false, ("Compressed disk image file '%0' not found in archive '%1'.", diskImageFileName.c_str(), archiveFilePath.c_str()));
+                }
+            }
+            else
+            {
+                KMASSERTM(false, ("Invalid ZIP archive file: '%0'", archiveFilePath.c_str()));
+            }
+        }
+    }
+}
+
+void Application::InsertTape(kmbInputStream& tapeImageStream, const std::string& tapeImageFileName, const std::string& archiveFilePath)
+{
+    KMASSERT(tapeImageStream.IsOk());
+
+    // Eject current tape.
+    EjectTape();
+
+    // Load the new tape image.
+    CPC::CCdtTape* tape = new CPC::CCdtTape;
+    if (tape->LoadFromStream(&tapeImageStream))
+    {
+        // Insert the tape.
+        m_pMachine->GetTapeDeck()->SetTape(tape);
+        // Remember settings.
+        GetSettings()->SetTapeImageAndArchive(tapeImageFileName, archiveFilePath);
+    }
+    else
+    {
+        delete tape;
+        ::MessageBox(NULL, "Unknown tape image format.", "Tape image error", MB_OK | MB_ICONEXCLAMATION);
+    }
+}
+
+void Application::EjectTape()
+{
+    CPC::CTapeDeck* deck = m_pMachine->GetTapeDeck();
+    KMASSERT(deck != nullptr);
+
+    CPC::CTape* tape = deck->GetTape();
+    if (tape != nullptr)
+    {
+        deck->SetTape(nullptr);
+        delete tape;
+
+        GetSettings()->SetTapeImageAndArchive("", "");
+    }
+}
+
+void Application::SetTapeFromFile(const std::string& tapeImageFilePath)
+{
+    if (!tapeImageFilePath.empty())
+    {
+        kmbFileInputStream tapeImageStream;
+        if (tapeImageStream.Init(tapeImageFilePath))
+        {
+            InsertTape(tapeImageStream, tapeImageFilePath, "");
+        }
+        else
+        {
+            ::MessageBox(NULL, "Could not open the tape image.", "Tape image error", MB_OK | MB_ICONEXCLAMATION);
+        }
+    }
+    else
+    {
+        EjectTape();
+    }
+}
+
+void Application::SetTapeFromArchive(const std::string& archiveFilePath)
+{
+    // Open the ZIP file.
+    kmbFileInputStream fileStream;
+    if (fileStream.Init(archiveFilePath))
+    {
+        kmbZipArchive archive;
+        if (archive.Init(fileStream))
+        {
+            //
+            // TODO: If multiple tapes found, let user select one.
+            //
+
+            // Find the first tape image file in the archive.
+            for (unsigned i = 0; i < archive.GetNumFiles(); i++)
+            {
+                string tapeImageFileName = archive.GetFileName(i);
+                if (StringEndsWith(tapeImageFileName, ".cdt"))
+                {
+                    // Tape image found.
+                    SetTapeFromArchive(archive, archiveFilePath, i, tapeImageFileName);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            KMASSERTM(false, ("Invalid ZIP archive file: '%0'", archiveFilePath.c_str()));
+        }
+    }
+}
+
+void Application::SetTapeFromArchive(kmbZipArchive& archive, const std::string& archiveFilePath, unsigned tapeImageFileIndex, const std::string& tapeImageFileName)
+{
+    // Extract the compressed file.
+    unsigned size = archive.GetUncompressedFileSize(tapeImageFileIndex);
+    char* uncompressedData = new char[size];
+    archive.ExtractFileToMemory(tapeImageFileIndex, uncompressedData, size);
+    // Insert the tape into the emulated machine.
+    kmbMemoryInputStream tapeDataStream;
+    tapeDataStream.Init(uncompressedData, size);
+    InsertTape(tapeDataStream, tapeImageFileName, archiveFilePath);
+    // Clean up.
+    delete[] uncompressedData;
+}
+
+void Application::SetTape(const std::string& tapeImageFileName, const std::string& archiveFilePath)
+{
+    if (archiveFilePath.empty())
+    {
+        // Plain tape image file.
+        SetTapeFromFile(tapeImageFileName);
+    }
+    else
+    {
+        // Compressed tape image file inside an archive.
+        // Open the ZIP file.
+        kmbFileInputStream fileStream;
+        if (fileStream.Init(archiveFilePath))
+        {
+            kmbZipArchive archive;
+            if (archive.Init(fileStream))
+            {
+                // Find the tape image file index.
+                unsigned fileIndex = archive.FindFileByName(tapeImageFileName);
+                if (fileIndex != kmbArchive::InvalidFileIndex)
+                {
+                    SetTapeFromArchive(archive, archiveFilePath, fileIndex, tapeImageFileName);
+                }
+                else
+                {
+                    KMASSERTM(false, ("Compressed tape image file '%0' not found in archive '%1'.", tapeImageFileName.c_str(), archiveFilePath.c_str()));
                 }
             }
             else

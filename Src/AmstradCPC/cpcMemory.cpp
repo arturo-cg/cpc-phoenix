@@ -17,6 +17,12 @@
 
 namespace CPC {
 
+    void MemorySpecifications::Reset()
+    {
+        numAdditionalRamPages = 0;
+        lowerRomFileName.clear();
+        upperRomFileNames.clear();
+    }
 
     //----------------------------------------------------------------------------
     /**

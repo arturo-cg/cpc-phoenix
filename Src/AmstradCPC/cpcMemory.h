@@ -20,6 +20,8 @@ namespace CPC {
         unsigned numAdditionalRamPages;       // How many *additional* 64Kb RAM pages are present. Standard CPC 464 & 664 have none (only the built-in 64KB RAM); standard CPC 6128 has one (128KB in total). RAM expansion devices can be connected to provide additional 64KB pages.
         string lowerRomFileName;              // Lower ROM bank file.
         IntToStringMap upperRomFileNames;     // Upper ROM bank files, indexed by their ROM IDs.
+
+        void Reset();
     };
 
     class CMemoryBlock;

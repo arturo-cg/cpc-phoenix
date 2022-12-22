@@ -79,6 +79,9 @@ public:
     const std::string&        GetDiskImage(unsigned drive) const { return m_diskImages[drive]; }
     const std::string&        GetDiskImageArchive(unsigned drive) const { return m_diskImageArchives[drive]; }
 
+    void                      SetTapeImageAndArchive(const std::string& tapeImageFileName, const std::string& archiveFileName) { m_tapeImage = tapeImageFileName; m_tapeImageArchive = archiveFileName; }
+    const std::string&        GetTapeImage() const { return m_tapeImage; }
+    const std::string&        GetTapeImageArchive() const { return m_tapeImageArchive; }
 
 private:
 
@@ -105,6 +108,8 @@ private:
     SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];
     std::string               m_diskImages[CPC::CMachine::DRIVE_COUNT];
     std::string               m_diskImageArchives[CPC::CMachine::DRIVE_COUNT];
+    std::string               m_tapeImage;
+    std::string               m_tapeImageArchive;
 };
 
 #endif // _SETTINGS_H_

@@ -6,6 +6,7 @@
 #include "cpcMachine.h"
 #include "cpcPpi.h"
 #include "cpcSoundOutput.h"
+#include "cpcTapeDeck.h"
 
 
 
@@ -237,6 +238,15 @@ namespace CPC {
                 // Mix samples from each channel and write the resulting sample to the sound output
                 float fSample;
                 fSample = (fSampleA + fSampleB + fSampleC) / 3.f/*num channels*/;
+
+                // Tape audio.
+                CTapeDeck* tapeDeck = GetMachine()->GetTapeDeck();
+                bool isTapePlaying = (tapeDeck != nullptr) && tapeDeck->IsPlaying();
+                if (isTapePlaying)
+                {
+                    float tapeSample = (tapeDeck->GetDataReadSignal() ? 1.f : -1.f);
+                    fSample = (fSample + tapeSample) / 2.f;
+                }
 
                 GetMachine()->GetSoundOutput()->WriteSample(fSample, fSampleA, fSampleB, fSampleC);
 

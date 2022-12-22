@@ -174,6 +174,8 @@ void Settings::ResetVars()
         m_diskImages[i].clear();
         m_diskImageArchives[i].clear();
     }
+    m_tapeImage.clear();
+    m_tapeImageArchive.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -219,6 +221,8 @@ void Settings::LoadFromFile()
     m_diskImages[1] = settingsMsb["DriveB"]->GetString(m_diskImages[1]);
     m_diskImageArchives[0] = settingsMsb["DriveA_Archive"]->GetString(m_diskImageArchives[0]);
     m_diskImageArchives[1] = settingsMsb["DriveB_Archive"]->GetString(m_diskImageArchives[1]);
+    m_tapeImage = settingsMsb["Tape"]->GetString(m_tapeImage);
+    m_tapeImageArchive = settingsMsb["Tape_Archive"]->GetString(m_tapeImageArchive);
 }
 
 //----------------------------------------------------------------------------
@@ -241,6 +245,8 @@ void Settings::SaveToFile()
     settingsMsb->AddChild("DriveB", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImages[1]));
     settingsMsb->AddChild("DriveA_Archive", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImageArchives[0]));
     settingsMsb->AddChild("DriveB_Archive", kmbMsbManager::Singleton()->CreateStringMsb(m_diskImageArchives[1]));
+    settingsMsb->AddChild("Tape", kmbMsbManager::Singleton()->CreateStringMsb(m_tapeImage));
+    settingsMsb->AddChild("Tape_Archive", kmbMsbManager::Singleton()->CreateStringMsb(m_tapeImageArchive));
     // Write the MSB to file.
     kmbFileOutputStream stream;
     if (stream.Init(SettingsFileName))
@@ -279,5 +285,7 @@ void Settings::RestoreDefaultValues()
         m_diskImages[i].clear();
         m_diskImageArchives[i].clear();
     }
+    m_tapeImage.clear();
+    m_tapeImageArchive.clear();
     ::memcpy(m_aKeyMappings, DEFAULT_KEY_MAPPINGS, sizeof(m_aKeyMappings));
 }

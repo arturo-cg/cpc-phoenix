@@ -75,6 +75,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cpcCdtTape.cpp" />
     <ClCompile Include="cpcCpu.cpp" />
     <ClCompile Include="cpcCpuToCpcInterface.cpp" />
     <ClCompile Include="cpcCrtc.cpp" />
@@ -91,6 +92,8 @@
     <ClCompile Include="cpcPsg.cpp" />
     <ClCompile Include="cpcSoundOutput.cpp" />
     <ClCompile Include="cpcSubSystem.cpp" />
+    <ClCompile Include="cpcTape.cpp" />
+    <ClCompile Include="cpcTapeDeck.cpp" />
     <ClCompile Include="cpcVideoOutput.cpp" />
     <ClCompile Include="Snapshot.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -99,6 +102,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cpcCdtTape.h" />
     <ClInclude Include="cpcCpu.h" />
     <ClInclude Include="cpcCpuInterface.h" />
     <ClInclude Include="cpcCpuToCpcInterface.h" />
@@ -125,6 +129,8 @@
     <ClInclude Include="cpcPsg.h" />
     <ClInclude Include="cpcSoundOutput.h" />
     <ClInclude Include="cpcSubSystem.h" />
+    <ClInclude Include="cpcTape.h" />
+    <ClInclude Include="cpcTapeDeck.h" />
     <ClInclude Include="cpcTypes.h" />
     <ClInclude Include="cpcVideoOutput.h" />
     <ClInclude Include="cpcFdcListener.h" />

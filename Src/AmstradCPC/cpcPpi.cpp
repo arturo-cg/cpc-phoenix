@@ -7,6 +7,7 @@
 #include "cpcPsg.h"
 #include "cpcCrtc.h"
 #include "cpcKeyboard.h"
+#include "cpcTapeDeck.h"
 
 namespace CPC {
 
@@ -134,15 +135,18 @@ namespace CPC {
         KMASSERTM(m_portDirections[PORT_B] == DIRECTION_INPUT, ("Trying to read from PPI port B when it is currently configured as OUTPUT."));
         if (m_portDirections[PORT_B] == DIRECTION_INPUT)
         {
+            bool tapeReadSignal = (GetMachine()->GetTapeDeck() != nullptr ? GetMachine()->GetTapeDeck()->GetDataReadSignal() : false);
+            cpcByte tapeData = (tapeReadSignal ? 1 : 0);
+
             cpcByte nVSyncState;
             nVSyncState = (GetMachine()->GetCrtc()->GetVSyncState() ? 1 : 0);
 
-            nRet = (0 << 7) |     // Bit 7 --> Cassette read data. No cassette emulation for now.
-                (1 << 6) |     // Bit 6 --> Parallel/Printer port ready signal ("1" = not ready, "0" = Ready). No parallel port emulation.
-                (0 << 5) |     // Bit 5 --> Expansion device connected signal. No expansion device emulation.
-                (1 << 4) |     // Bit 4 --> Screen refresh frequency ("1" = 50Hz, "0" = 60Hz).
-                (7 << 1) |     // Bits 3-1 --> Manufacturer name ("7" = Amstrad).
-                (nVSyncState); // Bit 0 --> VSYNC state of VSYNC signal from the CRTC ("1" = VSYNC active, "0" = VSYNC inactive).
+            nRet = (tapeData << 7) |    // Bit 7 --> Cassette read data.
+                   (1 << 6) |           // Bit 6 --> Parallel/Printer port ready signal ("1" = not ready, "0" = Ready). No parallel port emulation.
+                   (0 << 5) |           // Bit 5 --> Expansion device connected signal. No expansion device emulation.
+                   (1 << 4) |           // Bit 4 --> Screen refresh frequency ("1" = 50Hz, "0" = 60Hz).
+                   (7 << 1) |           // Bits 3-1 --> Manufacturer name ("7" = Amstrad).
+                   (nVSyncState);       // Bit 0 --> VSYNC state of VSYNC signal from the CRTC ("1" = VSYNC active, "0" = VSYNC inactive).
         }
 
         return nRet;
@@ -188,7 +192,12 @@ namespace CPC {
 
             // Bit 5 --> Cassette Write data
             // Bit 4 --> Cassette Motor control
-            // TODO
+            CTapeDeck* tapeDeck = GetMachine()->GetTapeDeck();
+            if (tapeDeck != nullptr)
+            {
+                tapeDeck->SetMotorOn((nValue & 0x10) != 0 ? true : false);
+                tapeDeck->SetDataWriteSignal((nValue & 0x20) != 0 ? true : false);
+            }
         }
 
         if (m_portDirections[PORT_C_LOWER] == DIRECTION_OUTPUT)

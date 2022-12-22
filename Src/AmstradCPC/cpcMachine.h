@@ -22,6 +22,7 @@ namespace CPC {
     class CKeyboard;
     class CKeyStateProvider;
     class CDiskDrive;
+    class CTapeDeck;
     class CVideoOutput;
     class CSoundOutput;
     class Snapshot;
@@ -29,7 +30,10 @@ namespace CPC {
     struct MachineSpecifications
     {
         //unsigned numDiskDrives;       // TODO - Number of disk drives connected to the machine.
+        bool tapeDeck;                  // Does it have a tape deck?
         MemorySpecifications memorySpecifications;   // Memory specifications (number of additional 64KB RAM pages, ROM banks that are present).
+
+        void Reset();
     };
 
 
@@ -74,6 +78,9 @@ namespace CPC {
         /** Returns the specified disk drive. */
         CDiskDrive*             GetDiskDrive(unsigned nDrive) { return (nDrive < DRIVE_COUNT ? m_pDiskDrives[nDrive] : NULL); }
         const CDiskDrive*       GetDiskDrive(unsigned nDrive) const { return (nDrive < DRIVE_COUNT ? m_pDiskDrives[nDrive] : NULL); }
+        /** Returns the tape deck, or nullptr if none is connected to the machine. */
+        CTapeDeck*              GetTapeDeck() { return m_tapeDeck; }
+        const CTapeDeck*        GetTapeDeck() const { return m_tapeDeck; }
         /** Sets the video output subsystem, or removes it if NULL is specified. This object is created and destroyed by the front-end. */
         void                    SetVideoOutput(CVideoOutput* pVideoOutput) { m_pVideoOutput = pVideoOutput; }
         /** Returns the video output subsystem. */
@@ -126,6 +133,7 @@ namespace CPC {
         CFdc*                   m_pFdc;
         CKeyboard*              m_pKeyboard;
         CDiskDrive*             m_pDiskDrives[DRIVE_COUNT];
+        CTapeDeck*              m_tapeDeck;
         CVideoOutput*           m_pVideoOutput;
         CSoundOutput*           m_pSoundOutput;
 

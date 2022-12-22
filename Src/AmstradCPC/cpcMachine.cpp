@@ -14,6 +14,7 @@
 #include "cpcFdc.h"
 #include "cpcKeyboard.h"
 #include "cpcDiskDrive.h"
+#include "cpcTapeDeck.h"
 #include "cpcVideoOutput.h"
 #include "cpcSoundOutput.h"
 #include "Stream/kmbMemoryInputStream.h"
@@ -21,7 +22,11 @@
 
 namespace CPC {
 
-
+    void CPC::MachineSpecifications::Reset()
+    {
+        tapeDeck = false;
+        memorySpecifications.Reset();
+    }
 
     //----------------------------------------------------------------------------
     /**
@@ -44,6 +49,7 @@ namespace CPC {
         m_pKeyboard = new CKeyboard(this, pKeyStateProvider);
         m_pDiskDrives[0] = new CDiskDrive(this);
         m_pDiskDrives[1] = new CDiskDrive(this);
+        m_tapeDeck = (machineSpecifications.tapeDeck ? new CTapeDeck(this) : nullptr);
         m_pVideoOutput = NULL;       // This object is provided by the front-end
         m_pSoundOutput = NULL;       // This object is provided by the front-end
 
@@ -83,6 +89,7 @@ namespace CPC {
         m_pKeyboard = NULL;
         m_pDiskDrives[0] = NULL;
         m_pDiskDrives[1] = NULL;
+        m_tapeDeck = nullptr;
         m_pVideoOutput = NULL;
         m_pSoundOutput = NULL;
         m_accumulated4MhzCycles = 0;
@@ -95,6 +102,7 @@ namespace CPC {
     */
     void CMachine::FreeVars()
     {
+        delete m_tapeDeck; m_tapeDeck = nullptr;
         delete m_pDiskDrives[1]; m_pDiskDrives[1] = NULL;
         delete m_pDiskDrives[0]; m_pDiskDrives[0] = NULL;
         delete m_pKeyboard; m_pKeyboard = NULL;
@@ -178,6 +186,12 @@ namespace CPC {
         {
             // CPU (4Mhz clock)
             GetCpu()->Run(1);
+
+            // Tape (4Mhz clock)
+            if (GetTapeDeck() != nullptr)
+            {
+                GetTapeDeck()->Run(1);
+            }
 
             // Time for a 1Mhz cycle?
             // 1Mhz cycle every 4th 4Mhz cycle.
@@ -269,7 +283,10 @@ namespace CPC {
     {
         KMASSERT(outSpecifications != nullptr);     // The outSpecifications parameter must point to a valid instance of Specifications.
 
-                                                    // Memory specifications.
+        outSpecifications->Reset();
+        outSpecifications->tapeDeck = true;
+
+        // Memory specifications.
         MemorySpecifications* memorySpecifications = &outSpecifications->memorySpecifications;
         memorySpecifications->numAdditionalRamPages = 0;            // Additional 64KB RAM pages: none, it only has the built-in 64KB RAM.
         memorySpecifications->lowerRomFileName = "OS_464.ROM";      // Lower ROM bank: Firmware v1
@@ -287,7 +304,10 @@ namespace CPC {
     {
         KMASSERT(outSpecifications != nullptr);     // The outSpecifications parameter must point to a valid instance of Specifications.
 
-                                                    // Memory specifications.
+        outSpecifications->Reset();
+        outSpecifications->tapeDeck = false;
+
+        // Memory specifications.
         MemorySpecifications* memorySpecifications = &outSpecifications->memorySpecifications;
         memorySpecifications->numAdditionalRamPages = 0;            // Additional 64KB RAM pages: none, it only has the built-in 64KB RAM.
         memorySpecifications->lowerRomFileName = "OS_664.ROM";      // Lower ROM bank: Firmware v2
@@ -305,7 +325,10 @@ namespace CPC {
     {
         KMASSERT(outSpecifications != nullptr);     // The outSpecifications parameter must point to a valid instance of Specifications.
 
-                                                    // Memory specifications.
+        outSpecifications->Reset();
+        outSpecifications->tapeDeck = false;
+
+        // Memory specifications.
         MemorySpecifications* memorySpecifications = &outSpecifications->memorySpecifications;
         memorySpecifications->numAdditionalRamPages = 1;            // Additional 64KB RAM pages: one, built-in 64KB + 64KB RAM expansion (128KB in total).
         memorySpecifications->lowerRomFileName = "OS_6128.ROM";     // Lower ROM bank: Firmware v3
