@@ -87,7 +87,7 @@ namespace CPC {
         CVideoOutput*           GetVideoOutput() { return m_pVideoOutput; }
         const CVideoOutput*     GetVideoOutput() const { return m_pVideoOutput; }
         /** Sets the sound output subsystem, or removes it if NULL is specified. This object is created and destroyed by the front-end. */
-        void                    SetSoundOutput(CSoundOutput* pSoundOutput) { m_pSoundOutput = pSoundOutput; }
+        void                    SetSoundOutput(CSoundOutput* pSoundOutput);
         /** Returns the sound output subsystem. */
         CSoundOutput*           GetSoundOutput() { return m_pSoundOutput; }
         const CSoundOutput*     GetSoundOutput() const { return m_pSoundOutput; }

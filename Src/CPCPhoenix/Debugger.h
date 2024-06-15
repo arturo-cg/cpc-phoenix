@@ -80,6 +80,8 @@ private:
     void DrawCrtc();
     void DrawGateArray();
     void DrawMonitor();
+    void DrawPsg();
+    void GetPsgChannelAmplitudeString(int channel, std::stringstream* amplitudeString) const;
     void DrawFdc();
     void DrawDiskDrive(unsigned driveNumber, const char* imguiChildName, float contentRegionAvailProportion);
 

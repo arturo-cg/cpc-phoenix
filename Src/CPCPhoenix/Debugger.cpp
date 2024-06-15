@@ -2,6 +2,7 @@
 //------------------------------------------------------------------------------
 
 #include "stdafx.h"
+#include <sstream>
 #include "Debugger.h"
 #include "Application.h"
 #include "TextureVideoOutput.h"
@@ -412,6 +413,11 @@ void Debugger::DrawSystem()
         DrawMonitor();
     }
 
+    if (ImGui::CollapsingHeader("PSG", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        DrawPsg();
+    }
+
     if (ImGui::CollapsingHeader("FDC", ImGuiTreeNodeFlags_DefaultOpen))
     {
         DrawFdc();
@@ -491,6 +497,56 @@ void Debugger::DrawMonitor()
 
     ImGui::Checkbox("Show Beam", &m_showMonitorBeam);
     ImGui::Text("Beam: %d,%d", monitor->GetBeamX(), monitor->GetBeamY());
+}
+
+void Debugger::DrawPsg()
+{
+    const CPC::CPsg* psg = m_machine->GetPsg();
+
+    std::stringstream mixerInfo;
+    mixerInfo << "Mixer\n\n";
+    mixerInfo << "Tone enabled: ";
+    for (int channel = 0; channel < 3; channel++)
+    {
+        mixerInfo << (psg->IsChannelToneEnabled(channel) ? char('A' + channel) : '-');
+    }
+    mixerInfo << "\n";
+    mixerInfo << "Noise enabled: ";
+    for (int channel = 0; channel < 3; channel++)
+    {
+        mixerInfo << (psg->IsChannelNoiseEnabled(channel) ? char('A' + channel) : '-');
+    }
+
+    DrawUnsignedWord("R0|R1", (psg->GetRegisterValue(CPC::CPsg::REG_A_TONE_PERIOD_HIGH) << 8) | psg->GetRegisterValue(CPC::CPsg::REG_A_TONE_PERIOD_LOW), true, "Channel A tone period = %d", psg->GetChannelTonePeriod(0)); ImGui::SameLine();
+    DrawUnsignedWord("R2|R3", (psg->GetRegisterValue(CPC::CPsg::REG_B_TONE_PERIOD_HIGH) << 8) | psg->GetRegisterValue(CPC::CPsg::REG_B_TONE_PERIOD_LOW), true, "Channel B tone period = %d", psg->GetChannelTonePeriod(1)); ImGui::SameLine();
+    DrawUnsignedWord("R4|R5", (psg->GetRegisterValue(CPC::CPsg::REG_C_TONE_PERIOD_HIGH) << 8) | psg->GetRegisterValue(CPC::CPsg::REG_C_TONE_PERIOD_LOW), true, "Channel C tone period = %d", psg->GetChannelTonePeriod(2)); ImGui::SameLine();
+    DrawUnsignedByte("R6", psg->GetRegisterValue(CPC::CPsg::REG_NOISE_PERIOD), true, "Noise period = %d", psg->GetNoisePeriod()); ImGui::SameLine();
+    DrawUnsignedByte("R7", psg->GetRegisterValue(CPC::CPsg::REG_MIXER), true, mixerInfo.str().c_str()); ImGui::SameLine();
+    std::stringstream channelAmplitude;
+    GetPsgChannelAmplitudeString(0, &channelAmplitude);
+    DrawUnsignedByte("R8", psg->GetRegisterValue(CPC::CPsg::REG_A_AMPLITUDE), true, "Channel A amplitude = %s", channelAmplitude.str().c_str()); ImGui::SameLine();
+    GetPsgChannelAmplitudeString(1, &channelAmplitude);
+    DrawUnsignedByte("R9", psg->GetRegisterValue(CPC::CPsg::REG_B_AMPLITUDE), true, "Channel B amplitude = %s", channelAmplitude.str().c_str()); ImGui::SameLine();
+    GetPsgChannelAmplitudeString(2, &channelAmplitude);
+    DrawUnsignedByte("R10", psg->GetRegisterValue(CPC::CPsg::REG_C_AMPLITUDE), true, "Channel C amplitude = %s", channelAmplitude.str().c_str()); ImGui::SameLine();
+    DrawUnsignedWord("R11|R12", (psg->GetRegisterValue(CPC::CPsg::REG_ENVELOPE_PERIOD_HIGH) << 8) | psg->GetRegisterValue(CPC::CPsg::REG_ENVELOPE_PERIOD_LOW), true, "Envelope period = %d", psg->GetEnvelopePeriod()); ImGui::SameLine();
+    DrawUnsignedByte("R13", psg->GetRegisterValue(CPC::CPsg::REG_ENVELOPE_SHAPE), true, "Envelope shape"); /*ImGui::SameLine();*/
+}
+
+void Debugger::GetPsgChannelAmplitudeString(int channel, std::stringstream* amplitudeString) const
+{
+    amplitudeString->str("");
+    amplitudeString->clear();
+
+    const CPC::CPsg* psg = m_machine->GetPsg();
+    if (psg->IsChannelAmplitudeControlledByEnvelope(channel))
+    {
+        *amplitudeString << "Envelope";
+    }
+    else
+    {
+        *amplitudeString << psg->GetChannelConstantAmplitude(channel);
+    }
 }
 
 void Debugger::DrawFdc()

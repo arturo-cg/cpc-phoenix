@@ -63,65 +63,112 @@ namespace CPC {
 
 
         CPsg(CMachine* pMachine);
-        virtual                ~CPsg() { FreeVars(); }
+        virtual ~CPsg() { FreeVars(); }
 
         /** Resets the subsystem. */
-        virtual void            Reset();
+        virtual void Reset();
 
         /** Takes a snapshot of the current state of the device. */
-        void                    TakeSnapshot(Snapshot* snapshot) const;
+        void TakeSnapshot(Snapshot* snapshot) const;
         /** Applies the values from the specified snaphot. */
-        void                    ApplySnapshot(const Snapshot& snapshot);
+        void ApplySnapshot(const Snapshot& snapshot);
 
         /** Selects the PSG function to perform. */
-        void                    SelectFunction(EFunction eFunction);
+        void SelectFunction(EFunction eFunction);
 
-        /** Writes a new value into the specified register.
+        /** Writes a new value into the IO port register.
         *** This is used by CKeyboard each time a new keyboard matrix line is selected or a key is pressed or released. */
-        void                    SetRegisterValue(ERegister eRegister, cpcByte nValue) { m_anRegisters[eRegister] = nValue; }
-        /** Writes a new value into the currently selected register. */
-        void                    SetSelectedRegisterValue(cpcByte nValue) { m_anRegisters[m_eSelectedRegister] = nValue; }
+        void SetIOPortRegisterValue(cpcByte nValue) { m_anRegisters[REG_IO_PORT] = nValue; }
         /** Returns the value of the currently selected value. */
-        cpcByte                 GetSelectedRegisterValue() const { return m_anRegisters[m_eSelectedRegister]; }
+        cpcByte GetRegisterValue(ERegister reg) const { return m_anRegisters[reg]; }
+        /** Returns the value of the currently selected value. */
+        cpcByte GetSelectedRegisterValue() const { return m_anRegisters[m_eSelectedRegister]; }
 
-        /** Enables or disables (aka mutes) the specified channel. This is an emulator feature, it doesn't represent a hardware feature. */
-        void                    SetChannelEnabled(int channelIndex, bool enabled) { if ((channelIndex >= 0) && (channelIndex < 3)) { m_channelEnabled[channelIndex] = enabled; } }
-        bool                    IsChannelEnabled(int channelIndex) const { return ((channelIndex >= 0) && (channelIndex < 3)) ? m_channelEnabled[channelIndex] : false; }
+        /** Returns the current analog output for the specfied channel in the range [0, 1]. */
+        float GetChannelOutput(int channel) const;
+
+        /** Utility functions. */
+        uint32_t GetChannelTonePeriod(int channel) const;
+        uint32_t GetNoisePeriod() const;
+        uint32_t GetEnvelopePeriod() const;
+        bool IsChannelToneEnabled(int channel) const;
+        bool IsChannelNoiseEnabled(int channel) const;
+        bool IsChannelAmplitudeControlledByEnvelope(int channel) const;
+        uint32_t GetChannelConstantAmplitude(int channel) const;
 
         /** Runs the PSG for the given number of cycles. */
-        void                    Run(unsigned nNumCycles);
+        void Run(unsigned nNumCycles);
 
 
     private:
 
-        typedef                 CSubSystem                inherited;
+        using inherited = CSubSystem;
 
-        static const float      CYCLES_PER_SAMPLE;        // Every how many cycles we need to generate a sample (chip_clock/sample_rate = 1Mhz/44.1kHz).
-        static const float      ANGLE_INC_PER_SAMPLE;     // Angle increment at every sample.
-
-        enum EGenerateSampleFlags
+        struct ToneGenerator
         {
-            GENSAMPLE_TONE_ENABLED = 0x01,      // Mix tone wave in.
-            GENSAMPLE_NOISE_ENABLED = 0x02,     // Min noise wave in.
-            GENSAMPLE_USE_ENVELOPE = 0x04,      // Amplitude is controlled by the envelope.
+            uint32_t programmedCount;
+            uint32_t counter;
+            bool state;
+
+            void Reset();
+            void SetPeriod(uint32_t period);
+            void Tick();
         };
 
+        struct NoiseGenerator
+        {
+            uint32_t programmedCount;
+            uint32_t counter;
+            uint32_t shiftRegister;
+            bool state;
 
-        void                    ResetVars();
-        void                    FreeVars();
+            void Reset();
+            void SetPeriod(uint32_t period);
+            void Tick();
+        };
 
-        float                   GenerateNoiseSample();
-        float                   GenerateChannelSample(unsigned nRegToneLow, unsigned nRegToneHigh, unsigned nRegAmplitude, unsigned nMixerOffset, float fNoiseSample);
-        float                   GenerateSample(unsigned nTonePeriod, unsigned nFixedAmplitude, float fNoiseSample, int/*EGenerateSampleFlags*/ nFlags);
+        enum class EnvelopeCycle
+        {
+            ConstantLow,
+            ConstantHigh,
+            LowToHigh,
+            HighToLow
+        };
 
+        struct Envelope
+        {
+            EnvelopeCycle cycles[2];        // First two cycles.
+            bool repeatBothCycles;          // If true, both cycles are repeated indefinitely (0-1-0-1-0-1-0-1); if false, only the second cycle is repeated (0-1-1-1-1-1-1-1).
+        };
 
-        ERegister               m_eSelectedRegister;
-        cpcByte                 m_anRegisters[REG_COUNT];
+        struct EnvelopeGenerator
+        {
+            uint32_t programmedCount;
+            uint32_t counter;
+            uint8_t cycle;                  // Always 0 or 1.
+            uint8_t amplitude;              // Current amplitude [0-15].
 
-        float                   m_fAccumCycles;           // Used to determine when to compute a new sound sample.
-        float                   m_fAngle;
+            void Reset();
+            void SetPeriod(uint32_t period);
+            void Tick(const Envelope& selectedEnvelope);
+        };
 
-        bool                    m_channelEnabled[3];      // 0 = channel A, 1 = channel B, 2 = channel C.
+        void ResetVars();
+        void FreeVars();
+
+        void WriteRegister(ERegister reg, cpcByte value);
+
+        // Ticks the channel's tone generator, mixes tone and noise, applies amplitude and generates the analog output for the channel.
+        void UpdateChannel(int channel);
+
+        ERegister m_eSelectedRegister;
+        cpcByte m_anRegisters[REG_COUNT];
+
+        ToneGenerator m_toneGenerator[3];
+        NoiseGenerator m_noiseGenerator;
+        static const Envelope Envelopes[16];
+        EnvelopeGenerator m_envelopeGenerator;
+        float m_channelOutputs[3];      // Analog outputs.
     };
 
 

@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "SoundAnalyzer.h"
 #include "Application.h"
-#include "cpcPsg.h"
+#include "cpcSoundOutput.h"
 
 bool SoundAnalyzer::Init()
 {
@@ -119,15 +119,15 @@ void SoundAnalyzer::DrawGui()
 
 void SoundAnalyzer::DrawChannel(const char* label, int channelIndex, float* samples, ImVec2 graphSize)
 {
-    CPC::CPsg* psg = Application::Singleton()->GetEmulatedMachine()->GetPsg();
-    bool channelEnabled = psg->IsChannelEnabled(channelIndex);
+    CPC::CSoundOutput* soundOutput = Application::Singleton()->GetEmulatedMachine()->GetSoundOutput();
+    bool channelEnabled = soundOutput->IsChannelEnabled(channelIndex);
     string checkboxId = string("##Enable_") + string(label);
     ImGui::Checkbox(checkboxId.c_str(), &channelEnabled);
     ImGui::SameLine();
     ImGui::PlotLines(label, samples, NumSamples, m_nextPosition, nullptr/*overlay_text*/, -1.f, 1.f, graphSize, 4/*stride*/);
 
-    if (channelEnabled != psg->IsChannelEnabled(channelIndex))
+    if (channelEnabled != soundOutput->IsChannelEnabled(channelIndex))
     {
-        psg->SetChannelEnabled(channelIndex, channelEnabled);
+        soundOutput->SetChannelEnabled(channelIndex, channelEnabled);
     }
 }

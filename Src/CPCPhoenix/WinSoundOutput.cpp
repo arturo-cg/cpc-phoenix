@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 #include "WinSoundOutput.h"
+#include "cpcMachine.h"
+#include "cpcTapeDeck.h"
 #include "File/kmbFile.h"
 
 
@@ -42,6 +44,8 @@ void CALLBACK WinSoundOutput_waveOutProc(HWAVEOUT hDevice, UINT uMsg, DWORD_PTR 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+
+/*static*/ const float CWinSoundOutput::CYCLES_PER_SAMPLE = 1000000.f / 44100.f;  // chip_clock/sample_rate = 1Mhz/44.1kHz = 22.675737
 
 
 //----------------------------------------------------------------------------
@@ -154,6 +158,7 @@ void CWinSoundOutput::ResetVars()
     m_nCurrBlock = 0;
     m_nCurrPos = 0;
     m_pRecordFile = NULL;
+    m_accumCycles = 0.f;
 }
 
 //----------------------------------------------------------------------------
@@ -239,7 +244,7 @@ void CWinSoundOutput::DestroySoundBlocks()
 /**
 **
 */
-void CWinSoundOutput::WriteSample(float sampleMixed, float sampleChannelA, float sampleChannelB, float sampleChannelC)
+void CWinSoundOutput::WriteSample(float sampleMixed)
 {
     SSoundBlock& writeBlock = m_soundBlocks[m_nCurrBlock];
 
@@ -265,12 +270,6 @@ void CWinSoundOutput::WriteSample(float sampleMixed, float sampleChannelA, float
             m_nCurrBlock = (m_nCurrBlock + 1) % NUM_BLOCKS;
             m_nCurrPos = 0;
         }
-    }
-
-    // Pass the sample to the listener, if any.
-    if (m_listener != nullptr)
-    {
-        m_listener->OnNewSoundSample(sampleMixed, sampleChannelA, sampleChannelB, sampleChannelC);
     }
 
     // If recording is active, write the sample to the file
@@ -380,5 +379,51 @@ void CWinSoundOutput::StopRecording()
         m_pRecordFile->Close();
         delete m_pRecordFile;
         m_pRecordFile = NULL;
+    }
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+void CWinSoundOutput::Run(unsigned numCycles)
+{
+    if (GetMachine() != nullptr)
+    {
+        m_accumCycles += (float)numCycles;
+
+        while (m_accumCycles >= CYCLES_PER_SAMPLE)
+        {
+            // Mix samples from the PSG channels.
+            CPC::CPsg* psg = GetMachine()->GetPsg();
+            float sample = 0.f;
+            for (int i = 0; i < 3; i++)
+            {
+                sample += IsChannelEnabled(i) ? psg->GetChannelOutput(i) : 0.f;
+            }
+            sample /= 3.f/*num channels*/;
+            sample = (sample * 2.f) - 1.f;    // Transform sample range from [0, 1] to [-1, 1].
+
+            // Mix tape audio in.
+            CPC::CTapeDeck* tapeDeck = GetMachine()->GetTapeDeck();
+            bool isTapePlaying = (tapeDeck != nullptr) && tapeDeck->IsPlaying();
+            if (isTapePlaying)
+            {
+                float tapeSample = (tapeDeck->GetDataReadSignal() ? 1.f : -1.f);
+                sample = (sample + tapeSample) / 2.f;
+            }
+
+            // Send the sample to the host audio system.
+            WriteSample(sample);
+
+            // Update cycle accumulator.
+            m_accumCycles -= CYCLES_PER_SAMPLE;
+
+            // Pass the sample to the listener, if any.
+            if (m_listener != nullptr)
+            {
+                m_listener->OnNewSoundSample(sample, (psg->GetChannelOutput(0) * 2.f) - 1.f, (psg->GetChannelOutput(1) * 2.f) - 1.f, (psg->GetChannelOutput(2) * 2.f) - 1.f);
+            }
+        }
     }
 }

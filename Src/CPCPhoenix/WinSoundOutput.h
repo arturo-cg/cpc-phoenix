@@ -37,9 +37,6 @@ public:
     /** Called by the emulator when the emulated machine is reset. */
     virtual void            Reset();
 
-    /** From CPC::CSoundOutput */
-    virtual void            WriteSample(float sampleMixed, float sampleChannelA, float sampleChannelB, float sampleChannelC) override;
-
     /** Sets the volume of the sound sent to the device. Range [0,1]. */
     void                    SetVolume(float fVolume) { m_linearVolume = fVolume; m_exponentialVolume = ComputeExponentialVolumeFromLinear(m_linearVolume); }
     /** Gets the volume of the sound sent to the device. Range [0,1]. */
@@ -55,12 +52,19 @@ public:
     void                     SetListener(IWinSoundOutputListener* listener) { m_listener = listener; }
     IWinSoundOutputListener* GetListener() const { return m_listener; }
 
+    /** From CPC::CSoundOutput */
+    virtual void            Run(unsigned numCycles) override;
+
 private:
+
+    using inherited = CPC::CSoundOutput;
 
     static const unsigned   BYTES_PER_SAMPLE = 2;                         // 8-bit samples
 
     static const unsigned   NUM_BLOCKS = 3;                               // Triple buffer
     static const unsigned   SAMPLES_PER_BLOCK = SAMPLES_PER_SEC / 20;     // 50 ms of sound data per block
+
+    static const float      CYCLES_PER_SAMPLE;        // Every how many cycles we need to generate a sample (chip_clock/sample_rate = 1Mhz/44.1kHz).
 
     struct SSoundBlock
     {
@@ -100,6 +104,8 @@ private:
     void                    CreateSoundBlocks();
     void                    DestroySoundBlocks();
 
+    void                    WriteSample(float sampleMixed);
+
     void                    SendSoundBlockToDevice(SSoundBlock* pBlock);
 
     float                   ComputeExponentialVolumeFromLinear(float linearVolume) const;
@@ -117,6 +123,7 @@ private:
     kmbFile*                m_pRecordFile;
     unsigned                m_nRecordedSampleCount;
 
+    float                   m_accumCycles;           // Used to determine when to write a new sample.
 };
 
 #endif // _WINSOUNDOUTPUT_H_

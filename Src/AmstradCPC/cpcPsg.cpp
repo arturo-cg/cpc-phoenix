@@ -6,19 +6,28 @@
 #include "cpcMachine.h"
 #include "cpcPpi.h"
 #include "cpcSoundOutput.h"
-#include "cpcTapeDeck.h"
-
-
-
-static const float PI = 3.1415926535897932384626433832795f;
-
-/*static*/ const float CPC::CPsg::CYCLES_PER_SAMPLE = 1000000.f / 44100.f;  // chip_clock/sample_rate = 1Mhz/44.1kHz = 22.675737
-/*static*/ const float CPC::CPsg::ANGLE_INC_PER_SAMPLE = (2.f * PI) / 44100.f;
-
 
 
 namespace CPC {
 
+    /*static*/ const CPsg::Envelope CPsg::Envelopes[16] = {
+        /*  0 */ { { EnvelopeCycle::HighToLow, EnvelopeCycle::ConstantLow }, false },
+        /*  1 */ { { EnvelopeCycle::HighToLow, EnvelopeCycle::ConstantLow }, false },
+        /*  2 */ { { EnvelopeCycle::HighToLow, EnvelopeCycle::ConstantLow }, false },
+        /*  3 */ { { EnvelopeCycle::HighToLow, EnvelopeCycle::ConstantLow }, false },
+        /*  4 */ { { EnvelopeCycle::LowToHigh, EnvelopeCycle::ConstantLow }, false },
+        /*  5 */ { { EnvelopeCycle::LowToHigh, EnvelopeCycle::ConstantLow }, false },
+        /*  6 */ { { EnvelopeCycle::LowToHigh, EnvelopeCycle::ConstantLow }, false },
+        /*  7 */ { { EnvelopeCycle::LowToHigh, EnvelopeCycle::ConstantLow }, false },
+        /*  8 */ { { EnvelopeCycle::HighToLow, EnvelopeCycle::HighToLow }, false },
+        /*  9 */ { { EnvelopeCycle::HighToLow, EnvelopeCycle::ConstantLow }, false },
+        /* 10 */ { { EnvelopeCycle::HighToLow, EnvelopeCycle::LowToHigh }, true },
+        /* 11 */ { { EnvelopeCycle::HighToLow, EnvelopeCycle::ConstantHigh }, false },
+        /* 12 */ { { EnvelopeCycle::LowToHigh, EnvelopeCycle::LowToHigh }, false },
+        /* 13 */ { { EnvelopeCycle::LowToHigh, EnvelopeCycle::ConstantHigh }, false },
+        /* 14 */ { { EnvelopeCycle::LowToHigh, EnvelopeCycle::HighToLow }, true },
+        /* 15 */ { { EnvelopeCycle::LowToHigh, EnvelopeCycle::ConstantLow }, false },
+    };
 
     //----------------------------------------------------------------------------
     /**
@@ -40,11 +49,14 @@ namespace CPC {
     {
         m_eSelectedRegister = REG_A_TONE_PERIOD_LOW;
         memset(m_anRegisters, 0, sizeof(m_anRegisters));
-        m_fAccumCycles = 0.f;
-        m_fAngle = 0.f;
-        m_channelEnabled[0] = true;
-        m_channelEnabled[1] = true;
-        m_channelEnabled[2] = true;
+
+        m_noiseGenerator.Reset();
+        m_envelopeGenerator.Reset();
+        for (int i = 0; i < 3; i++)
+        {
+            m_toneGenerator[i].Reset();
+            m_channelOutputs[i] = 0.f;
+        }
     }
 
     //----------------------------------------------------------------------------
@@ -82,7 +94,18 @@ namespace CPC {
     void CPsg::ApplySnapshot(const Snapshot& snapshot)
     {
         m_eSelectedRegister = snapshot.selectedRegister;
+        // Update registers.
         std::copy(std::begin(snapshot.registers), std::end(snapshot.registers), std::begin(m_anRegisters));
+        // Update generators.
+        WriteRegister(REG_A_TONE_PERIOD_LOW, m_anRegisters[REG_A_TONE_PERIOD_LOW]);
+        WriteRegister(REG_A_TONE_PERIOD_HIGH, m_anRegisters[REG_A_TONE_PERIOD_HIGH]);
+        WriteRegister(REG_B_TONE_PERIOD_LOW, m_anRegisters[REG_B_TONE_PERIOD_LOW]);
+        WriteRegister(REG_B_TONE_PERIOD_HIGH, m_anRegisters[REG_B_TONE_PERIOD_HIGH]);
+        WriteRegister(REG_C_TONE_PERIOD_LOW, m_anRegisters[REG_C_TONE_PERIOD_LOW]);
+        WriteRegister(REG_C_TONE_PERIOD_HIGH, m_anRegisters[REG_C_TONE_PERIOD_HIGH]);
+        WriteRegister(REG_NOISE_PERIOD, m_anRegisters[REG_NOISE_PERIOD]);
+        WriteRegister(REG_ENVELOPE_PERIOD_LOW, m_anRegisters[REG_ENVELOPE_PERIOD_LOW]);
+        WriteRegister(REG_ENVELOPE_PERIOD_HIGH, m_anRegisters[REG_ENVELOPE_PERIOD_HIGH]);
     }
 
     //----------------------------------------------------------------------------
@@ -103,12 +126,13 @@ namespace CPC {
 
             case FUNCTION_WRITE_REGISTER:
                 // We take the value from PPI port A and write it to the currently selected PSG register.
-                m_anRegisters[m_eSelectedRegister] = GetMachine()->GetPpi()->GetPortOutputValue(CPpi::PORT_A);
+                WriteRegister(m_eSelectedRegister, GetMachine()->GetPpi()->GetPortOutputValue(CPpi::PORT_A));
                 break;
 
             case FUNCTION_SELECT_REGISTER:
                 // We take the register index from PPI port A and remember it for subsequent register reads/writes.
                 m_eSelectedRegister = (ERegister)(GetMachine()->GetPpi()->GetPortOutputValue(CPpi::PORT_A) & 0x0F);   // Bits 3-0 of PPI port A value contain the register index.
+                break;
         }
     }
 
@@ -116,99 +140,151 @@ namespace CPC {
     /**
     **
     */
-    float CPsg::GenerateNoiseSample()
+    void CPC::CPsg::WriteRegister(ERegister reg, cpcByte value)
     {
-        unsigned nNoisePeriod = m_anRegisters[REG_NOISE_PERIOD] & 0x1F;
-        float fNoisePeriod = (nNoisePeriod != 0 ? float(nNoisePeriod) : 1.f);
-        float fFrequency = 1000000.f / (16.f * fNoisePeriod);                   // Formula from manufacturer's chip datasheet.
-        float fRet = ::sinf(fFrequency * m_fAngle) +                            // Base wave.
-                     ((float(rand()) / float(RAND_MAX >> 1)) - 1.f) * 1.f/*noise amplitude*/;         // Add noise.
-        fRet = (fRet < 0.f ? -1.f : 1.f);                                       // Convert to square wave
-        return fRet;
+        // Store the value in the register.
+        m_anRegisters[reg] = value;
+
+        // Update the corresponding generator, if needed.
+        switch (reg)
+        {
+            case REG_A_TONE_PERIOD_LOW:
+            case REG_A_TONE_PERIOD_HIGH:
+            case REG_B_TONE_PERIOD_LOW:
+            case REG_B_TONE_PERIOD_HIGH:
+            case REG_C_TONE_PERIOD_LOW:
+            case REG_C_TONE_PERIOD_HIGH:
+            {
+                int registerLow = (reg & 0xFE);
+                cpcWord period = ((m_anRegisters[registerLow + 1] & 0x0F) << 8) | m_anRegisters[registerLow];
+                int channel = (reg >> 1);
+                m_toneGenerator[channel].SetPeriod(period);
+                break;
+            }
+            case REG_NOISE_PERIOD:
+            {
+                m_noiseGenerator.SetPeriod(m_anRegisters[REG_NOISE_PERIOD] & 0x1F);
+                break;
+            }
+            case REG_ENVELOPE_PERIOD_LOW:
+            case REG_ENVELOPE_PERIOD_HIGH:
+            {
+                uint32_t period = (m_anRegisters[REG_ENVELOPE_PERIOD_HIGH] << 8) | m_anRegisters[REG_ENVELOPE_PERIOD_LOW];
+                m_envelopeGenerator.SetPeriod(period);
+                break;
+            }
+        }
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    float CPsg::GenerateSample(unsigned nTonePeriod, unsigned nFixedAmplitude, float fNoiseSample, int/*EGenerateSampleFlags*/ nFlags)
+    void CPsg::UpdateChannel(int channel)
     {
-        float fRet = 0.f;
+        bool toneEnabled = (m_anRegisters[REG_MIXER] & (0x01 << channel)) == 0;
+        bool noiseEnabled = (m_anRegisters[REG_MIXER] & (0x08 << channel)) == 0;
 
-        // Tone
-        if (nFlags & GENSAMPLE_TONE_ENABLED)
+        // Mix tone and noise.
+        bool mixedState;
+        if (toneEnabled && noiseEnabled)    // Tone and noise enabled.
         {
-            float fTonePeriod = float(nTonePeriod != 0 ? nTonePeriod : 1);
-            float fFrequency = 1000000.f / (16.f * fTonePeriod);                          // Formula from manufacturer's chip datasheet.
-
-            fRet = ::sinf(fFrequency * m_fAngle);
-            fRet = (fRet < 0.f ? -1.f : 1.f);     // Convert to square wave
+            // Both generator states are ANDed together.
+            mixedState = m_toneGenerator[channel].state && m_noiseGenerator.state;
+        }
+        else if (toneEnabled)               // Only tone enabled.
+        {
+            mixedState = m_toneGenerator[channel].state;
+        }
+        else if (noiseEnabled)              // Only noise enabled.
+        {
+            mixedState = m_noiseGenerator.state;
+        }
+        else                                // Tone and noise disabled.
+        {
+            // Output is set to high. Some software uses this in combination with amplitude control to play digitized sound.
+            mixedState = true;
         }
 
-        // Mix tone and noise
-        if ((nFlags & GENSAMPLE_TONE_ENABLED) &&
-            (nFlags & GENSAMPLE_NOISE_ENABLED))
+        // Determine amplitude.
+        int amplitudeRegister = REG_A_AMPLITUDE + channel;
+        bool useEnvelope = ((m_anRegisters[amplitudeRegister] & 0x10) != 0);
+        uint8_t amplitude = useEnvelope ? m_envelopeGenerator.amplitude : (m_anRegisters[amplitudeRegister] & 0x0F);
+
+        // Generate analog output (D/A converter).
+        static const double SQRT_2 = sqrt(2.0);
+        m_channelOutputs[channel] = (mixedState ? 1.f / float(pow(SQRT_2, 15 - amplitude)) : 0.f);
+    }
+
+    float CPsg::GetChannelOutput(int channel) const
+    {
+        if ((channel >= 0) && (channel <= 2))
         {
-            // Tone + noise
-            fRet = (fRet + fNoiseSample) * 0.5f;
-        }
-        else if (nFlags & GENSAMPLE_TONE_ENABLED)
-        {
-            // Tone only
-            // Nothing to do, fRet already contains the tone sample
-        }
-        else if (nFlags & GENSAMPLE_NOISE_ENABLED)
-        {
-            // Noise only
-            fRet = fNoiseSample;
+            return m_channelOutputs[channel];
         }
         else
         {
-            // None of them enabled. The PSG outputs 1.f in this case.
-            // This, in combination with amplitude control, is used by some software to play raw PCM data (e.g. digitized voice, sampled music, etc.).
-            fRet = 1.f;
+            return 0.f;
         }
-
-        // Amplitude
-        // TODO: Envelopes
-        float fAmplitude = ((nFlags & GENSAMPLE_USE_ENVELOPE) ? 1.f :                               //***** TODO - TODO - TODO *****
-                                                                float(nFixedAmplitude) / 15.f);     // nFixedAmplitude is in the range [0,15].
-        fRet *= fAmplitude;
-
-        return fRet;
     }
 
-    //----------------------------------------------------------------------------
-    /**
-    **
-    */
-    float CPsg::GenerateChannelSample(unsigned nRegToneLow, unsigned nRegToneHigh, unsigned nRegAmplitude, unsigned nMixerOffset, float fNoiseSample)
+    uint32_t CPC::CPsg::GetChannelTonePeriod(int channel) const
     {
-        float fRet = 0.f;
+        return ((channel >= 0) && (channel < 3) ? m_toneGenerator[channel].programmedCount : 0);
+    }
 
-        int nFlags = 0;
-        if ((m_anRegisters[REG_MIXER] & (0x01 << nMixerOffset)) == 0)
-        {
-            nFlags |= GENSAMPLE_TONE_ENABLED;
-        }
-        if ((m_anRegisters[REG_MIXER] & (0x08 << nMixerOffset)) == 0)
-        {
-            nFlags |= GENSAMPLE_NOISE_ENABLED;
-        }
-        if ((m_anRegisters[nRegAmplitude] & 0x10) != 0)
-        {
-            nFlags |= GENSAMPLE_USE_ENVELOPE;
-        }
+    uint32_t CPC::CPsg::GetNoisePeriod() const
+    {
+        return m_noiseGenerator.programmedCount;
+    }
 
-        if ((nFlags & (GENSAMPLE_TONE_ENABLED | GENSAMPLE_NOISE_ENABLED)) != 0)   // If the channel is active...
-        {
-            fRet = GenerateSample(((m_anRegisters[nRegToneHigh] & 0x0F) << 8) | m_anRegisters[nRegToneLow],
-                                  m_anRegisters[nRegAmplitude] & 0x0F,
-                                  fNoiseSample,
-                                  nFlags);
-        }
+    uint32_t CPsg::GetEnvelopePeriod() const
+    {
+        return m_envelopeGenerator.programmedCount;
+    }
 
-        return fRet;
+    bool CPsg::IsChannelToneEnabled(int channel) const
+    {
+        if ((channel >= 0) && (channel < 3))
+        {
+            return (m_anRegisters[REG_MIXER] & (0x01 << channel)) == 0;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool CPsg::IsChannelNoiseEnabled(int channel) const
+    {
+        if ((channel >= 0) && (channel < 3))
+        {
+            return (m_anRegisters[REG_MIXER] & (0x08 << channel)) == 0;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool CPsg::IsChannelAmplitudeControlledByEnvelope(int channel) const
+    {
+        if ((channel >= 0) && (channel < 3))
+        {
+            int amplitudeRegister = REG_A_AMPLITUDE + channel;
+            return ((m_anRegisters[amplitudeRegister] & 0x10) != 0);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    uint32_t CPsg::GetChannelConstantAmplitude(int channel) const
+    {
+        // It always returns the value in bits 3-0, even if the envelope is enabled.
+        int amplitudeRegister = REG_A_AMPLITUDE + channel;
+        return (m_anRegisters[amplitudeRegister] & 0x0F);
     }
 
     //----------------------------------------------------------------------------
@@ -217,47 +293,116 @@ namespace CPC {
     */
     void CPsg::Run(unsigned nNumCycles)
     {
-        if (GetMachine()->GetSoundOutput() != NULL)
+        for (unsigned cycle = 0; cycle < nNumCycles; cycle++)
         {
-            m_fAccumCycles += (float)nNumCycles;
+            // Update generators (tone x 3, noise and envelope).
+            m_noiseGenerator.Tick();
+            m_envelopeGenerator.Tick(Envelopes[m_anRegisters[REG_ENVELOPE_SHAPE] & 0x0F]);
 
-            // Generate sound samples while there are enough accumulated cycles
-            while (m_fAccumCycles >= CYCLES_PER_SAMPLE)
+            for (int i = 0; i < 3; i++)
             {
-                // Noise generation
-                float fNoiseSample = GenerateNoiseSample();
-
-                // Generate a sample for each channel
-                float fSampleA;
-                float fSampleB;
-                float fSampleC;
-                fSampleA = m_channelEnabled[0] ? GenerateChannelSample(REG_A_TONE_PERIOD_LOW, REG_A_TONE_PERIOD_HIGH, REG_A_AMPLITUDE, 0, fNoiseSample) : 0.f;
-                fSampleB = m_channelEnabled[1] ? GenerateChannelSample(REG_B_TONE_PERIOD_LOW, REG_B_TONE_PERIOD_HIGH, REG_B_AMPLITUDE, 1, fNoiseSample) : 0.f;
-                fSampleC = m_channelEnabled[2] ? GenerateChannelSample(REG_C_TONE_PERIOD_LOW, REG_C_TONE_PERIOD_HIGH, REG_C_AMPLITUDE, 2, fNoiseSample) : 0.f;
-
-                // Mix samples from each channel and write the resulting sample to the sound output
-                float fSample;
-                fSample = (fSampleA + fSampleB + fSampleC) / 3.f/*num channels*/;
-
-                // Tape audio.
-                CTapeDeck* tapeDeck = GetMachine()->GetTapeDeck();
-                bool isTapePlaying = (tapeDeck != nullptr) && tapeDeck->IsPlaying();
-                if (isTapePlaying)
-                {
-                    float tapeSample = (tapeDeck->GetDataReadSignal() ? 1.f : -1.f);
-                    fSample = (fSample + tapeSample) / 2.f;
-                }
-
-                GetMachine()->GetSoundOutput()->WriteSample(fSample, fSampleA, fSampleB, fSampleC);
-
-                // Update cycle accumulator, angle, etc.
-                m_fAccumCycles -= CYCLES_PER_SAMPLE;
-                m_fAngle += ANGLE_INC_PER_SAMPLE;
-                while (m_fAngle >= 2.f * PI)
-                {
-                    m_fAngle -= 2.f * PI;
-                }
+                m_toneGenerator[i].Tick();
             }
+
+            // Update channels and generate their analog output.
+            for (int i = 0; i < 3; i++)
+            {
+                // Mix tone and noise, apply amplitude and generate the analog output.
+                UpdateChannel(i);
+            }
+        }
+    }
+
+    void CPC::CPsg::ToneGenerator::Reset()
+    {
+        programmedCount = 0;
+        counter = 0;
+        state = false;
+    }
+
+    void CPsg::ToneGenerator::SetPeriod(uint32_t period)
+    {
+        programmedCount = period << (4 - 1);
+    }
+
+    void CPC::CPsg::ToneGenerator::Tick()
+    {
+        if (counter > programmedCount)
+        {
+            counter = 0;
+            state = !state;
+        }
+
+        counter++;
+    }
+
+    void CPC::CPsg::NoiseGenerator::Reset()
+    {
+        programmedCount = 0;
+        counter = 0;
+        shiftRegister = 0x1FFFF;
+        state = false;
+    }
+
+    void CPsg::NoiseGenerator::SetPeriod(uint32_t period)
+    {
+        programmedCount = period << (4 - 1);
+    }
+
+    void CPC::CPsg::NoiseGenerator::Tick()
+    {
+        if (counter > programmedCount)
+        {
+            counter = 0;
+
+            // Update state.
+            uint32_t stateInt = (state ? 1 : 0);
+            uint32_t bit0 = shiftRegister & 0x01;
+            uint32_t bit3 = (shiftRegister & 0x10) >> 4;
+            stateInt = stateInt ^ bit0;
+            uint32_t msb = bit0 ^ bit3;
+            shiftRegister = (shiftRegister >> 1) | (msb << 16);
+
+            state = (stateInt != 0);
+        }
+
+        counter++;
+    }
+
+    void CPC::CPsg::EnvelopeGenerator::Reset()
+    {
+        programmedCount = 0;
+        counter = 0;
+        cycle = 0;
+        amplitude = 0;
+    }
+
+    void CPsg::EnvelopeGenerator::SetPeriod(uint32_t period)
+    {
+        programmedCount = period << 8;
+    }
+
+    void CPC::CPsg::EnvelopeGenerator::Tick(const Envelope& selectedEnvelope)
+    {
+        if (counter > programmedCount)
+        {
+            // Cycle completed.
+            counter = 0;
+            cycle = (selectedEnvelope.repeatBothCycles ? (cycle + 1) % 2 : 1);
+        }
+
+        counter++;
+
+        // Update amplitude.
+        uint32_t stepDuration = (programmedCount >> 4);        // 16 steps per cycle.
+        stepDuration = (stepDuration > 0 ? stepDuration : 1);
+        uint32_t step = counter / stepDuration;
+        switch (selectedEnvelope.cycles[cycle])
+        {
+            case EnvelopeCycle::ConstantLow: amplitude = 0; break;
+            case EnvelopeCycle::ConstantHigh: amplitude = 15; break;
+            case EnvelopeCycle::LowToHigh: amplitude = step; break;  // From 0 to 15.
+            case EnvelopeCycle::HighToLow: amplitude = 15 - step; break;   // From 15 to 0.
         }
     }
 

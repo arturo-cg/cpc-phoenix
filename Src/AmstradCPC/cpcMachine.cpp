@@ -120,6 +120,20 @@ namespace CPC {
     /**
     **
     */
+    void CMachine::SetSoundOutput(CSoundOutput* soundOutput)
+    {
+        m_pSoundOutput = soundOutput;
+
+        if (m_pSoundOutput != nullptr)
+        {
+            m_pSoundOutput->SetMachine(this);
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
     cpcByte CMachine::ReadByteFromPort(cpcWord nPort)
     {
         cpcByte nRet;
@@ -209,6 +223,12 @@ namespace CPC {
 
                 // PSG (1Mhz clock)
                 GetPsg()->Run(1);
+
+                // Sound output.
+                if (m_pSoundOutput != nullptr)
+                {
+                    m_pSoundOutput->Run(1);
+                }
             }
         }
     }
