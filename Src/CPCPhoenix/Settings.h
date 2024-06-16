@@ -1,13 +1,9 @@
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-
-#ifndef _SETTINGS_H_
-#define _SETTINGS_H_
-
+#pragma once
 
 #include "cpcMachine.h"
 #include "cpcGateArray.h"
 #include "cpcKeyboardTypes.h"
+#include "cpcSoundOutput.h"
 
 
 /**
@@ -73,6 +69,9 @@ public:
     void                      SetVolume(float volume) { m_volume = volume; }
     float                     GetVolume() const { return m_volume; }
 
+    void                      SetSoundChannelCount(CPC::CSoundOutput::OutputChannelCount outputChannelCount) { m_soundChannelCount = outputChannelCount; }
+    CPC::CSoundOutput::OutputChannelCount GetSoundChannelCount() const { return m_soundChannelCount; }
+
     const SMappedKey&         GetCpcKeyMapping(CPC::ECpcKey eCpcKey) const { return m_aKeyMappings[eCpcKey]; }
 
     void                      SetDiskImageAndArchive(unsigned drive, const std::string& diskImageFileName, const std::string& archiveFileName) { m_diskImages[drive] = diskImageFileName; m_diskImageArchives[drive] = archiveFileName; }
@@ -105,11 +104,10 @@ private:
     bool                      m_bDrawScanLines;
     float                     m_fEmulationSpeed;
     float                     m_volume;
+    CPC::CSoundOutput::OutputChannelCount m_soundChannelCount;
     SMappedKey                m_aKeyMappings[CPC::CPCKEY_LAST];
     std::string               m_diskImages[CPC::CMachine::DRIVE_COUNT];
     std::string               m_diskImageArchives[CPC::CMachine::DRIVE_COUNT];
     std::string               m_tapeImage;
     std::string               m_tapeImageArchive;
 };
-
-#endif // _SETTINGS_H_

@@ -87,7 +87,7 @@ bool Application::Init(HINSTANCE hInstance)
         m_videoOutput->Init();
         // Sound output.
         m_pSoundOutput = new CWinSoundOutput();
-        m_pSoundOutput->Init();
+        m_pSoundOutput->Init(m_settings.GetSoundChannelCount());
         m_pSoundOutput->SetVolume(m_settings.GetVolume());
         // Emulated machine.
         CreateMachine();
@@ -617,7 +617,7 @@ void Application::RunMachine(double elapsedRealTime)
     }
     // Measure emulation speed.
     m_speedRealTime += elapsedRealTime;
-    static constexpr double SPEED_UPDATE_PERIOD = 0.4;
+    static constexpr double SPEED_UPDATE_PERIOD = 1.5;
     if (m_speedRealTime >= SPEED_UPDATE_PERIOD)
     {
         m_measuredEmulationSpeed = float((m_speedEmulatedTime / m_speedRealTime) * 100.0);
@@ -944,6 +944,18 @@ void Application::DrawMainMenuGui()
                 volume /= 100.f;
                 m_settings.SetVolume(volume);
                 m_pSoundOutput->SetVolume(volume);
+            }
+            int numSoundChannels = (m_settings.GetSoundChannelCount() == CPC::CSoundOutput::OutputChannelCount::Mono ? 0 : 1);
+            if (ImGui::Combo("Sound Channels", &numSoundChannels, "Mono\0Stereo\0"))
+            {
+                CPC::CSoundOutput::OutputChannelCount outputChannelCount = (numSoundChannels == 0 ? CPC::CSoundOutput::OutputChannelCount::Mono : CPC::CSoundOutput::OutputChannelCount::Stereo);
+                m_settings.SetSoundChannelCount(outputChannelCount);
+                m_pSoundOutput->End();
+                delete m_pSoundOutput;
+                m_pSoundOutput = new CWinSoundOutput();
+                m_pSoundOutput->Init(outputChannelCount);
+                m_pSoundOutput->SetVolume(m_settings.GetVolume());
+                m_pMachine->SetSoundOutput(m_pSoundOutput);
             }
             bool soundAnalyzerActive = m_soundAnalyzer->IsActive();
             if (ImGui::Checkbox("Sound Analyzer", &soundAnalyzerActive))

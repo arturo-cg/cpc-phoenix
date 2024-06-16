@@ -1,9 +1,4 @@
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-
-#ifndef _WINSOUNDOUTPUT_H_
-#define _WINSOUNDOUTPUT_H_
-
+#pragma once
 
 #include "cpcSoundOutput.h"
 
@@ -31,7 +26,7 @@ public:
     CWinSoundOutput();
     virtual                ~CWinSoundOutput() { FreeVars(); }
 
-    bool                    Init();
+    bool                    Init(OutputChannelCount outputChannelCount);
     void                    End();
 
     /** Called by the emulator when the emulated machine is reset. */
@@ -59,10 +54,10 @@ private:
 
     using inherited = CPC::CSoundOutput;
 
-    static const unsigned   BYTES_PER_SAMPLE = 2;                         // 8-bit samples
+    static const unsigned   BYTES_PER_SAMPLE = 2;                         // 16-bit samples
 
     static const unsigned   NUM_BLOCKS = 3;                               // Triple buffer
-    static const unsigned   SAMPLES_PER_BLOCK = SAMPLES_PER_SEC / 20;     // 50 ms of sound data per block
+    static const unsigned   SAMPLES_PER_BLOCK_AND_CHANNEL = SAMPLES_PER_SEC / 20;     // 50 ms of sound data per block
 
     static const float      CYCLES_PER_SAMPLE;        // Every how many cycles we need to generate a sample (chip_clock/sample_rate = 1Mhz/44.1kHz).
 
@@ -104,19 +99,20 @@ private:
     void                    CreateSoundBlocks();
     void                    DestroySoundBlocks();
 
-    void                    WriteSample(float sampleMixed);
-
+    void                    WriteSample(float leftSample, float rightSample = 0.f);
     void                    SendSoundBlockToDevice(SSoundBlock* pBlock);
 
+    void                    MixSamplesFromPsgAndTape(float* leftSample, float* rightSample);
     float                   ComputeExponentialVolumeFromLinear(float linearVolume) const;
 
 
     HWAVEOUT                m_hDevice;
     float                   m_linearVolume;
     float                   m_exponentialVolume;
+    unsigned                m_numOutputChannels;    // 1 for mono, 2 for stereo.
     IWinSoundOutputListener* m_listener;
 
-    SSoundBlock             m_soundBlocks[NUM_BLOCKS];
+    std::vector<SSoundBlock> m_soundBlocks;
     unsigned                m_nCurrBlock;
     unsigned                m_nCurrPos;    // The position (in samples) inside the m_nCurrBlock of the next byte to be written.
 
@@ -125,5 +121,3 @@ private:
 
     float                   m_accumCycles;           // Used to determine when to write a new sample.
 };
-
-#endif // _WINSOUNDOUTPUT_H_

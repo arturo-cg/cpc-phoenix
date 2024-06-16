@@ -52,11 +52,13 @@ void CALLBACK WinSoundOutput_waveOutProc(HWAVEOUT hDevice, UINT uMsg, DWORD_PTR 
 /**
 **
 */
-bool CWinSoundOutput::Init()
+bool CWinSoundOutput::Init(OutputChannelCount outputChannelCount)
 {
     bool bOk = true;
 
     ResetVars();
+
+    m_numOutputChannels = (outputChannelCount == OutputChannelCount::Mono ? 1 : 2);
 
     // Open the sound playback device
     if (bOk)
@@ -64,7 +66,7 @@ bool CWinSoundOutput::Init()
         WAVEFORMATEX waveFormat;
         ::memset(&waveFormat, 0, sizeof(WAVEFORMATEX));
         waveFormat.wFormatTag = WAVE_FORMAT_PCM;            // Simple PCM format
-        waveFormat.nChannels = 1;                           // Mono
+        waveFormat.nChannels = m_numOutputChannels;         // Mono / stereo
         waveFormat.nSamplesPerSec = SAMPLES_PER_SEC;        // 44.1 kHz
         waveFormat.wBitsPerSample = BYTES_PER_SAMPLE * 8;   // 16 bits per sample
         waveFormat.nBlockAlign = BYTES_PER_SAMPLE * waveFormat.nChannels;
@@ -145,16 +147,9 @@ void CWinSoundOutput::ResetVars()
     m_hDevice = 0;
     m_linearVolume = 1.f;
     m_exponentialVolume = ComputeExponentialVolumeFromLinear(m_linearVolume);
+    m_numOutputChannels = 0;
     m_listener = nullptr;
-
-    unsigned i;
-    for (i = 0; i < NUM_BLOCKS; i++)
-    {
-        SSoundBlock& currBlock = m_soundBlocks[i];
-        currBlock.pSamples = NULL;
-        currBlock.bIsPlaying = false;
-    }
-
+    m_soundBlocks.clear();
     m_nCurrBlock = 0;
     m_nCurrPos = 0;
     m_pRecordFile = NULL;
@@ -176,16 +171,18 @@ void CWinSoundOutput::FreeVars()
 */
 void CWinSoundOutput::CreateSoundBlocks()
 {
-    unsigned nBlockLength;
-    nBlockLength = SAMPLES_PER_BLOCK * BYTES_PER_SAMPLE;
+    KMASSERT(m_soundBlocks.size() == 0);
+
+    unsigned samplesPerBlock = SAMPLES_PER_BLOCK_AND_CHANNEL * m_numOutputChannels;
+    unsigned nBlockLength =  samplesPerBlock * BYTES_PER_SAMPLE;
 
     unsigned i;
     for (i = 0; i < NUM_BLOCKS; i++)
     {
-        SSoundBlock& currBlock = m_soundBlocks[i];
+        SSoundBlock currBlock;
 
         // Reserve memory for the block data
-        currBlock.pSamples = new short[SAMPLES_PER_BLOCK];
+        currBlock.pSamples = new short[samplesPerBlock];
 
         // Prepare the block header
         ::memset(&currBlock.header, 0, sizeof(currBlock.header));
@@ -206,6 +203,8 @@ void CWinSoundOutput::CreateSoundBlocks()
         ::memset(currBlock.pSamples, 0, nBlockLength);
 
         currBlock.bIsPlaying = false;
+
+        m_soundBlocks.push_back(currBlock);
     }
 }
 
@@ -215,20 +214,19 @@ void CWinSoundOutput::CreateSoundBlocks()
 */
 void CWinSoundOutput::DestroySoundBlocks()
 {
-    unsigned i;
-    for (i = 0; i < NUM_BLOCKS; i++)
+    for (SSoundBlock& soundBlock : m_soundBlocks)
     {
-        SSoundBlock& currBlock = m_soundBlocks[i];
-
         if (m_hDevice != 0)
         {
             MMRESULT result;
-            result = ::waveOutUnprepareHeader(m_hDevice, &currBlock.header, sizeof(currBlock.header));
+            result = ::waveOutUnprepareHeader(m_hDevice, &soundBlock.header, sizeof(soundBlock.header));
             KMASSERT(result == MMSYSERR_NOERROR);
         }
 
-        delete[] currBlock.pSamples;
+        delete[] soundBlock.pSamples;
     }
+
+    m_soundBlocks.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -244,7 +242,7 @@ void CWinSoundOutput::DestroySoundBlocks()
 /**
 **
 */
-void CWinSoundOutput::WriteSample(float sampleMixed)
+void CWinSoundOutput::WriteSample(float leftSample, float rightSample)
 {
     SSoundBlock& writeBlock = m_soundBlocks[m_nCurrBlock];
 
@@ -252,21 +250,26 @@ void CWinSoundOutput::WriteSample(float sampleMixed)
     // If it is being played, ignore the sample. This will happen when the emulator is executing faster than 100%.
     if (!writeBlock.bIsPlaying)    // If the block to be written is not being used by the device...
     {
-        // Convert the sample to the device format
-        short nSample;
-        nSample = (short)(sampleMixed * m_exponentialVolume * 32767.f);
-
-        // Write the sample to the current block
-        *(writeBlock.pSamples + m_nCurrPos) = nSample;
-
-        // Advance position
+        // Write mono/left sample to the block
+        short deviceSample;
+        deviceSample = (short)(leftSample * m_exponentialVolume * 32767.f);
+        *(writeBlock.pSamples + m_nCurrPos) = deviceSample;
         m_nCurrPos++;
-        if (m_nCurrPos >= SAMPLES_PER_BLOCK)     // If the block has been fully written...
+        // Write right sample to the block, if stereo is being used
+        if (m_numOutputChannels >= 2)
+        {
+            deviceSample = (short)(rightSample * m_exponentialVolume * 32767.f);
+            *(writeBlock.pSamples + m_nCurrPos) = deviceSample;
+            m_nCurrPos++;
+        }
+
+        // If the block is complete, send it to the sound device
+        if (m_nCurrPos >= (SAMPLES_PER_BLOCK_AND_CHANNEL * m_numOutputChannels))     // If the block has been fully written...
         {
             // Write the block to the sound device
             SendSoundBlockToDevice(&writeBlock);
 
-            // Set the position to the next block
+            // Select the next block to be written
             m_nCurrBlock = (m_nCurrBlock + 1) % NUM_BLOCKS;
             m_nCurrPos = 0;
         }
@@ -275,11 +278,18 @@ void CWinSoundOutput::WriteSample(float sampleMixed)
     // If recording is active, write the sample to the file
     if (IsRecording())
     {
-        short nWavSample;
-        nWavSample = short(sampleMixed * 32767.f);
-
-        m_pRecordFile->WriteBytes(nWavSample);
+        // Mono/left sample
+        short wavSample;
+        wavSample = short(leftSample * 32767.f);
+        m_pRecordFile->WriteBytes(wavSample);
         m_nRecordedSampleCount++;
+        // Right sample, if stereo is used.
+        if (m_numOutputChannels >= 2)
+        {
+            wavSample = short(rightSample * 32767.f);
+            m_pRecordFile->WriteBytes(wavSample);
+            m_nRecordedSampleCount++;
+        }
     }
 }
 
@@ -355,7 +365,7 @@ void CWinSoundOutput::StopRecording()
     {
         // Write the file header with correct information
         SWavFileHeader header;
-        header.nNumChannels = 1;
+        header.nNumChannels = m_numOutputChannels;
         header.nBitsPerSample = 16;
         header.nSubChunk2Size = m_nRecordedSampleCount * header.nNumChannels * (header.nBitsPerSample / 8);
 
@@ -386,6 +396,52 @@ void CWinSoundOutput::StopRecording()
 /**
 **
 */
+void CWinSoundOutput::MixSamplesFromPsgAndTape(float* leftSample, float* rightSample)
+{
+    *leftSample = 0.f;
+    *rightSample = 0.f;
+    CPC::CPsg* psg = GetMachine()->GetPsg();
+    float channelA = IsChannelEnabled(0) ? psg->GetChannelOutput(0) : 0.f;
+    float channelB = IsChannelEnabled(1) ? psg->GetChannelOutput(1) : 0.f;
+    float channelC = IsChannelEnabled(2) ? psg->GetChannelOutput(2) : 0.f;
+    if (m_numOutputChannels == 1)
+    {
+        *leftSample = (channelA + channelB + channelC) / 3.f;
+    }
+    else
+    {
+        // Left output channel = PSG A + some % of PSG B
+        // Right output channel = PSG C + some % of PSG B
+        constexpr float CHANNEL_B_LEVEL = 0.75f;
+        *leftSample = (channelA + channelB * CHANNEL_B_LEVEL) / 2.f;
+        *rightSample = (channelC + channelB * CHANNEL_B_LEVEL) / 2.f;
+    }
+
+    // Transform samples range from [0, 1] to [-1, 1].
+    *leftSample = (*leftSample * 2.f) - 1.f;
+    if (m_numOutputChannels >= 2)
+    {
+        *rightSample = (*rightSample * 2.f) - 1.f;
+    }
+
+    // Mix tape audio in.
+    CPC::CTapeDeck* tapeDeck = GetMachine()->GetTapeDeck();
+    bool isTapePlaying = (tapeDeck != nullptr) && tapeDeck->IsPlaying();
+    if (isTapePlaying)
+    {
+        float tapeSample = (tapeDeck->GetDataReadSignal() ? 1.f : -1.f);
+        *leftSample = (*leftSample + tapeSample) / 2.f;
+        if (m_numOutputChannels >= 2)
+        {
+            *rightSample = (*rightSample + tapeSample) / 2.f;
+        }
+    }
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
 void CWinSoundOutput::Run(unsigned numCycles)
 {
     if (GetMachine() != nullptr)
@@ -395,26 +451,12 @@ void CWinSoundOutput::Run(unsigned numCycles)
         while (m_accumCycles >= CYCLES_PER_SAMPLE)
         {
             // Mix samples from the PSG channels.
-            CPC::CPsg* psg = GetMachine()->GetPsg();
-            float sample = 0.f;
-            for (int i = 0; i < 3; i++)
-            {
-                sample += IsChannelEnabled(i) ? psg->GetChannelOutput(i) : 0.f;
-            }
-            sample /= 3.f/*num channels*/;
-            sample = (sample * 2.f) - 1.f;    // Transform sample range from [0, 1] to [-1, 1].
-
-            // Mix tape audio in.
-            CPC::CTapeDeck* tapeDeck = GetMachine()->GetTapeDeck();
-            bool isTapePlaying = (tapeDeck != nullptr) && tapeDeck->IsPlaying();
-            if (isTapePlaying)
-            {
-                float tapeSample = (tapeDeck->GetDataReadSignal() ? 1.f : -1.f);
-                sample = (sample + tapeSample) / 2.f;
-            }
+            float leftSample;
+            float rightSample;
+            MixSamplesFromPsgAndTape(&leftSample, &rightSample);
 
             // Send the sample to the host audio system.
-            WriteSample(sample);
+            WriteSample(leftSample, rightSample);
 
             // Update cycle accumulator.
             m_accumCycles -= CYCLES_PER_SAMPLE;
@@ -422,7 +464,8 @@ void CWinSoundOutput::Run(unsigned numCycles)
             // Pass the sample to the listener, if any.
             if (m_listener != nullptr)
             {
-                m_listener->OnNewSoundSample(sample, (psg->GetChannelOutput(0) * 2.f) - 1.f, (psg->GetChannelOutput(1) * 2.f) - 1.f, (psg->GetChannelOutput(2) * 2.f) - 1.f);
+                CPC::CPsg* psg = GetMachine()->GetPsg();
+                m_listener->OnNewSoundSample(leftSample, (psg->GetChannelOutput(0) * 2.f) - 1.f, (psg->GetChannelOutput(1) * 2.f) - 1.f, (psg->GetChannelOutput(2) * 2.f) - 1.f);
             }
         }
     }

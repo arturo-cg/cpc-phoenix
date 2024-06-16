@@ -14,6 +14,11 @@ namespace CPC {
     class CSoundOutput
     {
     public:
+        enum class OutputChannelCount : uint8_t
+        {
+            Mono,
+            Stereo,
+        };
 
         CSoundOutput();
         virtual ~CSoundOutput() { FreeVars(); }
