@@ -1846,6 +1846,8 @@ namespace CPC {
 
     void CCpu::FillOpcodeDisassemblyInfo(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions)
     {
+        int displacementFlag = int(twoBytePrefixInstructions ? MnemonicFlags::DisplacementBeforeOpcode : MnemonicFlags::DisplacementAfterOpcode);
+
         for (int i = 0; i < 256; i++)
         {
             OpcodeDisassemblyInfo* opcodeDisassemblyInfo = &opcodeTable[i].disassemblyInfo;
@@ -1853,7 +1855,6 @@ namespace CPC {
             opcodeDisassemblyInfo->displacementTagPos = -1;
             opcodeDisassemblyInfo->immediateTagPos = -1;
             // Parse the operands part of the mnemonic in search of tags.
-            int displacementFlag = int(twoBytePrefixInstructions ? MnemonicFlags::DisplacementBeforeOpcode : MnemonicFlags::DisplacementAfterOpcode);
             int mnemonicLength = strlen(opcodeDisassemblyInfo->mnemonicOperands);
             int pos = 0;
             while (pos < mnemonicLength)
@@ -1964,6 +1965,8 @@ namespace CPC {
         {
             displacement = 0;
         }
+
+        cpcWord displacementAddress = address + ConvertSignedByteToWord(displacement) + 2;
         // +-- Get immediate data.
         cpcWord immediateAddress = address + prefixSizeBytes + 1/*opcode*/ + ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0 ? 1/*displacement*/ : 0);
 
@@ -1978,9 +1981,9 @@ namespace CPC {
             // Displacement tag only.
             std::string mnemonic = opcodeDisassemblyInfo->mnemonicOperands;
             char output[30];
-            snprintf(output, sizeof(output), "%s%x%s",
+            snprintf(output, sizeof(output), "%s#%04X%s",
                 mnemonic.substr(0, opcodeDisassemblyInfo->displacementTagPos).c_str(),
-                displacement,
+                displacementAddress,
                 mnemonic.substr(opcodeDisassemblyInfo->displacementTagPos + 2, mnemonic.length()).c_str());
             outResult->operands = output;
         }
