@@ -1951,80 +1951,65 @@ namespace CPC {
         // +- Operation.
         outResult->operation = opcodeDisassemblyInfo->mnemonicOperation;
         // +- Operands.
-        // +-- Get displacement.
-        cpcByte displacement;
-        if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementBeforeOpcode)) != 0)
+        outResult->operands = std::string(opcodeDisassemblyInfo->mnemonicOperands);
+        // +-- Replace displacement tag, if present.
+        static char buffer[100];
+        int immediateTagPosOffset = 0;
+        if (opcodeDisassemblyInfo->displacementTagPos != -1)
         {
-            displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes);
-        }
-        else if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0)
-        {
-            displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes + 1/*opcode*/);
-        }
-        else
-        {
-            displacement = 0;
-        }
+            // Get displacement.
+            cpcByte displacement;
+            if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementBeforeOpcode)) != 0)
+            {
+                displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes);
+            }
+            else if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0)
+            {
+                displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes + 1/*opcode*/);
+            }
+            else
+            {
+                displacement = 0;
+                KMASSERT(false);
+            }
 
-        cpcWord displacementAddress = address + ConvertSignedByteToWord(displacement) + 2;
-        // +-- Get immediate data.
-        cpcWord immediateAddress = address + prefixSizeBytes + 1/*opcode*/ + ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0 ? 1/*displacement*/ : 0);
+            cpcWord displacementAddress = address + ConvertSignedByteToWord(displacement) + 2;
 
-        // +-- Format operands string.
-        if ((opcodeDisassemblyInfo->displacementTagPos == -1) && (opcodeDisassemblyInfo->immediateTagPos == -1))
-        {
-            // No tags.
-            outResult->operands = opcodeDisassemblyInfo->mnemonicOperands;
-        }
-        else if ((opcodeDisassemblyInfo->displacementTagPos != -1) && (opcodeDisassemblyInfo->immediateTagPos == -1))
-        {
-            // Displacement tag only.
-            std::string mnemonic = opcodeDisassemblyInfo->mnemonicOperands;
-            char output[30];
-            snprintf(output, sizeof(output), "%s#%04X%s",
-                mnemonic.substr(0, opcodeDisassemblyInfo->displacementTagPos).c_str(),
+            static int DisplacementTagLength = 2;
+            snprintf(buffer, sizeof(buffer), "%s#%04X%s",
+                outResult->operands.substr(0, opcodeDisassemblyInfo->displacementTagPos).c_str(),
                 displacementAddress,
-                mnemonic.substr(opcodeDisassemblyInfo->displacementTagPos + 2, mnemonic.length()).c_str());
-            outResult->operands = output;
+                outResult->operands.substr(opcodeDisassemblyInfo->displacementTagPos + DisplacementTagLength, outResult->operands.length()).c_str());
+            outResult->operands = std::string(buffer);
+            immediateTagPosOffset = 5 - DisplacementTagLength;      // 5 = '#' + 4-digit hex number
         }
-        else if ((opcodeDisassemblyInfo->displacementTagPos == -1) && (opcodeDisassemblyInfo->immediateTagPos != -1))
+        // +-- Replace immediate tag, if present.
+        if (opcodeDisassemblyInfo->immediateTagPos != -1)
         {
-            // Immediate tag only.
-            std::string mnemonic = opcodeDisassemblyInfo->mnemonicOperands;
-            char output[30];
+            cpcWord immediateAddress = address + prefixSizeBytes + 1/*opcode*/ + ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0 ? 1/*displacement*/ : 0);
             if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::Immediate8)) != 0)
             {
                 // 8-bit immediate data.
                 cpcByte immediateData = m_cpuInterface->ReadByteFromMemory(this, immediateAddress);
-                snprintf(output, sizeof(output), "%s#%02X%s",
-                    mnemonic.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),
+                static int Immediate8TagLength = 2;
+                snprintf(buffer, sizeof(buffer), "%s#%02X%s",
+                    outResult->operands.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),
                     immediateData,
-                    mnemonic.substr(opcodeDisassemblyInfo->immediateTagPos + 2, mnemonic.length()).c_str());
+                    outResult->operands.substr(opcodeDisassemblyInfo->immediateTagPos + immediateTagPosOffset + Immediate8TagLength, outResult->operands.length()).c_str());
             }
             else
             {
                 // 16-bit immediate data.
                 cpcWord immediateData = m_cpuInterface->ReadByteFromMemory(this, immediateAddress) | (cpcWord(m_cpuInterface->ReadByteFromMemory(this, immediateAddress + 1)) << 8);
-                snprintf(output, sizeof(output), "%s#%04X%s",
-                    mnemonic.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),
+                static int Immediate16TagLength = 3;
+                snprintf(buffer, sizeof(buffer), "%s#%04X%s",
+                    outResult->operands.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),
                     immediateData,
-                    mnemonic.substr(opcodeDisassemblyInfo->immediateTagPos + 3, mnemonic.length()).c_str());
+                    outResult->operands.substr(opcodeDisassemblyInfo->immediateTagPos + immediateTagPosOffset + Immediate16TagLength, outResult->operands.length()).c_str());
             }
-            outResult->operands = output;
+
+            outResult->operands = std::string(buffer);
         }
-        else
-        {
-            // Both displacement and immediate tags.
-
-            //
-            // TODO
-            //
-
-            KMASSERT(false);
-            outResult->operands = opcodeDisassemblyInfo->mnemonicOperands;
-        }
-
-
     }
 
 } //namespace CPC
