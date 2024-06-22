@@ -287,11 +287,11 @@ void Debugger::DrawDisassembly()
     const CPC::CCpu* cpu = m_machine->GetCpu();
 
     ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
-    if (ImGui::BeginTable("Disassembly", 3/*columns_count*/, tableFlags, ImVec2(500.f, 0.f)))
+    if (ImGui::BeginTable("Disassembly", 3/*columns_count*/, tableFlags, ImVec2(340.f, 0.f)))
     {
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 100.f);      // Address.
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 60.f);       // Operation.
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 300.f);      // Operands.
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 60.f);      // Address.
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 30.f);      // Operation.
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 250.f);     // Operands.
 
         ImGuiListClipper clipper;
         clipper.Begin(1 << 16/*items_count: 64 KB*/, ImGui::GetTextLineHeightWithSpacing()/*items_height*/);
