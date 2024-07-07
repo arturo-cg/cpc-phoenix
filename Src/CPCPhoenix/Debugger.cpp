@@ -11,6 +11,7 @@
 #include "cpcDiskDrive.h"
 #include "cpcFdc.h"
 #include "cpcMachine.h"
+#include "cpcMemoryBlock.h"
 
 
 bool Debugger::Init()
@@ -485,10 +486,38 @@ void Debugger::DrawGateArray()
 {
     const CPC::CGateArray* gateArray = m_machine->GetGateArray();
 
-    DrawInt("Screen Mode", (int)gateArray->GetScreenMode());
+    // Video.
+    DrawInt("Screen Mode", (int)gateArray->GetScreenMode()); ImGui::SameLine();
     bool flag;
     flag = gateArray->IsHSyncActive(); ImGui::Checkbox("HSync", const_cast<bool*>(&flag)); ImGui::SameLine();
     flag = gateArray->IsVSyncActive(); ImGui::Checkbox("VSync", const_cast<bool*>(&flag));
+
+    // TODO: Show pen and border colors.
+
+    // Memory.
+    if (ImGui::BeginTable("MemoryLayout", 3/*column count*/))
+    {
+        ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_None);
+        ImGui::TableSetupColumn("Read", ImGuiTableColumnFlags_None);
+        ImGui::TableSetupColumn("Write", ImGuiTableColumnFlags_None);
+
+        ImGui::TableHeadersRow();
+
+        cpcWord address = 0;
+        for (int row = 0; row < 4; row++)
+        {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("#%.4X-#%.4X", address, address + 0x4000 - 1);
+            ImGui::TableNextColumn();
+            ImGui::Text(gateArray->GetVisibleReadMemoryBlock(row)->GetLabel().c_str());
+            ImGui::TableNextColumn();
+            ImGui::Text(gateArray->GetVisibleWriteMemoryBlock(row)->GetLabel().c_str());
+
+            address += 0x4000;
+        }
+        ImGui::EndTable();
+    }
 }
 
 void Debugger::DrawMonitor()

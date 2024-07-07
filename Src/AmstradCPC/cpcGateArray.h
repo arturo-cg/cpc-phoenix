@@ -120,6 +120,11 @@ namespace CPC {
         *** The CPU doesn't access memory directly. Instead, it goes through the Gate Array which provides RAM paging. */
         void                    WriteByteToMemory(cpcWord nAddress, cpcByte nValue);
 
+        /** Utility function that returns the CMemoryBlock that the CPU is currently seeing when reading within the given 16Kb block. */
+        const CMemoryBlock*     GetVisibleReadMemoryBlock(unsigned block) const;
+        /** Utility function that returns the CMemoryBlock that the CPU is currently seeing when writing within the given 16Kb block. */
+        const CMemoryBlock*     GetVisibleWriteMemoryBlock(unsigned block) const;
+
         /** CRTC's HSYNC signal rising edge notification. */
         void                    OnCrtcHSyncBegin();
         /** CRTC's HSYNC signal falling edge notification. */
