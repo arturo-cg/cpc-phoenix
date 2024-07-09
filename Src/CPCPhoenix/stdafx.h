@@ -56,6 +56,7 @@
 #include <list>
 #include <map>
 #include <deque>
+#include <unordered_set>
 #include <algorithm>
 
 using namespace std;    // No need to specify std:: for STL symbols
@@ -82,7 +83,6 @@ using namespace std;    // No need to specify std:: for STL symbols
 #include "kmbGlobalDefs.h"
 #include "Debug/kmbAsserts.h"
 #include "Misc/kmbSingleton.h"
-
 
 // CPC emulator includes
 #include "cpcTypes.h"

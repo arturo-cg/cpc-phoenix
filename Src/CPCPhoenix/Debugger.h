@@ -60,6 +60,7 @@ private:
         string result;
     };
 
+    using WordSet = std::unordered_set<cpcWord>;
     using FdcOperationDeque = std::deque<FdcOperation>;
 
     void ResetVars();
@@ -69,6 +70,9 @@ private:
     // In both cases, PC will point at the start of the next instruction when this method finishes.
     void ExecuteCurrentInstruction();
     void RunSingleCycle();
+
+    bool HasCodeBreakpointAtAddress(cpcWord address) const;
+    void SetCodeBreakpointAtAddress(cpcWord address, bool enabled);
 
     void DrawCpu();
     void DrawExecuteOptions();
@@ -93,6 +97,8 @@ private:
     void DrawUnsignedWord(const char* label, cpcWord word, bool verticalLayout = false, const char* tooltip = nullptr, ...);
     void DrawInt(const char* label, int n);
     void LastItemBox(float margin);
+    bool BreakpointToggleButton(const char* str_id, cpcWord address, bool* hasBreakpoint);
+    void DrawCurrentInstructionArrow(const ImVec2& rectMin, const ImVec2& rectMax);
 
     void RequestScrollToAddress(cpcWord address);
 
@@ -100,8 +106,7 @@ private:
     bool m_active;
     CPC::CMachine* m_machine;
     bool m_running;
-    bool m_stopAtBreakpoint;
-    cpcWord m_breakpointAddress;
+    WordSet m_codeBreakpoints;
     bool m_stopAtInterrupt;
     bool m_stopAtHSync;
     bool m_stopAtVSync;

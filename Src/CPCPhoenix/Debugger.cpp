@@ -47,8 +47,7 @@ void Debugger::ResetVars()
     m_active = false;
     m_machine = nullptr;
     m_running = false;
-    m_stopAtBreakpoint = false;
-    m_breakpointAddress = 0xF340;
+    m_codeBreakpoints.clear();
     m_stopAtInterrupt = false;
     m_stopAtHSync = false;
     m_stopAtVSync = false;
@@ -105,7 +104,7 @@ void Debugger::RunMachine()
         // Run machine for a 4-Mhz clock cycle.
         m_machine->Run(1);
         // Get state after and check stop conditions.
-        if ((m_stopAtBreakpoint && !cpu->IsExecutingInstruction() && (cpu->GetRegisters().PC.w == m_breakpointAddress)) ||
+        if ((!cpu->IsExecutingInstruction() && HasCodeBreakpointAtAddress(cpu->GetRegisters().PC.w)) ||
             (m_stopAtInterrupt && cpu->InterruptWasAcknowledged()) ||
             (m_stopAtHSync && !previousHSync && crtc->GetHSyncState()) ||
             (m_stopAtVSync && !previousVSync && crtc->GetVSyncState()))
@@ -145,6 +144,23 @@ void Debugger::RunSingleCycle()
     Application::Singleton()->GetTextureVideoOutput()->CaptureVideoOutputMidFrame();
     // Scroll to PC.
     RequestScrollToAddress(m_machine->GetCpu()->GetRegisters().PC.w);
+}
+
+bool Debugger::HasCodeBreakpointAtAddress(cpcWord address) const
+{
+    return (m_codeBreakpoints.count(address) >= 1);
+}
+
+void Debugger::SetCodeBreakpointAtAddress(cpcWord address, bool enabled)
+{
+    if (enabled)
+    {
+        m_codeBreakpoints.insert(address);
+    }
+    else
+    {
+        m_codeBreakpoints.erase(address);
+    }
 }
 
 void Debugger::OnFdcCommandReceived(const CPC::CFdc* fdc)
@@ -255,31 +271,68 @@ void Debugger::DrawExecuteOptions()
         ExecuteCurrentInstruction();
     }
     ImGui::SameLine();
-    // Run To group.
-    ImGui::BeginGroup();
-    // +- Run To: button.
+    // Run To.
     string runToButtonLabel = (m_running ? "Stop Running (Shift+F11)" : "Run To (Shift+F11)");
     if (ImGui::Button(runToButtonLabel.c_str(), buttonSize))
     {
         m_running = !m_running;
     }
-    // +- Run To: stop conditions.
-    ImGui::Checkbox("Breakpoint", &m_stopAtBreakpoint);
-    if (m_stopAtBreakpoint)
-    {
-        ImGui::SameLine();
-        ImGui::InputScalar("Address", ImGuiDataType_U16, &m_breakpointAddress, nullptr, nullptr, "%04hX", ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
-    }
-    ImGui::Checkbox("Interrupt", &m_stopAtInterrupt);
-    ImGui::Checkbox("HSync", &m_stopAtHSync);
-    ImGui::Checkbox("VSync", &m_stopAtVSync);
-    ImGui::EndGroup();
     ImGui::SameLine();
     // Advance Clock Cycle.
     if (ImGui::Button("Clock Cycle (Ctrl+F11)", buttonSize))
     {
         // Advance one cycle of a 1-MHz clock.
         RunSingleCycle();
+    }
+
+    // Stop conditions.
+    if (ImGui::CollapsingHeader("Stop Conditions"))
+    {
+        ImGui::Checkbox("Interrupt", &m_stopAtInterrupt);
+        ImGui::Checkbox("HSync", &m_stopAtHSync);
+        ImGui::Checkbox("VSync", &m_stopAtVSync);
+
+        if (ImGui::TreeNode("CodeBreakpoints", "Code Breakpoints (currently: %d)", m_codeBreakpoints.size()))
+        {
+            std::vector<cpcWord> sortedCodeBreakpoints(m_codeBreakpoints.begin(), m_codeBreakpoints.end());
+            std::sort(sortedCodeBreakpoints.begin(), sortedCodeBreakpoints.end());
+
+            ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
+            if (ImGui::BeginTable("CodeBreakpoints", 2/*columns_count*/, tableFlags, ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 4.f)))
+            {
+                for (std::vector<cpcWord>::const_iterator iter = sortedCodeBreakpoints.cbegin(); iter != sortedCodeBreakpoints.cend(); ++iter)
+                {
+                    ImGui::TableNextRow();
+                    cpcWord address = *iter;
+                    ImGui::PushID(address);
+
+                    ImGui::TableNextColumn();
+                    ImGui::Text("#%04X", address);
+
+                    ImGui::TableNextColumn();
+                    if (ImGui::SmallButton("Show"))
+                    {
+                        RequestScrollToAddress(address);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::SmallButton("Remove"))
+                    {
+                        m_codeBreakpoints.erase(address);
+                    }
+
+                    ImGui::PopID();
+                }
+
+                ImGui::EndTable();
+            }
+
+            if (ImGui::Button("Remove All"))
+            {
+                m_codeBreakpoints.clear();
+            }
+
+            ImGui::TreePop();
+        }
     }
 }
 
@@ -288,8 +341,9 @@ void Debugger::DrawDisassembly()
     const CPC::CCpu* cpu = m_machine->GetCpu();
 
     ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
-    if (ImGui::BeginTable("Disassembly", 3/*columns_count*/, tableFlags, ImVec2(340.f, 0.f)))
+    if (ImGui::BeginTable("Disassembly", 4/*columns_count*/, tableFlags, ImVec2(340.f, 0.f)))
     {
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 15.f);      // Breakpoint.
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 60.f);      // Address.
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 30.f);      // Operation.
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 250.f);     // Operands.
@@ -310,6 +364,22 @@ void Debugger::DrawDisassembly()
                 CPC::CCpu::AssemblyInstruction& instruction = instructions.at(i);
                 cpu->DisassembleInstruction(address, &instruction);
                 // Print instruction.
+                ImGui::PushID(i);
+
+                ImGui::TableNextColumn();
+                bool hasBreakpoint = HasCodeBreakpointAtAddress(address);
+                if (BreakpointToggleButton("CodeBreakpointToggle", address, &hasBreakpoint))
+                {
+                    SetCodeBreakpointAtAddress(address, hasBreakpoint);
+                }
+
+                if (cpu->GetRegisters().PC.w == address)
+                {
+                    ImVec2 rectMin = ImGui::GetItemRectMin();
+                    ImVec2 rectMax = ImGui::GetItemRectMax();
+                    DrawCurrentInstructionArrow(rectMin, rectMax);
+                }
+
                 ImGui::TableNextColumn();
                 ImGui::Text("%04X", address);
 
@@ -318,6 +388,8 @@ void Debugger::DrawDisassembly()
 
                 ImGui::TableNextColumn();
                 ImGui::Text("%s", instruction.operands.c_str());
+
+                ImGui::PopID();
 
                 address += instruction.sizeBytes;
             }
@@ -866,6 +938,59 @@ void Debugger::LastItemBox(float margin)
     ImGui::GetWindowDrawList()->AddRect(ImVec2(ImGui::GetItemRectMin().x - margin, ImGui::GetItemRectMin().y - margin),
                                         ImVec2(ImGui::GetItemRectMax().x + margin, ImGui::GetItemRectMax().y + margin),
                                         ImGui::GetColorU32(ImGuiCol_Border));
+}
+
+bool Debugger::BreakpointToggleButton(const char* str_id, cpcWord address, bool* hasBreakpoint)
+{
+    bool ret = false;
+
+    ImGui::PushID(address);
+
+    // Use an invisible button to detect clicks and mouse hover.
+    static const ImVec2 totalSize = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetTextLineHeight());
+    if (ImGui::InvisibleButton(str_id, totalSize))
+    {
+        *hasBreakpoint = !*hasBreakpoint;
+        ret = true;
+    }
+
+    bool isHovered = ImGui::IsItemHovered();
+
+    ImGui::PopID();
+
+    // Draw the breakpoint.
+    if (*hasBreakpoint || isHovered)
+    {
+        ImVec2 rectMin = ImGui::GetItemRectMin();
+        ImVec2 rectMax = ImGui::GetItemRectMax();
+        ImVec2 center = ImVec2((rectMin.x + rectMax.x) * 0.5f,
+                               (rectMin.y + rectMax.y) * 0.5f);
+        static const float Radius = 6.f;
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        if (*hasBreakpoint)
+        {
+            drawList->AddCircleFilled(center, Radius, IM_COL32(255, 0, 0, 255));
+        }
+        else
+        {
+            drawList->AddCircle(center, Radius, IM_COL32(255, 0, 0, 255));
+        }
+    }
+
+    return ret;
+}
+
+void Debugger::DrawCurrentInstructionArrow(const ImVec2& rectMin, const ImVec2& rectMax)
+{
+    ImVec2 center = ImVec2((rectMin.x + rectMax.x) * 0.5f,
+                           (rectMin.y + rectMax.y) * 0.5f);
+    static const float HalfWidth = 3.f;
+    static const float HalfHeight = 4.f;
+    ImVec2 p1 = ImVec2(center.x - HalfWidth, center.y - HalfHeight);
+    ImVec2 p2 = ImVec2(center.x - HalfWidth, center.y + HalfHeight);
+    ImVec2 p3 = ImVec2(center.x + HalfWidth, center.y);
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    drawList->AddTriangleFilled(p1, p2, p3, IM_COL32(255, 255, 0, 255));
 }
 
 void Debugger::RequestScrollToAddress(cpcWord address)
