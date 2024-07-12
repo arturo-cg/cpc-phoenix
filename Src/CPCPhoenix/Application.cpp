@@ -15,6 +15,7 @@
 #include "AppWindow.h"
 #include "RenderingApi.h"
 #include "Debugger.h"
+#include "ProgramAnalyzer.h"
 #include "Snapshot.h"
 #include "SnaSnapshotReadWrite.h"
 #include "SoundAnalyzer.h"
@@ -92,12 +93,16 @@ bool Application::Init(HINSTANCE hInstance)
         // Emulated machine.
         CreateMachine();
     }
-    // Debugger, sound analyzer.
+    // Debugger, program analyzer, sound analyzer.
     if (bRet)
     {
         m_debugger = new Debugger();
         bRet = m_debugger->Init();
         m_debugger->SetMachine(m_pMachine);
+
+        m_programAnalyzer = new ProgramAnalyzer();
+        bRet = m_programAnalyzer->Init();
+        m_programAnalyzer->SetMachine(m_pMachine);
 
         m_soundAnalyzer = new SoundAnalyzer();
         bRet = m_soundAnalyzer->Init();
@@ -139,6 +144,8 @@ void Application::ResetVars()
     m_pAppWindow = NULL;
     m_renderingApi = nullptr;
     m_debugger = nullptr;
+    m_programAnalyzer = nullptr;
+    m_soundAnalyzer = nullptr;
     m_pMachine = NULL;
     m_pKeyStateProvider = NULL;
     m_videoOutput = NULL;
@@ -237,6 +244,11 @@ void Application::CreateMachine()
         {
             m_debugger->SetMachine(m_pMachine);
         }
+        // Let the Program Analyzer know about the new machine.
+        if (m_programAnalyzer != nullptr)
+        {
+            m_programAnalyzer->SetMachine(m_pMachine);
+        }
 
         m_pMachine->Reset();
     }
@@ -257,6 +269,11 @@ void Application::DestroyMachine()
     if (m_debugger != nullptr)
     {
         m_debugger->SetMachine(nullptr);
+    }
+
+    if (m_programAnalyzer != nullptr)
+    {
+        m_programAnalyzer->SetMachine(nullptr);
     }
 
     if (m_pMachine != NULL)
@@ -603,6 +620,11 @@ void Application::RunMachine(double elapsedRealTime)
         static constexpr unsigned MACHINE_TIME_STEP_CYCLES = unsigned((FRAME_DURATION_SECS * 4000000.0) / 6.0);     // Time step in cycles of a 4-MHz clock.
         static constexpr double MACHINE_TIME_STEP_SECS = (double(MACHINE_TIME_STEP_CYCLES) / 4000000.0);            // Time step in seconds.
         m_pMachine->Run(MACHINE_TIME_STEP_CYCLES);
+        // Program analyzer.
+        if (!m_pMachine->GetCpu()->IsExecutingInstruction())
+        {
+            m_programAnalyzer->Update();
+        }
         // Advance emulated time.
         if (m_settings.GetEmulationSpeed() > 0.f)   // If emulation speed *not* set to unlimited...
         {
@@ -738,6 +760,11 @@ void Application::DrawGui()
     if (m_debugger->IsActive())
     {
         m_debugger->DrawGui();
+    }
+    // Program analyzer.
+    if (m_programAnalyzer->IsActive())
+    {
+        m_programAnalyzer->DrawGui();
     }
     // Sound analyzer.
     if (m_soundAnalyzer->IsActive())
@@ -976,6 +1003,14 @@ void Application::DrawMainMenuGui()
         if (ImGui::Checkbox("Debugger", &debuggerActive))
         {
             m_debugger->SetActive(debuggerActive);
+        }
+        //
+        // "Program Analyzer" option.
+        //
+        bool programAnalyzerActive = m_programAnalyzer->IsActive();
+        if (ImGui::Checkbox("Program Analyzer", &programAnalyzerActive))
+        {
+            m_programAnalyzer->SetActive(programAnalyzerActive);
         }
         //
         // "Help" menu.

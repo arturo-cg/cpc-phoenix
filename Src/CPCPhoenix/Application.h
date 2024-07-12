@@ -15,6 +15,7 @@ class WindowsKeyStateProvider;
 class TextureVideoOutput;
 class CWinSoundOutput;
 class Debugger;
+class ProgramAnalyzer;
 class SoundAnalyzer;
 class kmbZipArchive;
 
@@ -82,6 +83,11 @@ public:
     Debugger*                 GetDebugger() { return m_debugger; }
     /** Returns the debugger (const version). */
     const Debugger*           GetDebugger() const { return m_debugger; }
+
+    /** Returns the program analyzer. */
+    ProgramAnalyzer*          GetProgramAnalyzer() { return m_programAnalyzer; }
+    /** Returns the program analyzer (const version). */
+    const ProgramAnalyzer*    GetProgramAnalyzer() const { return m_programAnalyzer; }
 
     /** Returns the RenderingApi object. */
     RenderingApi*             GetRenderingApi() { return m_renderingApi; }
@@ -178,6 +184,7 @@ private:
     AppWindow*                m_pAppWindow;
     RenderingApi*             m_renderingApi;
     Debugger*                 m_debugger;
+    ProgramAnalyzer*          m_programAnalyzer;
     SoundAnalyzer*            m_soundAnalyzer;
 
     CPC::CMachine*            m_pMachine;

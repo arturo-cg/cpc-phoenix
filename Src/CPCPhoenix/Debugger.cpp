@@ -5,6 +5,7 @@
 #include <sstream>
 #include "Debugger.h"
 #include "Application.h"
+#include "ProgramAnalyzer.h"
 #include "TextureVideoOutput.h"
 #include "cpcCpu.h"
 #include "cpcDisk.h"
@@ -114,6 +115,11 @@ void Debugger::RunMachine()
             // Scroll to PC.
             RequestScrollToAddress(m_machine->GetCpu()->GetRegisters().PC.w);
         }
+        // Program analyzer.
+        if (!cpu->IsExecutingInstruction())
+        {
+            Application::Singleton()->GetProgramAnalyzer()->Update();
+        }
         // Update the screen.
         if (!m_running ||                                   // If we just stopped running...
             (!previousHSync && crtc->GetHSyncState()))      // If at start of HSYNC (to update the screen at the end of every scan line)...
@@ -130,6 +136,8 @@ void Debugger::ExecuteCurrentInstruction()
     {
         m_machine->Run(1);
     } while (m_machine->GetCpu()->IsExecutingInstruction());
+    // Program Analyzer.
+    Application::Singleton()->GetProgramAnalyzer()->Update();
     // Update the screen.
     Application::Singleton()->GetTextureVideoOutput()->CaptureVideoOutputMidFrame();
     // Scroll to PC.
@@ -140,6 +148,11 @@ void Debugger::RunSingleCycle()
 {
     // Run the machine for one 1-MHz clock cycle.
     m_machine->Run(4);
+    // Program Analyzer.
+    if (!m_machine->GetCpu()->IsExecutingInstruction())
+    {
+        Application::Singleton()->GetProgramAnalyzer()->Update();
+    }
     // Update the screen.
     Application::Singleton()->GetTextureVideoOutput()->CaptureVideoOutputMidFrame();
     // Scroll to PC.

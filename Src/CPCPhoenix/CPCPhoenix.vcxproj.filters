@@ -37,6 +37,7 @@
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="SnaSnapshotReadWrite.h" />
     <ClInclude Include="SoundAnalyzer.h" />
+    <ClInclude Include="ProgramAnalyzer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -51,5 +52,6 @@
     <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="SnaSnapshotReadWrite.cpp" />
     <ClCompile Include="SoundAnalyzer.cpp" />
+    <ClCompile Include="ProgramAnalyzer.cpp" />
   </ItemGroup>
 </Project>
