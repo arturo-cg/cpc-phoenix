@@ -5,6 +5,8 @@ namespace CPC
     class CMachine;
 }
 
+class ProgramAnnotations;
+
 /**
 ** Set of tools that help the user analyze and understand (aka reverse-engineer) the program that is running in the emulated machine.
 */
@@ -40,4 +42,6 @@ private:
     bool m_bOk;
     bool m_active;
     CPC::CMachine* m_machine;
+    ProgramAnnotations* m_annotations;
+    bool m_collectCodeSegments;
 };

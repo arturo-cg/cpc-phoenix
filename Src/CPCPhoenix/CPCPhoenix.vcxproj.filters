@@ -38,6 +38,7 @@
     <ClInclude Include="SnaSnapshotReadWrite.h" />
     <ClInclude Include="SoundAnalyzer.h" />
     <ClInclude Include="ProgramAnalyzer.h" />
+    <ClInclude Include="ProgramAnnotations.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -53,5 +54,6 @@
     <ClCompile Include="SnaSnapshotReadWrite.cpp" />
     <ClCompile Include="SoundAnalyzer.cpp" />
     <ClCompile Include="ProgramAnalyzer.cpp" />
+    <ClCompile Include="ProgramAnnotations.cpp" />
   </ItemGroup>
 </Project>
