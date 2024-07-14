@@ -48,7 +48,7 @@ bool ProgramAnalyzer::Init()
 
 void ProgramAnalyzer::ResetVars()
 {
-    m_active = false;
+    m_visible = false;
     m_machine = nullptr;
     m_annotations = nullptr;
     m_collectCodeSegments = false;
@@ -60,24 +60,14 @@ void ProgramAnalyzer::FreeVars()
     m_annotations = nullptr;
 }
 
-void ProgramAnalyzer::SetActive(bool active)
-{
-    m_active = active;
-
-    if (active)
-    {
-    }
-    else
-    {
-    }
-}
-
 void ProgramAnalyzer::Update()
 {
     CPC::CCpu* cpu = m_machine->GetCpu();
 
     // This function should only be called in-between instructions, never in the middle of an instruction.
     KMASSERT(!cpu->IsExecutingInstruction());
+    // Call ProgramAnalyzer::Update only if it is active.
+    KMASSERT(IsActive());
 
     if (m_collectCodeSegments)
     {
@@ -93,7 +83,7 @@ void ProgramAnalyzer::Update()
 
 void ProgramAnalyzer::DrawGui()
 {
-    bool keepOpen = IsActive();
+    bool keepOpen = IsVisible();
     if (ImGui::Begin("Program Analyzer", &keepOpen/*, ImGuiWindowFlags_AlwaysAutoResize*/))
     {
         // Enable/disable data collection.
@@ -121,6 +111,6 @@ void ProgramAnalyzer::DrawGui()
 
     if (!keepOpen)
     {
-        SetActive(false);
+        SetVisible(false);
     }
 }

@@ -24,10 +24,13 @@ public:
     // Called by the application when the emulated machine changes, for example when the emulator is started or when the user changes the CPC model.
     void SetMachine(CPC::CMachine* newMachine) { m_machine = newMachine; }
 
-    // Start or stop the debugger.
-    void SetActive(bool active);
-    // Whether the emulated machine is being debugged or not.
-    bool IsActive() const { return m_active; }
+    // Shows or hides the Program Analyzer UI.
+    void SetVisible(bool visible) { m_visible = visible; }
+    // Whether the Program Analyzer UI is visible or not.
+    bool IsVisible() const { return m_visible; }
+
+    // Indicates whether the Program Analyzer is collecting data or not.
+    bool IsActive() const { return m_collectCodeSegments; }
 
     // Called before executing a new instruction.
     void Update();
@@ -40,7 +43,7 @@ private:
     void FreeVars();
 
     bool m_bOk;
-    bool m_active;
+    bool m_visible;
     CPC::CMachine* m_machine;
     ProgramAnnotations* m_annotations;
     bool m_collectCodeSegments;

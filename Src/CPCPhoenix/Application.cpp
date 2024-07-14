@@ -619,11 +619,22 @@ void Application::RunMachine(double elapsedRealTime)
         // Run the machine.
         static constexpr unsigned MACHINE_TIME_STEP_CYCLES = unsigned((FRAME_DURATION_SECS * 4000000.0) / 6.0);     // Time step in cycles of a 4-MHz clock.
         static constexpr double MACHINE_TIME_STEP_SECS = (double(MACHINE_TIME_STEP_CYCLES) / 4000000.0);            // Time step in seconds.
-        m_pMachine->Run(MACHINE_TIME_STEP_CYCLES);
-        // Program analyzer.
-        if (!m_pMachine->GetCpu()->IsExecutingInstruction())
+        if (m_programAnalyzer->IsActive())
         {
-            m_programAnalyzer->Update();
+            for (unsigned i = 0; i < MACHINE_TIME_STEP_CYCLES; i++)
+            {
+                // Run a single 4 MHz cycle.
+                m_pMachine->Run(1/*num4MhzCycles*/);
+                // Program analyzer.
+                if (!m_pMachine->GetCpu()->IsExecutingInstruction())
+                {
+                    m_programAnalyzer->Update();
+                }
+            }
+        }
+        else
+        {
+            m_pMachine->Run(MACHINE_TIME_STEP_CYCLES);
         }
         // Advance emulated time.
         if (m_settings.GetEmulationSpeed() > 0.f)   // If emulation speed *not* set to unlimited...
@@ -762,7 +773,7 @@ void Application::DrawGui()
         m_debugger->DrawGui();
     }
     // Program analyzer.
-    if (m_programAnalyzer->IsActive())
+    if (m_programAnalyzer->IsVisible())
     {
         m_programAnalyzer->DrawGui();
     }
@@ -1007,10 +1018,10 @@ void Application::DrawMainMenuGui()
         //
         // "Program Analyzer" option.
         //
-        bool programAnalyzerActive = m_programAnalyzer->IsActive();
+        bool programAnalyzerActive = m_programAnalyzer->IsVisible();
         if (ImGui::Checkbox("Program Analyzer", &programAnalyzerActive))
         {
-            m_programAnalyzer->SetActive(programAnalyzerActive);
+            m_programAnalyzer->SetVisible(programAnalyzerActive);
         }
         //
         // "Help" menu.
