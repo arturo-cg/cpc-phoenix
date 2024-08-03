@@ -116,9 +116,10 @@ void Debugger::RunMachine()
             RequestScrollToAddress(m_machine->GetCpu()->GetRegisters().PC.w);
         }
         // Program analyzer.
-        if (!cpu->IsExecutingInstruction())
+        ProgramAnalyzer* programAnalyzer = Application::Singleton()->GetProgramAnalyzer();
+        if (programAnalyzer->IsActive() && !cpu->IsExecutingInstruction())
         {
-            Application::Singleton()->GetProgramAnalyzer()->Update();
+            programAnalyzer->Update();
         }
         // Update the screen.
         if (!m_running ||                                   // If we just stopped running...
@@ -137,7 +138,11 @@ void Debugger::ExecuteCurrentInstruction()
         m_machine->Run(1);
     } while (m_machine->GetCpu()->IsExecutingInstruction());
     // Program Analyzer.
-    Application::Singleton()->GetProgramAnalyzer()->Update();
+    ProgramAnalyzer* programAnalyzer = Application::Singleton()->GetProgramAnalyzer();
+    if (programAnalyzer->IsActive())
+    {
+        programAnalyzer->Update();
+    }
     // Update the screen.
     Application::Singleton()->GetTextureVideoOutput()->CaptureVideoOutputMidFrame();
     // Scroll to PC.
@@ -149,9 +154,10 @@ void Debugger::RunSingleCycle()
     // Run the machine for one 1-MHz clock cycle.
     m_machine->Run(4);
     // Program Analyzer.
-    if (!m_machine->GetCpu()->IsExecutingInstruction())
+    ProgramAnalyzer* programAnalyzer = Application::Singleton()->GetProgramAnalyzer();
+    if (programAnalyzer->IsActive() && !m_machine->GetCpu()->IsExecutingInstruction())
     {
-        Application::Singleton()->GetProgramAnalyzer()->Update();
+        programAnalyzer->Update();
     }
     // Update the screen.
     Application::Singleton()->GetTextureVideoOutput()->CaptureVideoOutputMidFrame();
