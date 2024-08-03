@@ -59,4 +59,9 @@
       <Filter>Dear ImGui</Filter>
     </Natvis>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="DearImGui\imgui.natstepfilter">
+      <Filter>Dear ImGui</Filter>
+    </None>
+  </ItemGroup>
 </Project>
