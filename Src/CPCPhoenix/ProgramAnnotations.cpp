@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include "ProgramAnnotations.h"
 
-bool ProgramAnnotations::AddressRange::Touches(const AddressRange& other) const
+/**
+** AddressRange
+*/
+
+bool AddressRange::Touches(const AddressRange& other) const
 {
     if (start == other.start)
     {
@@ -20,10 +24,14 @@ bool ProgramAnnotations::AddressRange::Touches(const AddressRange& other) const
     }
 }
 
-bool ProgramAnnotations::AddressRange::Contains(const AddressRange& other) const
+bool AddressRange::Contains(const AddressRange& other) const
 {
     return (start <= other.start) && (end >= other.end);
 }
+
+/**
+** ProgramAnnotations
+*/
 
 bool ProgramAnnotations::Init()
 {

@@ -6,6 +6,7 @@ namespace CPC
 }
 
 class ProgramAnnotations;
+struct AddressRange;
 
 /**
 ** Set of tools that help the user analyze and understand (aka reverse-engineer) the program that is running in the emulated machine.
@@ -42,9 +43,17 @@ private:
     void ResetVars();
     void FreeVars();
 
+    void WriteProgramCode(std::string* outputCode) const;
+    void WriteSegmentCode(const AddressRange& codeSegment, std::string* outputCode) const;
+
+    static void AppendStringFormat(std::string* str, const char* format, ...);
+
     bool m_bOk;
     bool m_visible;
     CPC::CMachine* m_machine;
     ProgramAnnotations* m_annotations;
     bool m_collectCodeSegments;
+    std::string m_programCode;
+    bool m_programCodeNeedsRewrite;
+    bool m_programCodeRewriteEnabled;   // TODO: Hack to prevent program code rewrite from slowing down the emulation. To be removed.
 };

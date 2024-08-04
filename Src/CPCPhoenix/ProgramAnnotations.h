@@ -1,22 +1,25 @@
 #pragma once
 
 /**
-** 
+** AddressRange
+*/
+struct AddressRange
+{
+    cpcWord start;
+    cpcWord end;
+
+    bool Touches(const AddressRange& other) const;
+    bool Contains(const AddressRange& other) const;
+};
+
+using AddressRangeList = std::vector<AddressRange>;
+
+/**
+** ProgramAnnotations
 */
 class ProgramAnnotations
 {
 public:
-
-    struct AddressRange
-    {
-        cpcWord start;
-        cpcWord end;
-
-        bool Touches(const AddressRange& other) const;
-        bool Contains(const AddressRange& other) const;
-    };
-
-    using AddressRangeList = std::vector<AddressRange>;
 
     ProgramAnnotations() { m_bOk = false; }
     virtual ~ProgramAnnotations() { End(); }
@@ -38,5 +41,5 @@ private:
     void FreeVars();
 
     bool m_bOk;
-    AddressRangeList m_codeSegments;    // Each segment spans from the first byte of the first instruction to the last byte of the last instruction in the range.
+    AddressRangeList m_codeSegments;    // Each segment spans from the first byte of the first instruction to the last byte of the last instruction in the range. TODO: Separate code that lives in ROMs.
 };
