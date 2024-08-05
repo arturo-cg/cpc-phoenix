@@ -125,8 +125,28 @@ void ProgramAnalyzer::WriteProgramCode(std::string* outputCode) const
 
 void ProgramAnalyzer::WriteSegmentCode(const AddressRange& codeSegment, std::string* outputCode) const
 {
-    AppendStringFormat(outputCode, "; ======= Memory address range #%04X - #%04X =======\n", codeSegment.start, codeSegment.end);
-    AppendStringFormat(outputCode, "ORG #%04X\n", codeSegment.start);
+    // Header and ORG directive.
+    AppendStringFormat(outputCode, "; ======= #%04X - #%04X =======\n", codeSegment.start, codeSegment.end);
+    AppendStringFormat(outputCode, "ORG #%04X\n\n", codeSegment.start);
+
+    // Instructions.
+    CPC::CCpu* cpu = m_machine->GetCpu();
+    CPC::CCpu::AssemblyInstruction instruction;
+    cpcWord address = codeSegment.start;
+    cpcWord previousAddress = address;
+    while ((address <= codeSegment.end) &&      // If segment end not reached yet...
+           (address >= previousAddress))        // If address didn't wrapped around...
+    {
+        // Disassemble current instruction.
+        cpu->DisassembleInstruction(address, &instruction);
+        // Write instruction.
+        AppendStringFormat(outputCode, "%s %s\n", instruction.operation.c_str(), instruction.operands.c_str());
+        // Next instruction.
+        previousAddress = address;
+        address += instruction.sizeBytes;
+    }
+
+    KMASSERT((address - 1) == codeSegment.end);
 }
 
 void ProgramAnalyzer::DrawGui()
