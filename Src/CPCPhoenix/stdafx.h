@@ -58,6 +58,7 @@
 #include <deque>
 #include <unordered_set>
 #include <algorithm>
+#include <functional>
 
 using namespace std;    // No need to specify std:: for STL symbols
 

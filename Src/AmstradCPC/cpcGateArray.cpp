@@ -10,7 +10,7 @@
 //#include <Windows.h>
 
 
-#define GET_MEMORY_BLOCK_FROM_ADDRESS(addr)   ((addr & 0xC000) >> 14)
+#define GET_MEMORY_BLOCK_FROM_ADDRESS(addr)   (addr >> 14)
 #define GET_OFFSET_FROM_ADDRESS(addr)         (addr & 0x3FFF)
 
 // Final
