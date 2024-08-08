@@ -44,8 +44,8 @@ private:
     void ResetVars();
     void FreeVars();
 
-    void WriteProgramCode(std::string* outputCode) const;
-    void WriteSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4], std::string* outputCode) const;
+    void GenerateProgramCode(std::string* outputCode) const;
+    void GenerateSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4], std::string* outputCode) const;
 
     static void AppendStringFormat(std::string* str, const char* format, ...);
 
@@ -55,6 +55,6 @@ private:
     ProgramAnnotations* m_annotations;
     bool m_collectCodeSegments;
     std::string m_programCode;
-    bool m_programCodeNeedsRewrite;
-    bool m_programCodeRewriteEnabled;   // TODO: Hack to prevent program code rewrite from slowing down the emulation. To be removed.
+    bool m_programCodeIsDirty;
+    bool m_programCodeRegenerationEnabled;   // TODO: Hack to prevent program code rewrite from slowing down the emulation. To be removed.
 };

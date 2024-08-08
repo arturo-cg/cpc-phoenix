@@ -54,8 +54,8 @@ void ProgramAnalyzer::ResetVars()
     m_annotations = nullptr;
     m_collectCodeSegments = false;
     m_programCode.clear();
-    m_programCodeNeedsRewrite = false;
-    m_programCodeRewriteEnabled = true;
+    m_programCodeIsDirty = false;
+    m_programCodeRegenerationEnabled = true;
 }
 
 void ProgramAnalyzer::FreeVars()
@@ -101,19 +101,19 @@ void ProgramAnalyzer::Update()
             codeSegment.end = codeSegment.start + instruction.sizeBytes - 1;
             if (m_annotations->AddCodeSegment(codeSegment))
             {
-                m_programCodeNeedsRewrite = true;
+                m_programCodeIsDirty = true;
             }
         }
     }
 
-    if (m_programCodeNeedsRewrite && m_programCodeRewriteEnabled)
+    if (m_programCodeIsDirty && m_programCodeRegenerationEnabled)
     {
-        WriteProgramCode(&m_programCode);
-        m_programCodeNeedsRewrite = false;
+        GenerateProgramCode(&m_programCode);
+        m_programCodeIsDirty = false;
     }
 }
 
-void ProgramAnalyzer::WriteProgramCode(std::string* outputCode) const
+void ProgramAnalyzer::GenerateProgramCode(std::string* outputCode) const
 {
     KMASSERT(outputCode != nullptr);
 
@@ -141,11 +141,11 @@ void ProgramAnalyzer::WriteProgramCode(std::string* outputCode) const
             outputCode->append("\n");
         }
 
-        WriteSegmentCode(codeSegment, memoryBlocks, outputCode);
+        GenerateSegmentCode(codeSegment, memoryBlocks, outputCode);
     }
 }
 
-void ProgramAnalyzer::WriteSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4], std::string* outputCode) const
+void ProgramAnalyzer::GenerateSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4], std::string* outputCode) const
 {
     // Header and ORG directive.
     AppendStringFormat(outputCode, "; ======= #%04X - #%04X =======\n", codeSegment.start, codeSegment.end);
@@ -190,7 +190,7 @@ void ProgramAnalyzer::DrawGui()
         ImGui::Checkbox("Collect Code", &m_collectCodeSegments);
 
         // Program code.
-        ImGui::Checkbox("Hack - Enable program code update", &m_programCodeRewriteEnabled);
+        ImGui::Checkbox("Hack - Enable program code update", &m_programCodeRegenerationEnabled);
         ImGui::Text(m_programCode.c_str());
 
         // Code segments.
