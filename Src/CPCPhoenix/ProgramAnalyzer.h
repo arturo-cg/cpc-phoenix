@@ -3,6 +3,7 @@
 namespace CPC
 {
     class CMachine;
+    class CMemoryBlock;
 }
 
 class ProgramAnnotations;
@@ -44,7 +45,7 @@ private:
     void FreeVars();
 
     void WriteProgramCode(std::string* outputCode) const;
-    void WriteSegmentCode(const AddressRange& codeSegment, std::string* outputCode) const;
+    void WriteSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4], std::string* outputCode) const;
 
     static void AppendStringFormat(std::string* str, const char* format, ...);
 

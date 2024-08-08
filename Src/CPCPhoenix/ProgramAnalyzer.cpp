@@ -2,6 +2,7 @@
 #include "ProgramAnalyzer.h"
 #include "Application.h"
 #include "cpcMachine.h"
+#include "cpcMemoryBlock.h"
 #include "ProgramAnnotations.h"
 
 bool ProgramAnalyzer::Init()
@@ -66,6 +67,7 @@ void ProgramAnalyzer::FreeVars()
 void ProgramAnalyzer::Update()
 {
     CPC::CCpu* cpu = m_machine->GetCpu();
+    CPC::CGateArray* gateArray = m_machine->GetGateArray();
 
     // This function should only be called in-between instructions, never in the middle of an instruction.
     KMASSERT(!cpu->IsExecutingInstruction());
@@ -80,15 +82,27 @@ void ProgramAnalyzer::Update()
 
     if (m_collectCodeSegments)
     {
-        // Add the memory addresses taken by the instruction as a code segment.
-        CPC::CCpu::AssemblyInstruction instruction;
-        cpu->DisassembleInstruction(cpu->GetRegisters().PC.w, &instruction);     // TODO - No need for a full disassembly, we just need the length of the instruction.
-        AddressRange codeSegment;
-        codeSegment.start = cpu->GetRegisters().PC.w;
-        codeSegment.end = codeSegment.start + instruction.sizeBytes - 1;
-        if (m_annotations->AddCodeSegment(codeSegment))
+        // Collect it only if it is code stored in RAM. Ignore code stored in ROM.
+        // In the future, it would be a nice feature to also consider code stored in ROM.
+        cpcWord address = cpu->GetRegisters().PC.w;
+        unsigned block = (address >> 14);   // The two most significant bits indicate the 16 Kb memory block.
+        bool isRam = ((block == 0) && !gateArray->IsLowerRomVisible()) ||
+            (block == 1) ||
+            (block == 2) ||
+            ((block == 3 && !gateArray->IsUpperRomVisible()));
+
+        if (isRam)
         {
-            m_programCodeNeedsRewrite = true;
+            // Add the memory addresses taken by the instruction as a code segment.
+            CPC::CCpu::AssemblyInstruction instruction;
+            cpu->DisassembleInstruction(address, &instruction);     // TODO - No need for a full disassembly, we just need the length of the instruction.
+            AddressRange codeSegment;
+            codeSegment.start = address;
+            codeSegment.end = codeSegment.start + instruction.sizeBytes - 1;
+            if (m_annotations->AddCodeSegment(codeSegment))
+            {
+                m_programCodeNeedsRewrite = true;
+            }
         }
     }
 
@@ -105,6 +119,14 @@ void ProgramAnalyzer::WriteProgramCode(std::string* outputCode) const
 
     outputCode->clear();
 
+    // For now, always read instructions from the first 64 Kb of RAM.
+    const CPC::CMemoryBlock* memoryBlocks[4];
+    CPC::CMemory* memory = m_machine->GetMemory();
+    memoryBlocks[0] = memory->GetRamBlock(0);
+    memoryBlocks[1] = memory->GetRamBlock(1);
+    memoryBlocks[2] = memory->GetRamBlock(2);
+    memoryBlocks[3] = memory->GetRamBlock(3);
+
     // Iterate over the known code segments and generate the code for each one of them.
     bool isFirstSegment = true;
     for (const AddressRange& codeSegment : m_annotations->GetCodeSegments())
@@ -119,15 +141,25 @@ void ProgramAnalyzer::WriteProgramCode(std::string* outputCode) const
             outputCode->append("\n");
         }
 
-        WriteSegmentCode(codeSegment, outputCode);
+        WriteSegmentCode(codeSegment, memoryBlocks, outputCode);
     }
 }
 
-void ProgramAnalyzer::WriteSegmentCode(const AddressRange& codeSegment, std::string* outputCode) const
+void ProgramAnalyzer::WriteSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4], std::string* outputCode) const
 {
     // Header and ORG directive.
     AppendStringFormat(outputCode, "; ======= #%04X - #%04X =======\n", codeSegment.start, codeSegment.end);
     AppendStringFormat(outputCode, "ORG #%04X\n\n", codeSegment.start);
+
+    // Read bytes from the specified memory blocks.
+    std::function<cpcByte(cpcWord)> readByteFromBlocks = [memoryBlocks](cpcWord address)
+        {
+            // Bits 15,14 of nAddress determine which one of the four given blocks to use
+            // Bits 13-0 of nAddress determine the offset into the selected block
+            int blockIndex = address >> 14;
+            cpcWord offset = address & 0x3FFF;
+            return memoryBlocks[blockIndex]->ReadByte(offset);
+        };
 
     // Instructions.
     CPC::CCpu* cpu = m_machine->GetCpu();
@@ -138,7 +170,7 @@ void ProgramAnalyzer::WriteSegmentCode(const AddressRange& codeSegment, std::str
            (address >= previousAddress))        // If address didn't wrapped around...
     {
         // Disassemble current instruction.
-        cpu->DisassembleInstruction(address, &instruction);
+        cpu->DisassembleInstruction(address, readByteFromBlocks, &instruction);
         // Write instruction.
         AppendStringFormat(outputCode, "%s %s\n", instruction.operation.c_str(), instruction.operands.c_str());
         // Next instruction.
