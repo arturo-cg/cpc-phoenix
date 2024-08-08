@@ -13,6 +13,8 @@
 
 namespace CPC {
 
+    CCpu::OpcodeInfo* CCpu::m_opcodes[Prefix::Count];
+
     CCpu::OpcodeInfo CCpu::m_opcodesMain[256] = {
         // This generates something similar to this:
         //
@@ -117,15 +119,6 @@ namespace CPC {
             if ((i & 0x80) != 0)  parity = !parity;
             s_parity[i] = parity;
         }
-    }
-
-    //----------------------------------------------------------------------------
-    /**
-    **
-    */
-    CCpu::CCpu(CMachine *pMachine) : inherited(pMachine)
-    {
-        ResetVars();
 
         // Prepare opcode tables.
         FillOpcodeDisassemblyInfo(m_opcodesMain, false/*twoBytePrefixInstructions*/);
@@ -143,6 +136,15 @@ namespace CPC {
         m_opcodes[Prefix::DDCB] = m_opcodesDDCB;
         m_opcodes[Prefix::FD] = m_opcodesFD;
         m_opcodes[Prefix::FDCB] = m_opcodesFDCB;
+    }
+
+    //----------------------------------------------------------------------------
+    /**
+    **
+    */
+    CCpu::CCpu(CMachine *pMachine) : inherited(pMachine)
+    {
+        ResetVars();
     }
 
     //----------------------------------------------------------------------------
@@ -496,7 +498,7 @@ namespace CPC {
     /**
     **
     */
-    cpcWord CCpu::ConvertSignedByteToWord(cpcByte value) const
+    cpcWord CCpu::ConvertSignedByteToWord(cpcByte value)
     {
         // Sign-extend the provided two's complement number.
         cpcWord ret = ((value & 0x80) != 0 ? 0xFF00 : 0x0000);  // Higher byte.
@@ -1901,9 +1903,20 @@ namespace CPC {
 
     void CCpu::DisassembleInstruction(cpcWord address, AssemblyInstruction* outResult) const
     {
+        // Read instruction bytes via the Gate Array.
+        std::function<cpcByte(cpcWord)> readByteViaGateArray = [this](cpcWord address)
+            {
+                return m_cpuInterface->ReadByteFromMemory(this, address);
+            };
+
+        DisassembleInstruction(address, readByteViaGateArray, outResult);
+    }
+
+    /*static*/ void CCpu::DisassembleInstruction(cpcWord address, std::function<cpcByte(cpcWord)> ReadByteFromMemory, AssemblyInstruction* outResult)
+    {
         // Prefix.
-        cpcByte firstByte = m_cpuInterface->ReadByteFromMemory(this, address);
-        cpcByte secondByte = m_cpuInterface->ReadByteFromMemory(this, address + 1);
+        cpcByte firstByte = ReadByteFromMemory(address);
+        cpcByte secondByte = ReadByteFromMemory(address + 1);
         Prefix prefix;
         switch (firstByte)
         {
@@ -1928,7 +1941,7 @@ namespace CPC {
         }
         // Opcode.
         cpcWord opcodeAddress = address + prefixSizeBytes + (prefixSizeBytes < 2 ? 0 : 1/*displacement byte*/);
-        cpcByte opcode = m_cpuInterface->ReadByteFromMemory(this, opcodeAddress);
+        cpcByte opcode = ReadByteFromMemory(opcodeAddress);
         const OpcodeInfo* opcodeTable = m_opcodes[prefix];
         const OpcodeInfo* opcodeInfo = &opcodeTable[opcode];
         const OpcodeDisassemblyInfo* opcodeDisassemblyInfo = &opcodeInfo->disassemblyInfo;
@@ -1961,11 +1974,11 @@ namespace CPC {
             cpcByte displacement;
             if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementBeforeOpcode)) != 0)
             {
-                displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes);
+                displacement = ReadByteFromMemory(address + prefixSizeBytes);
             }
             else if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::DisplacementAfterOpcode)) != 0)
             {
-                displacement = m_cpuInterface->ReadByteFromMemory(this, address + prefixSizeBytes + 1/*opcode*/);
+                displacement = ReadByteFromMemory(address + prefixSizeBytes + 1/*opcode*/);
             }
             else
             {
@@ -1990,7 +2003,7 @@ namespace CPC {
             if ((int(opcodeDisassemblyInfo->flags) & int(MnemonicFlags::Immediate8)) != 0)
             {
                 // 8-bit immediate data.
-                cpcByte immediateData = m_cpuInterface->ReadByteFromMemory(this, immediateAddress);
+                cpcByte immediateData = ReadByteFromMemory(immediateAddress);
                 static int Immediate8TagLength = 2;
                 snprintf(buffer, sizeof(buffer), "%s#%02X%s",
                     outResult->operands.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),
@@ -2000,7 +2013,7 @@ namespace CPC {
             else
             {
                 // 16-bit immediate data.
-                cpcWord immediateData = m_cpuInterface->ReadByteFromMemory(this, immediateAddress) | (cpcWord(m_cpuInterface->ReadByteFromMemory(this, immediateAddress + 1)) << 8);
+                cpcWord immediateData = ReadByteFromMemory(immediateAddress) | (cpcWord(ReadByteFromMemory(immediateAddress + 1)) << 8);
                 static int Immediate16TagLength = 3;
                 snprintf(buffer, sizeof(buffer), "%s#%04X%s",
                     outResult->operands.substr(0, opcodeDisassemblyInfo->immediateTagPos).c_str(),

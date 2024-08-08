@@ -163,6 +163,11 @@ namespace CPC {
         *   It provides the core functionality for a full-blown disassembler.
         */
         void                    DisassembleInstruction(cpcWord address, AssemblyInstruction* outResult) const;
+        /** Translates the instruction that starts at the specified address to assembly language.
+        *   It provides the core functionality for a full-blown disassembler.
+        *   This version uses the specified function to read instruction bytes from memory.
+        */
+        static void             DisassembleInstruction(cpcWord address, std::function<cpcByte(cpcWord)> ReadByteFromMemory, AssemblyInstruction* outResult);
 
         // Type for 16-bit registers whose 8-bit components can be accessed individually as well.
         union Reg16
@@ -322,7 +327,7 @@ namespace CPC {
         void                    Push(const Reg16& value);
         void                    Pop(Reg16* value);
 
-        cpcWord                 ConvertSignedByteToWord(cpcByte value) const;
+        static cpcWord          ConvertSignedByteToWord(cpcByte value);
 
         void                    LD8_reg_reg(cpcByte* dest, cpcByte value);
         void                    LD8_reg_n(cpcByte* byte);
@@ -472,7 +477,7 @@ namespace CPC {
         void                    IM(int mode);
         void                    HALT();
 
-        void                    FillOpcodeDisassemblyInfo(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions);
+        static void             FillOpcodeDisassemblyInfo(OpcodeInfo* opcodeTable, bool twoBytePrefixInstructions);
 
         Registers m_registers;
         bool m_inHalt;
@@ -487,8 +492,9 @@ namespace CPC {
                                    // If that number of cycles is higher than the number of cycles the Z80 emulation was asked to execute, it will sit idle until the emulator catches up with it.
         Prefix m_prefix;
         cpcWord m_signedDisplacement;
-        OpcodeInfo* m_opcodes[Prefix::Count];     // One InstructionTable per prefix.
         CCpuInterface* m_cpuInterface;
+
+        static OpcodeInfo* m_opcodes[Prefix::Count];     // One InstructionTable per prefix.
 
         static OpcodeInfo m_opcodesMain[256];
         static OpcodeInfo m_opcodesED[256];
