@@ -191,27 +191,15 @@ void ProgramAnalyzer::DrawGui()
 
         // Program code.
         ImGui::Checkbox("Hack - Enable program code update", &m_programCodeRegenerationEnabled);
-        ImGui::Text(m_programCode.c_str());
 
-        // Code segments.
-        // TODO: For debugging only, to be removed at some point.
-        ImGui::Separator();
-        ImGui::Text("%d code segments:", m_annotations->GetCodeSegments().size());
-
-        ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
-        if (ImGui::BeginTable("CodeSegments", 1/*columns_count*/, tableFlags/*, ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 8.f)*/))
-        {
-            for (AddressRangeList::const_iterator iter = m_annotations->GetCodeSegments().cbegin(); iter != m_annotations->GetCodeSegments().cend(); ++iter)
-            {
-                ImGui::TableNextRow();
-                const AddressRange& addressRange = *iter;
-
-                ImGui::TableNextColumn();
-                ImGui::Text("#%04X - #%04X", addressRange.start, addressRange.end);
-            }
-
-            ImGui::EndTable();
-        }
+        ImGui::Text("Program code (%d segments):", m_annotations->GetCodeSegments().size());
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(30, 30, 50, 255));
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(220, 220, 220, 255));
+        ImGui::BeginChild("Program code", ImVec2(0, -10), ImGuiChildFlags_Border);
+        ImGui::TextUnformatted(m_programCode.c_str());
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
     }
     ImGui::End();
 
