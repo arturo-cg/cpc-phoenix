@@ -4,6 +4,7 @@
 #include "cpcMachine.h"
 #include "cpcMemoryBlock.h"
 #include "ProgramAnnotations.h"
+#include "ProgramCode.h"
 
 bool ProgramAnalyzer::Init()
 {
@@ -23,6 +24,9 @@ bool ProgramAnalyzer::Init()
     {
         m_annotations = new ProgramAnnotations();
         m_annotations->Init();
+
+        m_programCode = new ProgramCode();
+        m_programCode->Init();
     }
 
 
@@ -53,13 +57,16 @@ void ProgramAnalyzer::ResetVars()
     m_machine = nullptr;
     m_annotations = nullptr;
     m_collectCodeSegments = false;
-    m_programCode.clear();
+    m_programCode = nullptr;
     m_programCodeIsDirty = false;
     m_programCodeRegenerationEnabled = true;
 }
 
 void ProgramAnalyzer::FreeVars()
 {
+    delete m_programCode;
+    m_programCode = nullptr;
+
     delete m_annotations;
     m_annotations = nullptr;
 }
@@ -108,16 +115,14 @@ void ProgramAnalyzer::Update()
 
     if (m_programCodeIsDirty && m_programCodeRegenerationEnabled)
     {
-        GenerateProgramCode(&m_programCode);
+        GenerateProgramCode();
         m_programCodeIsDirty = false;
     }
 }
 
-void ProgramAnalyzer::GenerateProgramCode(std::string* outputCode) const
+void ProgramAnalyzer::GenerateProgramCode()
 {
-    KMASSERT(outputCode != nullptr);
-
-    outputCode->clear();
+    m_programCode->Clear();
 
     // For now, always read instructions from the first 64 Kb of RAM.
     const CPC::CMemoryBlock* memoryBlocks[4];
@@ -128,28 +133,18 @@ void ProgramAnalyzer::GenerateProgramCode(std::string* outputCode) const
     memoryBlocks[3] = memory->GetRamBlock(3);
 
     // Iterate over the known code segments and generate the code for each one of them.
-    bool isFirstSegment = true;
     for (const AddressRange& codeSegment : m_annotations->GetCodeSegments())
     {
-        if (isFirstSegment)
-        {
-            isFirstSegment = false;
-        }
-        else
-        {
-            // Blank line.
-            outputCode->append("\n");
-        }
-
-        GenerateSegmentCode(codeSegment, memoryBlocks, outputCode);
+        GenerateSegmentCode(codeSegment, memoryBlocks);
     }
 }
 
-void ProgramAnalyzer::GenerateSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4], std::string* outputCode) const
+void ProgramAnalyzer::GenerateSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4])
 {
     // Header and ORG directive.
-    AppendStringFormat(outputCode, "; ======= #%04X - #%04X =======\n", codeSegment.start, codeSegment.end);
-    AppendStringFormat(outputCode, "ORG #%04X\n\n", codeSegment.start);
+    std::string str;
+    m_programCode->AddComment(AssignStringFormat(&str, "======= #%04X - #%04X =======\n", codeSegment.start, codeSegment.end));
+    m_programCode->AddDirective("ORG", AssignStringFormat(&str, "#%04X\n\n", codeSegment.start));
 
     // Read bytes from the specified memory blocks.
     std::function<cpcByte(cpcWord)> readByteFromBlocks = [memoryBlocks](cpcWord address)
@@ -172,7 +167,7 @@ void ProgramAnalyzer::GenerateSegmentCode(const AddressRange& codeSegment, const
         // Disassemble current instruction.
         cpu->DisassembleInstruction(address, readByteFromBlocks, &instruction);
         // Write instruction.
-        AppendStringFormat(outputCode, "%s %s\n", instruction.operation.c_str(), instruction.operands.c_str());
+        m_programCode->AddInstruction(address, instruction.operation, instruction.operands);
         // Next instruction.
         previousAddress = address;
         address += instruction.sizeBytes;
@@ -193,13 +188,7 @@ void ProgramAnalyzer::DrawGui()
         ImGui::Checkbox("Hack - Enable program code update", &m_programCodeRegenerationEnabled);
 
         ImGui::Text("Program code (%d segments):", m_annotations->GetCodeSegments().size());
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(30, 30, 50, 255));
-        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(220, 220, 220, 255));
-        ImGui::BeginChild("Program code", ImVec2(0, -10), ImGuiChildFlags_Border);
-        ImGui::TextUnformatted(m_programCode.c_str());
-        ImGui::EndChild();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
+        m_programCode->DrawGui();
     }
     ImGui::End();
 
@@ -207,6 +196,23 @@ void ProgramAnalyzer::DrawGui()
     {
         SetVisible(false);
     }
+}
+
+std::string& ProgramAnalyzer::AssignStringFormat(std::string* str, const char* format, ...)
+{
+    va_list argList;
+    va_start(argList, format);
+
+    // Format the string and store the result in 'buffer'.
+    static char buffer[1000];
+    vsprintf_s(buffer, sizeof(buffer), format, argList);
+    // Append to 'str'.
+    str->assign(buffer);
+
+    va_end(argList);
+
+    // Return a reference to the passed string.
+    return *str;
 }
 
 void ProgramAnalyzer::AppendStringFormat(std::string* str, const char* format, ...)

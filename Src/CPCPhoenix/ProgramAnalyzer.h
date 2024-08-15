@@ -7,6 +7,7 @@ namespace CPC
 }
 
 class ProgramAnnotations;
+class ProgramCode;
 struct AddressRange;
 
 /**
@@ -44,9 +45,10 @@ private:
     void ResetVars();
     void FreeVars();
 
-    void GenerateProgramCode(std::string* outputCode) const;
-    void GenerateSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4], std::string* outputCode) const;
+    void GenerateProgramCode();
+    void GenerateSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4]);
 
+    static std::string& AssignStringFormat(std::string* str, const char* format, ...);
     static void AppendStringFormat(std::string* str, const char* format, ...);
 
     bool m_bOk;
@@ -54,7 +56,7 @@ private:
     CPC::CMachine* m_machine;
     ProgramAnnotations* m_annotations;
     bool m_collectCodeSegments;
-    std::string m_programCode;
+    ProgramCode* m_programCode;
     bool m_programCodeIsDirty;
     bool m_programCodeRegenerationEnabled;   // TODO: Hack to prevent program code rewrite from slowing down the emulation. To be removed.
 };

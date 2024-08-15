@@ -146,6 +146,7 @@
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="ProgramAnalyzer.h" />
     <ClInclude Include="ProgramAnnotations.h" />
+    <ClInclude Include="ProgramCode.h" />
     <ClInclude Include="RenderingApi.h" />
     <ClInclude Include="res\Resource.h" />
     <ClInclude Include="Settings.h" />
@@ -163,6 +164,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ProgramAnalyzer.cpp" />
     <ClCompile Include="ProgramAnnotations.cpp" />
+    <ClCompile Include="ProgramCode.cpp" />
     <ClCompile Include="RenderingApi.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SnaSnapshotReadWrite.cpp" />

@@ -39,6 +39,7 @@
     <ClInclude Include="SoundAnalyzer.h" />
     <ClInclude Include="ProgramAnalyzer.h" />
     <ClInclude Include="ProgramAnnotations.h" />
+    <ClInclude Include="ProgramCode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -55,5 +56,6 @@
     <ClCompile Include="SoundAnalyzer.cpp" />
     <ClCompile Include="ProgramAnalyzer.cpp" />
     <ClCompile Include="ProgramAnnotations.cpp" />
+    <ClCompile Include="ProgramCode.cpp" />
   </ItemGroup>
 </Project>
