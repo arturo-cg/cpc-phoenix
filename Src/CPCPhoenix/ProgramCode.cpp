@@ -46,6 +46,7 @@ void ProgramCode::ResetVars()
 {
     SetDefaultCodeStyle();
     m_codeLines.clear();
+    m_nextLineNumber = FirstLineNumber;
     m_isDirty = false;
 }
 
@@ -68,23 +69,40 @@ void ProgramCode::Clear()
     }
 
     m_codeLines.clear();
+    m_nextLineNumber = FirstLineNumber;
+}
+
+void ProgramCode::AddBlankLine()
+{
+    m_nextLineNumber++;
+}
+
+void ProgramCode::AddBlankLines(int numBlankLines)
+{
+    if (numBlankLines > 0)
+    {
+        m_nextLineNumber += numBlankLines;
+    }
 }
 
 void ProgramCode::AddComment(const std::string& comment)
 {
-    ProgramCodeCommentLine* line = new ProgramCodeCommentLine(comment);
+    ProgramCodeCommentLine* line = new ProgramCodeCommentLine(m_nextLineNumber, comment);
+    m_nextLineNumber++;
     m_codeLines.push_back(line);
 }
 
 void ProgramCode::AddDirective(const std::string& directive, const std::string& operands)
 {
-    ProgramCodeDirectiveLine* line = new ProgramCodeDirectiveLine(directive, operands);
+    ProgramCodeDirectiveLine* line = new ProgramCodeDirectiveLine(m_nextLineNumber, directive, operands);
+    m_nextLineNumber++;
     m_codeLines.push_back(line);
 }
 
 void ProgramCode::AddInstruction(cpcWord address, const std::string& operation, const std::string& operands)
 {
-    ProgramCodeInstructionLine* line = new ProgramCodeInstructionLine(address, operation, operands);
+    ProgramCodeInstructionLine* line = new ProgramCodeInstructionLine(m_nextLineNumber, address, operation, operands);
+    m_nextLineNumber++;
     m_codeLines.push_back(line);
 }
 
@@ -95,40 +113,64 @@ void ProgramCode::DrawGui()
     ImGui::BeginChild("Program code", ImVec2(0, -10), ImGuiChildFlags_Border);
 
     // Code lines.
-    ImGuiListClipper clipper;
-    clipper.Begin(m_codeLines.size());
-    while (clipper.Step())
+    if (!m_codeLines.empty())
     {
-        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+        ImGuiListClipper clipper;
+        clipper.Begin(m_nextLineNumber - 1);
+        while (clipper.Step())
         {
-            ProgramCodeLine* line = m_codeLines[i];
-            switch (line->_type)
+            // First visible line.
+            // This line can be blank or non-blank.
+            int lineNumber = FirstLineNumber + clipper.DisplayStart;
+            // Find the first non-blank line from the first visible line.
+            CodeLineList::const_iterator nonBlankLineIter = std::lower_bound(m_codeLines.begin(), m_codeLines.end(), lineNumber, [](const ProgramCodeLine* line, int lineNumber) {
+                return line->_lineNumber < lineNumber;
+                });
+
+            for (/*Empty*/; lineNumber < (FirstLineNumber + clipper.DisplayEnd); lineNumber++)
             {
-                case ProgramCodeLine::Type::Comment:
+                KMASSERT(nonBlankLineIter != m_codeLines.end());
+                const ProgramCodeLine* line = *nonBlankLineIter;
+                if (lineNumber < line->_lineNumber)
                 {
-                    ProgramCodeCommentLine* comment = (ProgramCodeCommentLine*)line;
-                    ImGui::Text("%*c %s", m_codeStyle.addressWidth, ' ', comment->_comment.c_str());
-                    break;
+                    // This is a blank line.
+                    ImGui::Text("");
                 }
-
-                case ProgramCodeLine::Type::Directive:
+                else
                 {
-                    ProgramCodeDirectiveLine* directive = (ProgramCodeDirectiveLine*)line;
-                    ImGui::Text("%*c %s %s", m_codeStyle.addressWidth, ' ', directive->_directive.c_str(), directive->_operands.c_str());
-                    break;
-                }
+                    // This is a non-blank line.
+                    switch (line->_type)
+                    {
+                        case ProgramCodeLine::Type::Comment:
+                        {
+                            const ProgramCodeCommentLine* comment = (const ProgramCodeCommentLine*)line;
+                            ImGui::Text("%*c %s", m_codeStyle.addressWidth, ' ', comment->_comment.c_str());
+                            break;
+                        }
 
-                case ProgramCodeLine::Type::Instruction:
-                {
-                    ProgramCodeInstructionLine* instruction = (ProgramCodeInstructionLine*)line;
-                    ImGui::Text("%04X%*c %-*s %s", instruction->_address, m_codeStyle.addressWidth - 4, ' ', m_codeStyle.instructionOperationWidth, instruction->_operation.c_str(), instruction->_operands.c_str());
-                    break;
-                }
+                        case ProgramCodeLine::Type::Directive:
+                        {
+                            const ProgramCodeDirectiveLine* directive = (const ProgramCodeDirectiveLine*)line;
+                            ImGui::Text("%*c %s %s", m_codeStyle.addressWidth, ' ', directive->_directive.c_str(), directive->_operands.c_str());
+                            break;
+                        }
 
-                default:
-                {
-                    KMASSERTM(false, ("Unhandled case."));
-                    break;
+                        case ProgramCodeLine::Type::Instruction:
+                        {
+                            const ProgramCodeInstructionLine* instruction = (const ProgramCodeInstructionLine*)line;
+                            ImGui::Text("%04X%*c %-*s %s", instruction->_address, m_codeStyle.addressWidth - 4, ' ', m_codeStyle.instructionOperationWidth, instruction->_operation.c_str(), instruction->_operands.c_str());
+                            break;
+                        }
+
+                        default:
+                        {
+                            KMASSERTM(false, ("Unhandled case."));
+                            break;
+                        }
+                    }
+
+                    // Next non-blank line.
+                    nonBlankLineIter++;
                 }
             }
         }

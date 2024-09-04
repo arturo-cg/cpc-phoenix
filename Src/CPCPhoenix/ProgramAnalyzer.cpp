@@ -133,9 +133,17 @@ void ProgramAnalyzer::GenerateProgramCode()
     memoryBlocks[3] = memory->GetRamBlock(3);
 
     // Iterate over the known code segments and generate the code for each one of them.
+    bool firstSegment = true;
     for (const AddressRange& codeSegment : m_annotations->GetCodeSegments())
     {
+        if (!firstSegment)
+        {
+            m_programCode->AddBlankLine();
+        }
+
         GenerateSegmentCode(codeSegment, memoryBlocks);
+
+        firstSegment = false;
     }
 }
 
@@ -143,8 +151,9 @@ void ProgramAnalyzer::GenerateSegmentCode(const AddressRange& codeSegment, const
 {
     // Header and ORG directive.
     std::string str;
-    m_programCode->AddComment(AssignStringFormat(&str, "======= #%04X - #%04X =======\n", codeSegment.start, codeSegment.end));
-    m_programCode->AddDirective("ORG", AssignStringFormat(&str, "#%04X\n\n", codeSegment.start));
+    m_programCode->AddComment(AssignStringFormat(&str, "======= #%04X - #%04X =======", codeSegment.start, codeSegment.end));
+    m_programCode->AddDirective("ORG", AssignStringFormat(&str, "#%04X", codeSegment.start));
+    m_programCode->AddBlankLine();
 
     // Read bytes from the specified memory blocks.
     std::function<cpcByte(cpcWord)> readByteFromBlocks = [memoryBlocks](cpcWord address)

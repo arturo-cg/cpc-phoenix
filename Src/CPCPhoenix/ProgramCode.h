@@ -13,10 +13,11 @@ struct ProgramCodeLine
         Instruction,
     };
 
-    ProgramCodeLine(Type type) : _type(type) { }
+    ProgramCodeLine(Type type, int lineNumber) : _type(type), _lineNumber(lineNumber) { }
     virtual ~ProgramCodeLine() { }
 
     Type _type;
+    int _lineNumber;
 };
 
 /**
@@ -24,7 +25,7 @@ struct ProgramCodeLine
 */
 struct ProgramCodeCommentLine : ProgramCodeLine
 {
-    ProgramCodeCommentLine(const std::string& comment) : ProgramCodeLine(Type::Comment), _comment(comment) { }
+    ProgramCodeCommentLine(int lineNumber, const std::string& comment) : ProgramCodeLine(Type::Comment, lineNumber), _comment(comment) { }
 
     std::string _comment;
 };
@@ -34,7 +35,7 @@ struct ProgramCodeCommentLine : ProgramCodeLine
 */
 struct ProgramCodeDirectiveLine : ProgramCodeLine
 {
-    ProgramCodeDirectiveLine(const std::string& directive, const std::string& operands) : ProgramCodeLine(Type::Directive), _directive(directive), _operands(operands) { }
+    ProgramCodeDirectiveLine(int lineNumber, const std::string& directive, const std::string& operands) : ProgramCodeLine(Type::Directive, lineNumber), _directive(directive), _operands(operands) { }
 
     std::string _directive;
     std::string _operands;
@@ -45,7 +46,7 @@ struct ProgramCodeDirectiveLine : ProgramCodeLine
 */
 struct ProgramCodeInstructionLine : ProgramCodeLine
 {
-    ProgramCodeInstructionLine(cpcWord address, const std::string& operation, const std::string& operands) : ProgramCodeLine(Type::Instruction), _address(address), _operation(operation), _operands(operands) { }
+    ProgramCodeInstructionLine(int lineNumber, cpcWord address, const std::string& operation, const std::string& operands) : ProgramCodeLine(Type::Instruction, lineNumber), _address(address), _operation(operation), _operands(operands) { }
 
     cpcWord _address;
     std::string _operation;
@@ -69,6 +70,10 @@ public:
     // Clears the stored program code, leaving it empty.
     void Clear();
 
+    // Adds a blank line on a new line at the end of the program code.
+    void AddBlankLine();
+    // Adds one or more blank lines on a new line at the end of the program code.
+    void AddBlankLines(int numBlankLines);
     // Adds a comment on a new line at the end of the program code.
     void AddComment(const std::string& comment);
     // Adds a directive on a new line at the end of the program code.
@@ -88,6 +93,8 @@ private:
 
     using CodeLineList = vector<ProgramCodeLine*>;
 
+    static const int FirstLineNumber = 1;
+
     void ResetVars();
     void FreeVars();
 
@@ -97,6 +104,7 @@ private:
 
     bool m_bOk;
     CodeStyle m_codeStyle;
-    CodeLineList m_codeLines;
+    CodeLineList m_codeLines;       // Only non-blank lines are stored.
+    int m_nextLineNumber;
     bool m_isDirty;
 };
