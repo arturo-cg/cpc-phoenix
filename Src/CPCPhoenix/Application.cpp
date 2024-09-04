@@ -646,6 +646,15 @@ void Application::RunMachine(double elapsedRealTime)
             m_emulationTime -= elapsedRealTime;
         }
 
+        // Limit how much time the emulator can be behind the real time clock.
+        // Otherwise, the accumulated emulation time could build up during debugging or an expensive operation and,
+        // when normality is resumed, the emulator would run at > 100% for too long to catch up.
+        static constexpr double MaxAllowedTimeBehind = 0.2f;
+        if (m_emulationTime >= MaxAllowedTimeBehind)
+        {
+            m_emulationTime = MaxAllowedTimeBehind;
+        }
+
         m_speedEmulatedTime += MACHINE_TIME_STEP_SECS;
     }
     // Measure emulation speed.
