@@ -14,6 +14,7 @@ struct ProgramCodeLine
     };
 
     ProgramCodeLine(Type type) : _type(type) { }
+    virtual ~ProgramCodeLine() { }
 
     Type _type;
 };
