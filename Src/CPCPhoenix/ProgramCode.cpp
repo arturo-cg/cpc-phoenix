@@ -144,7 +144,7 @@ void ProgramCode::DrawGui()
                         case ProgramCodeLine::Type::Comment:
                         {
                             const ProgramCodeCommentLine* comment = (const ProgramCodeCommentLine*)line;
-                            ImGui::Text("%*c %s", m_codeStyle.addressWidth, ' ', comment->_comment.c_str());
+                            ImGui::Text("%*c ; %s", m_codeStyle.addressWidth, ' ', comment->_comment.c_str());
                             break;
                         }
 
