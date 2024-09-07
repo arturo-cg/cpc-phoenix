@@ -76,7 +76,9 @@ private:
 
     void DrawCpu();
     void DrawExecuteOptions();
+    void DrawCode();
     void DrawDisassembly();
+    void DrawCpuRegistersAndStack();
     void DrawCpuRegisters();
     void DrawStack();
 

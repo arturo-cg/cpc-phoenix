@@ -269,15 +269,11 @@ void Debugger::DrawCpu()
 {
     // Execute options.
     DrawExecuteOptions();
-    // Disassembly.
-    DrawDisassembly();
-    // Registers.
+    // Code (raw disassembly, program code).
+    DrawCode();
+    // Registers and stack.
     ImGui::SameLine();
-    ImGui::BeginGroup();
-    DrawCpuRegisters();
-    ImGui::Spacing();
-    DrawStack();
-    ImGui::EndGroup();
+    DrawCpuRegistersAndStack();
 }
 
 void Debugger::DrawExecuteOptions()
@@ -355,6 +351,32 @@ void Debugger::DrawExecuteOptions()
     }
 }
 
+void Debugger::DrawCode()
+{
+    ImGui::BeginChild("CodeParent", ImVec2(-130.f, 0.f));
+
+    if (ImGui::BeginTabBar("CodeTypes"))
+    {
+        if (ImGui::BeginTabItem("Raw Disassembly##RawDisassemblyTab"))
+        {
+            // Raw disassembly.
+            DrawDisassembly();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Program Code##ProgramCodeTab"))
+        {
+            // Program code.
+            ImGui::Text("TODO - PROGRAM CODE GOES HERE");
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
+
+    ImGui::EndChild();
+}
+
 void Debugger::DrawDisassembly()
 {
     const CPC::CCpu* cpu = m_machine->GetCpu();
@@ -422,6 +444,16 @@ void Debugger::DrawDisassembly()
 
         ImGui::EndTable();
     }
+}
+
+void Debugger::DrawCpuRegistersAndStack()
+{
+    ImGui::BeginGroup();
+    ImGui::Dummy(ImVec2(0.f, 20.f));    // Vertical space at the top.
+    DrawCpuRegisters();
+    ImGui::Spacing();
+    DrawStack();
+    ImGui::EndGroup();
 }
 
 void Debugger::DrawCpuRegisters()
