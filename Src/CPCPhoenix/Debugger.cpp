@@ -6,6 +6,7 @@
 #include "Debugger.h"
 #include "Application.h"
 #include "ProgramAnalyzer.h"
+#include "ProgramCode.h"
 #include "TextureVideoOutput.h"
 #include "cpcCpu.h"
 #include "cpcDisk.h"
@@ -117,7 +118,7 @@ void Debugger::RunMachine()
         }
         // Program analyzer.
         ProgramAnalyzer* programAnalyzer = Application::Singleton()->GetProgramAnalyzer();
-        if (programAnalyzer->IsActive() && !cpu->IsExecutingInstruction())
+        if (programAnalyzer->IsCodeCollectionEnabled() && !cpu->IsExecutingInstruction())
         {
             programAnalyzer->Update();
         }
@@ -139,7 +140,7 @@ void Debugger::ExecuteCurrentInstruction()
     } while (m_machine->GetCpu()->IsExecutingInstruction());
     // Program Analyzer.
     ProgramAnalyzer* programAnalyzer = Application::Singleton()->GetProgramAnalyzer();
-    if (programAnalyzer->IsActive())
+    if (programAnalyzer->IsCodeCollectionEnabled())
     {
         programAnalyzer->Update();
     }
@@ -155,7 +156,7 @@ void Debugger::RunSingleCycle()
     m_machine->Run(4);
     // Program Analyzer.
     ProgramAnalyzer* programAnalyzer = Application::Singleton()->GetProgramAnalyzer();
-    if (programAnalyzer->IsActive() && !m_machine->GetCpu()->IsExecutingInstruction())
+    if (programAnalyzer->IsCodeCollectionEnabled() && !m_machine->GetCpu()->IsExecutingInstruction())
     {
         programAnalyzer->Update();
     }
@@ -366,8 +367,10 @@ void Debugger::DrawCode()
 
         if (ImGui::BeginTabItem("Program Code##ProgramCodeTab"))
         {
-            // Program code.
-            ImGui::Text("TODO - PROGRAM CODE GOES HERE");
+            // Regenerate code if needed.
+            Application::Singleton()->GetProgramAnalyzer()->RegenerateCodeIfNeeded();
+            // Program code, including toolbar.
+            DrawProgramCode();
             ImGui::EndTabItem();
         }
 
@@ -382,7 +385,7 @@ void Debugger::DrawDisassembly()
     const CPC::CCpu* cpu = m_machine->GetCpu();
 
     ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
-    if (ImGui::BeginTable("Disassembly", 4/*columns_count*/, tableFlags, ImVec2(340.f, 0.f)))
+    if (ImGui::BeginTable("Disassembly", 4/*columns_count*/, tableFlags, ImVec2(-1.f, -1.f)))
     {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 15.f);      // Breakpoint.
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None, 60.f);      // Address.
@@ -444,6 +447,20 @@ void Debugger::DrawDisassembly()
 
         ImGui::EndTable();
     }
+}
+
+void Debugger::DrawProgramCode()
+{
+    ProgramAnalyzer* programAnalyzer = Application::Singleton()->GetProgramAnalyzer();
+
+    // Toolbar.
+    // +- Enable/disable code collection.
+    bool codeCollectionEnabled = programAnalyzer->IsCodeCollectionEnabled();
+    ImGui::Checkbox("Collect##CollectProgramCode", &codeCollectionEnabled);
+    programAnalyzer->SetCodeCollectionEnabled(codeCollectionEnabled);
+
+    // Program code.
+    programAnalyzer->GetProgramCode()->DrawGui();
 }
 
 void Debugger::DrawCpuRegistersAndStack()

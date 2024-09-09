@@ -619,7 +619,7 @@ void Application::RunMachine(double elapsedRealTime)
         // Run the machine.
         static constexpr unsigned MACHINE_TIME_STEP_CYCLES = unsigned((FRAME_DURATION_SECS * 4000000.0) / 6.0);     // Time step in cycles of a 4-MHz clock.
         static constexpr double MACHINE_TIME_STEP_SECS = (double(MACHINE_TIME_STEP_CYCLES) / 4000000.0);            // Time step in seconds.
-        if (m_programAnalyzer->IsActive())
+        if (m_programAnalyzer->IsCodeCollectionEnabled())
         {
             for (unsigned i = 0; i < MACHINE_TIME_STEP_CYCLES; i++)
             {
@@ -780,11 +780,6 @@ void Application::DrawGui()
     if (m_debugger->IsActive())
     {
         m_debugger->DrawGui();
-    }
-    // Program analyzer.
-    if (m_programAnalyzer->IsVisible())
-    {
-        m_programAnalyzer->DrawGui();
     }
     // Sound analyzer.
     if (m_soundAnalyzer->IsActive())
@@ -1023,14 +1018,6 @@ void Application::DrawMainMenuGui()
         if (ImGui::Checkbox("Debugger", &debuggerActive))
         {
             m_debugger->SetActive(debuggerActive);
-        }
-        //
-        // "Program Analyzer" option.
-        //
-        bool programAnalyzerActive = m_programAnalyzer->IsVisible();
-        if (ImGui::Checkbox("Program Analyzer", &programAnalyzerActive))
-        {
-            m_programAnalyzer->SetVisible(programAnalyzerActive);
         }
         //
         // "Help" menu.

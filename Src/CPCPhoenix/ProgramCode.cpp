@@ -110,7 +110,7 @@ void ProgramCode::DrawGui()
 {
     ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(30, 30, 50, 255));
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(220, 220, 220, 255));
-    ImGui::BeginChild("Program code", ImVec2(0, -10), ImGuiChildFlags_Border);
+    ImGui::BeginChild("Program code", ImVec2(0, -1), ImGuiChildFlags_Border);
 
     // Code lines.
     if (!m_codeLines.empty())

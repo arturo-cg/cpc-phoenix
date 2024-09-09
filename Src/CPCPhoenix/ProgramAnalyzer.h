@@ -32,13 +32,20 @@ public:
     // Whether the Program Analyzer UI is visible or not.
     bool IsVisible() const { return m_visible; }
 
-    // Indicates whether the Program Analyzer is collecting data or not.
-    bool IsActive() const { return m_collectCodeSegments; }
+    // Indicates whether the Program Analyzer is collecting code from the program currently running or not.
+    bool IsCodeCollectionEnabled() const { return m_codeCollectionEnabled; }
+    // Enables or disables the collection of the code from the program currently running.
+    void SetCodeCollectionEnabled(bool enabled) { m_codeCollectionEnabled = enabled; }
+
+    // Returns the program code.
+    ProgramCode* GetProgramCode() { return m_programCode; }
+    const ProgramCode* GetProgramCode() const { return m_programCode; }
+
+    // Regenerates the code if dirty, i.e. new code was collected since the last code generation.
+    bool RegenerateCodeIfNeeded();
 
     // Called before executing a new instruction.
     void Update();
-
-    void DrawGui();
 
 private:
 
@@ -55,8 +62,7 @@ private:
     bool m_visible;
     CPC::CMachine* m_machine;
     ProgramAnnotations* m_annotations;
-    bool m_collectCodeSegments;
+    bool m_codeCollectionEnabled;
     ProgramCode* m_programCode;
     bool m_programCodeIsDirty;
-    bool m_programCodeRegenerationEnabled;   // TODO: Hack to prevent program code rewrite from slowing down the emulation. To be removed.
 };

@@ -56,10 +56,9 @@ void ProgramAnalyzer::ResetVars()
     m_visible = false;
     m_machine = nullptr;
     m_annotations = nullptr;
-    m_collectCodeSegments = false;
+    m_codeCollectionEnabled = false;
     m_programCode = nullptr;
     m_programCodeIsDirty = false;
-    m_programCodeRegenerationEnabled = true;
 }
 
 void ProgramAnalyzer::FreeVars()
@@ -79,7 +78,7 @@ void ProgramAnalyzer::Update()
     // This function should only be called in-between instructions, never in the middle of an instruction.
     KMASSERT(!cpu->IsExecutingInstruction());
     // Call ProgramAnalyzer::Update only if it is active.
-    KMASSERT(IsActive());
+    KMASSERT(IsCodeCollectionEnabled());
 
     //
     // TODO: To prevent the Program Analyzer from slowing down the emulation, have the main thread (the emulator) simply store
@@ -87,7 +86,7 @@ void ProgramAnalyzer::Update()
     // and analyzing the instruction, updating the program code and so on.
     //
 
-    if (m_collectCodeSegments)
+    if (m_codeCollectionEnabled)
     {
         // Collect it only if it is code stored in RAM. Ignore code stored in ROM.
         // In the future, it would be a nice feature to also consider code stored in ROM.
@@ -112,11 +111,19 @@ void ProgramAnalyzer::Update()
             }
         }
     }
+}
 
-    if (m_programCodeIsDirty && m_programCodeRegenerationEnabled)
+bool ProgramAnalyzer::RegenerateCodeIfNeeded()
+{
+    if (m_programCodeIsDirty)
     {
         GenerateProgramCode();
         m_programCodeIsDirty = false;
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
 
@@ -183,28 +190,6 @@ void ProgramAnalyzer::GenerateSegmentCode(const AddressRange& codeSegment, const
     }
 
     KMASSERT((address - 1) == codeSegment.end);
-}
-
-void ProgramAnalyzer::DrawGui()
-{
-    bool keepOpen = IsVisible();
-    if (ImGui::Begin("Program Analyzer", &keepOpen/*, ImGuiWindowFlags_AlwaysAutoResize*/))
-    {
-        // Enable/disable data collection.
-        ImGui::Checkbox("Collect Code", &m_collectCodeSegments);
-
-        // Program code.
-        ImGui::Checkbox("Hack - Enable program code update", &m_programCodeRegenerationEnabled);
-
-        ImGui::Text("Program code (%d segments):", m_annotations->GetCodeSegments().size());
-        m_programCode->DrawGui();
-    }
-    ImGui::End();
-
-    if (!keepOpen)
-    {
-        SetVisible(false);
-    }
 }
 
 std::string& ProgramAnalyzer::AssignStringFormat(std::string* str, const char* format, ...)
