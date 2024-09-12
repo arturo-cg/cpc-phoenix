@@ -35,7 +35,7 @@ public:
     // Indicates whether the Program Analyzer is collecting code from the program currently running or not.
     bool IsCodeCollectionEnabled() const { return m_codeCollectionEnabled; }
     // Enables or disables the collection of the code from the program currently running.
-    void SetCodeCollectionEnabled(bool enabled) { m_codeCollectionEnabled = enabled; }
+    void SetCodeCollectionEnabled(bool enabled);
 
     // Returns the program code.
     ProgramCode* GetProgramCode() { return m_programCode; }
@@ -51,6 +51,8 @@ private:
 
     void ResetVars();
     void FreeVars();
+
+    void CollectAddressesOfInstructionAt(cpcWord address);
 
     void GenerateProgramCode();
     void GenerateSegmentCode(const AddressRange& codeSegment, const CPC::CMemoryBlock* memoryBlocks[4]);

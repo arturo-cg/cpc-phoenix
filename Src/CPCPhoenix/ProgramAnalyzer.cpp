@@ -73,7 +73,6 @@ void ProgramAnalyzer::FreeVars()
 void ProgramAnalyzer::Update()
 {
     CPC::CCpu* cpu = m_machine->GetCpu();
-    CPC::CGateArray* gateArray = m_machine->GetGateArray();
 
     // This function should only be called in-between instructions, never in the middle of an instruction.
     KMASSERT(!cpu->IsExecutingInstruction());
@@ -88,28 +87,48 @@ void ProgramAnalyzer::Update()
 
     if (m_codeCollectionEnabled)
     {
-        // Collect it only if it is code stored in RAM. Ignore code stored in ROM.
-        // In the future, it would be a nice feature to also consider code stored in ROM.
-        cpcWord address = cpu->GetRegisters().PC.w;
-        unsigned block = (address >> 14);   // The two most significant bits indicate the 16 Kb memory block.
-        bool isRam = ((block == 0) && !gateArray->IsLowerRomVisible()) ||
-            (block == 1) ||
-            (block == 2) ||
-            ((block == 3 && !gateArray->IsUpperRomVisible()));
+        CollectAddressesOfInstructionAt(cpu->GetRegisters().PC.w);
+    }
+}
 
-        if (isRam)
+void ProgramAnalyzer::CollectAddressesOfInstructionAt(cpcWord address)
+{
+    CPC::CCpu* cpu = m_machine->GetCpu();
+    CPC::CGateArray* gateArray = m_machine->GetGateArray();
+
+    // Collect it only if it is code stored in RAM. Ignore code stored in ROM.
+    // In the future, it would be a nice feature to also consider code stored in ROM.
+    unsigned block = (address >> 14);   // The two most significant bits indicate the 16 Kb memory block.
+    bool isRam = ((block == 0) && !gateArray->IsLowerRomVisible()) ||
+                 (block == 1) ||
+                 (block == 2) ||
+                 ((block == 3 && !gateArray->IsUpperRomVisible()));
+
+    if (isRam)
+    {
+        // Add the memory addresses taken by the instruction as a code segment.
+        CPC::CCpu::AssemblyInstruction instruction;
+        cpu->DisassembleInstruction(address, &instruction);     // TODO - No need for a full disassembly, we just need the length of the instruction.
+        AddressRange codeSegment;
+        codeSegment.start = address;
+        codeSegment.end = codeSegment.start + instruction.sizeBytes - 1;
+        if (m_annotations->AddCodeSegment(codeSegment))
         {
-            // Add the memory addresses taken by the instruction as a code segment.
-            CPC::CCpu::AssemblyInstruction instruction;
-            cpu->DisassembleInstruction(address, &instruction);     // TODO - No need for a full disassembly, we just need the length of the instruction.
-            AddressRange codeSegment;
-            codeSegment.start = address;
-            codeSegment.end = codeSegment.start + instruction.sizeBytes - 1;
-            if (m_annotations->AddCodeSegment(codeSegment))
-            {
-                m_programCodeIsDirty = true;
-            }
+            m_programCodeIsDirty = true;
         }
+    }
+}
+
+void ProgramAnalyzer::SetCodeCollectionEnabled(bool enabled)
+{
+    bool collectCurrentInstruction = !m_codeCollectionEnabled && enabled;   // If code collection is just about to be enabled...
+
+    m_codeCollectionEnabled = enabled;
+
+    if (collectCurrentInstruction)
+    {
+        // Collect the current instruction's addresses.
+        CollectAddressesOfInstructionAt(m_machine->GetCpu()->GetRegisters().PC.w);
     }
 }
 
