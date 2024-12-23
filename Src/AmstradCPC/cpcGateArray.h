@@ -132,10 +132,6 @@ namespace CPC {
         /** Utility function that returns the CMemoryBlock that the CPU is currently seeing when writing within the given 16Kb block. */
         const CMemoryBlock*     GetVisibleWriteMemoryBlock(unsigned block) const;
 
-        bool                    IsLowerRomVisible() const { return m_bLowerRomVisible; }
-        bool                    IsUpperRomVisible() const { return m_bUpperRomVisible; }
-        cpcByte                 GetSelectedUpperRomIndex() const { return m_nSelectedUpperRom; }
-
         /** CRTC's HSYNC signal rising edge notification. */
         void                    OnCrtcHSyncBegin();
         /** CRTC's HSYNC signal falling edge notification. */
