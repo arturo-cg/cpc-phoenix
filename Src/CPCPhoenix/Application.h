@@ -138,6 +138,7 @@ private:
     void                      DrawGui();
     void                      DrawMainWindowGui();
     void                      DrawMainMenuGui();
+    void                      DrawAboutWindowGui();
     void                      DrawDiskDriveMenuGui(int driveNumber);
     void                      DrawTapeDeckMenuGui();
     void                      DrawStatusBarGui();
@@ -197,6 +198,7 @@ private:
 
     bool                      m_showPasteTextDialog;
     char                      m_pasteTextBuffer[4096];
+    bool                      m_aboutWindowVisible;
     bool                      m_showDearImGuiDemoWindow;
 };
 
