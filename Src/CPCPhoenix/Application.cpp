@@ -150,6 +150,7 @@ void Application::ResetVars()
     m_pKeyStateProvider = NULL;
     m_videoOutput = NULL;
     m_pSoundOutput = NULL;
+    m_aboutWindowVisible = false;
 }
 
 //----------------------------------------------------------------------------
@@ -819,6 +820,11 @@ void Application::DrawMainWindowGui()
     // Status bar.
     ImGui::SetCursorPosY(ImGui::GetWindowViewport()->WorkSize.y - statusBarHeight);
     DrawStatusBarGui();
+    // About window.
+    if (m_aboutWindowVisible)
+    {
+        DrawAboutWindowGui();
+    }
     // Main window end.
     ImGui::End();
 }
@@ -1032,10 +1038,33 @@ void Application::DrawMainMenuGui()
                 }
                 ImGui::EndMenu();
             }
+            ImGui::Separator();
+            if (ImGui::MenuItem("About..."))
+            {
+                m_aboutWindowVisible = true;
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
     }
+}
+
+void Application::DrawAboutWindowGui()
+{
+    ImGui::SetNextWindowSize(ImVec2(400.f, 300.f));
+    if (ImGui::Begin("About", &m_aboutWindowVisible, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar));
+    {
+        // Placeholder.
+        // TODO: Add some fancy animation or something.
+        const char* text = u8"Written by Arturo Colorado Garín";
+
+        ImVec2 windowSize = ImGui::GetWindowSize();
+        ImVec2 textSize = ImGui::CalcTextSize(text);
+        ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
+        ImGui::SetCursorPosY((windowSize.y - textSize.y) * 0.5f);
+        ImGui::Text(text);
+    }
+    ImGui::End();
 }
 
 void Application::DrawDiskDriveMenuGui(int driveNumber)

@@ -144,6 +144,7 @@ private:
     void                      DrawGui();
     void                      DrawMainWindowGui();
     void                      DrawMainMenuGui();
+    void                      DrawAboutWindowGui();
     void                      DrawDiskDriveMenuGui(int driveNumber);
     void                      DrawTapeDeckMenuGui();
     void                      DrawStatusBarGui();
@@ -201,6 +202,7 @@ private:
     double                    m_speedEmulatedTime;                     // Used to keep track of how fast the emulation is running.
     float                     m_measuredEmulationSpeed;
 
+    bool                      m_aboutWindowVisible;
     bool                      m_showDearImGuiDemoWindow;
 };
 
