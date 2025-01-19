@@ -157,6 +157,10 @@ namespace CPC {
             {
                 int registerLow = (reg & 0xFE);
                 cpcWord period = ((m_anRegisters[registerLow + 1] & 0x0F) << 8) | m_anRegisters[registerLow];
+                if (period == 0)
+                {
+                    period = 1;
+                }
                 int channel = (reg >> 1);
                 m_toneGenerator[channel].SetPeriod(period);
                 break;
@@ -173,6 +177,12 @@ namespace CPC {
                 m_envelopeGenerator.SetPeriod(period);
                 break;
             }
+            case REG_ENVELOPE_SHAPE:
+            {
+                m_envelopeGenerator.counter = 0;
+                m_envelopeGenerator.cycle = 0;
+                break;
+            }
         }
     }
 
@@ -186,6 +196,7 @@ namespace CPC {
         bool noiseEnabled = (m_anRegisters[REG_MIXER] & (0x08 << channel)) == 0;
 
         // Mix tone and noise.
+        // The code below is equivalent to: mixedState = (!toneEnabled || m_toneGenerator[channel].state) && (!noiseEnabled || m_noiseGenerator.state);
         bool mixedState;
         if (toneEnabled && noiseEnabled)    // Tone and noise enabled.
         {
@@ -213,7 +224,7 @@ namespace CPC {
 
         // Generate analog output (D/A converter).
         static const double SQRT_2 = sqrt(2.0);
-        m_channelOutputs[channel] = (mixedState ? 1.f / float(pow(SQRT_2, 15 - amplitude)) : 0.f);
+        m_channelOutputs[channel] = (mixedState && (amplitude > 0) ? 1.f / float(pow(SQRT_2, 15 - amplitude)) : 0.f);
     }
 
     float CPsg::GetChannelOutput(int channel) const
@@ -327,13 +338,12 @@ namespace CPC {
 
     void CPC::CPsg::ToneGenerator::Tick()
     {
-        if (counter > programmedCount)
+        counter++;
+        if (counter >= programmedCount)
         {
             counter = 0;
             state = !state;
         }
-
-        counter++;
     }
 
     void CPC::CPsg::NoiseGenerator::Reset()
@@ -351,22 +361,21 @@ namespace CPC {
 
     void CPC::CPsg::NoiseGenerator::Tick()
     {
-        if (counter > programmedCount)
+        counter++;
+        if (counter >= programmedCount)
         {
             counter = 0;
 
             // Update state.
-            uint32_t stateInt = (state ? 1 : 0);
             uint32_t bit0 = shiftRegister & 0x01;
             uint32_t bit3 = (shiftRegister & 0x10) >> 4;
-            stateInt = stateInt ^ bit0;
             uint32_t msb = bit0 ^ bit3;
             shiftRegister = (shiftRegister >> 1) | (msb << 16);
 
+            uint32_t stateInt = (state ? 1 : 0);
+            stateInt = stateInt ^ bit0;
             state = (stateInt != 0);
         }
-
-        counter++;
     }
 
     void CPC::CPsg::EnvelopeGenerator::Reset()
@@ -384,14 +393,13 @@ namespace CPC {
 
     void CPC::CPsg::EnvelopeGenerator::Tick(const Envelope& selectedEnvelope)
     {
-        if (counter > programmedCount)
+        counter++;
+        if (counter >= programmedCount)
         {
             // Cycle completed.
             counter = 0;
             cycle = (selectedEnvelope.repeatBothCycles ? (cycle + 1) % 2 : 1);
         }
-
-        counter++;
 
         // Update amplitude.
         uint32_t stepDuration = (programmedCount >> 4);        // 16 steps per cycle.
