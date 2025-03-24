@@ -22,6 +22,8 @@ namespace CPC {
     ** The emulator writes pixels to an image buffer provided by this class. The emulator assumes the buffer is always prepared to be written into.
     ** For example, if the derived class uses OpenGL or DirectX textures, it must make sure the texture has been locked before passing
     ** it to the emulator, and unlock it once CVideoOutput::OnBufferComplete is called and the texture is going to be used for rendering.
+    **
+    ** PC1031 and PC1378 were the horizontal and vertical deflector circuits used by the CPC monitor (TODO: which monitor exactly?).
     */
     class CVideoOutput
     {
@@ -29,8 +31,10 @@ namespace CPC {
 
         // Minimum buffer dimensions. The actual buffer can be any size equal to or larger than this.
         // The CPC video hardware emulation writes pixels into this buffer.
-        static const unsigned BUFFER_WIDTH = 1024;//912;   // 57 CRTC characters * 16 mode 2 pixels. When this config is used, HSYNC width must be 7 CRTC characters to have 64 characters per scan line.
-        static const unsigned BUFFER_HEIGHT = 312;  // 64 CRTC characters per scan line * 312 scan lines = 19968 microsecs per frame = 50.08 Hz
+        // It includes the entire area where the beam could potentially draw pixels, even though pixels will always be drawn in a subset
+        // of it. Where pixels are drawn is determined by the CRTC's configuration. The rest of the area is where HSYNC and VSYNC are active.
+        static const unsigned BUFFER_WIDTH = 1024;  // 64 CRTC characters * 16 mode 2 pixels.
+        static const unsigned BUFFER_HEIGHT = 312;  // 64 CRTC characters per scan line * 312 scan lines = 19968 microsecs per frame = 50.08 Hz. It includes top & bottom borders and VSYNC.
         // The CTM monitor is calibrated to display only a subset of the video information that the CPC generates.
         // This determines what is actually shown to the user.
         // TODO: Check these numbers.
@@ -73,20 +77,18 @@ namespace CPC {
         void                    Run();
 
         /** Returns the current X coordinate of the beam position. */
-        unsigned                GetBeamX() const { return m_beamX; }
+        unsigned                GetBeamX() const;
         /** Returns the current Y coordinate of the beam position. */
-        unsigned                GetBeamY() const { return m_beamY; }
-        /** Returns the current frame count. */
-        unsigned                GetFrameCount() const { return m_frameCount; }
+        unsigned                GetBeamY() const;
 
         /** HSYNC signal's rising edge notification. */
-        void                    OnHSyncBegin();
+        void                    OnGateArrayHSyncBegin();
         /** HSYNC signal's falling edge notification. */
-        void                    OnHSyncEnd();
+        void                    OnGateArrayHSyncEnd();
         /** VSYNC signal's rising edge notification. */
-        void                    OnVSyncBegin();
+        void                    OnGateArrayVSyncBegin();
         /** VSYNC signal's falling edge notification. */
-        void                    OnVSyncEnd();
+        void                    OnGateArrayVSyncEnd();
 
 
     protected:
@@ -105,16 +107,27 @@ namespace CPC {
 
     private:
 
-        void                    ResetVars();
-        void                    FreeVars();
+        struct Oscillator
+        {
+            int period;        // Total clock cycles.
+            int counter;       // Clock cycle counter.
+            int gateArrayCounter;
+            int offset;        // Difference between the Gate Array's and the monitor's SYNC signals.
 
+            void Initialize(int idealPeriod);
+            bool Tick();
+            void OnGateArraySync();
+            int OffsetCounter() const;
+        };
 
-        bool                    m_HSyncActive;
-        bool                    m_VSyncActive;
-        unsigned                m_beamX;
-        unsigned                m_beamY;
-        unsigned                m_frameCount;
+        static const unsigned IdealScanlinePeriod = 64;     // In 1 Mhz clock cycles.
+        static const unsigned IdealFramePeriod = 19968;     // In 1 Mhz clock cycles. Approx. 50.080128hz
 
+        void ResetVars();
+        void FreeVars();
+
+        Oscillator m_horizontalOscillator;
+        Oscillator m_verticalOscillator;
     };
 
 

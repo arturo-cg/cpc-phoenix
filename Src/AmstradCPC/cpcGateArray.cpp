@@ -197,9 +197,9 @@ namespace CPC {
         m_nSelectedUpperRom = 0;
         m_nCrtcHSyncCounter = 0;
         m_nCrtcHSyncCountSinceVSync = 0;
-        m_nMonitorHSyncCountSinceVSync = 0;
-        m_bMonitorHSyncState = false;
-        m_bMonitorVSyncState = false;
+        m_gateArrayHSyncCountSinceVSync = 0;
+        m_gateArrayHSyncState = false;
+        m_gateArrayVSyncState = false;
         m_nTicksSinceStartOfCrtcHSync = 0;
     }
 
@@ -330,7 +330,7 @@ namespace CPC {
         // Note about VSYNC:
         // The Gate-Array modifies the signal from the CRTC before sending it to the monitor. See Run() function.
         m_nCrtcHSyncCountSinceVSync = 0;
-        m_nMonitorHSyncCountSinceVSync = 0;
+        m_gateArrayHSyncCountSinceVSync = 0;
     }
 
     //----------------------------------------------------------------------------
@@ -346,41 +346,41 @@ namespace CPC {
     /**
     **
     */
-    void CGateArray::OnMonitorHSyncBegin()
+    void CGateArray::OnGateArrayHSyncBegin()
     {
-        m_nMonitorHSyncCountSinceVSync++;
+        m_gateArrayHSyncCountSinceVSync++;
         // Send the signal to the monitor.
-        GetMachine()->GetVideoOutput()->OnHSyncBegin();
+        GetMachine()->GetVideoOutput()->OnGateArrayHSyncBegin();
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    void CGateArray::OnMonitorHSyncEnd()
+    void CGateArray::OnGateArrayHSyncEnd()
     {
         // Send the signal to the monitor.
-        GetMachine()->GetVideoOutput()->OnHSyncEnd();
+        GetMachine()->GetVideoOutput()->OnGateArrayHSyncEnd();
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    void CGateArray::OnMonitorVSyncBegin()
+    void CGateArray::OnGateArrayVSyncBegin()
     {
         // Send the signal to the monitor.
-        GetMachine()->GetVideoOutput()->OnVSyncBegin();
+        GetMachine()->GetVideoOutput()->OnGateArrayVSyncBegin();
     }
 
     //----------------------------------------------------------------------------
     /**
     **
     */
-    void CGateArray::OnMonitorVSyncEnd()
+    void CGateArray::OnGateArrayVSyncEnd()
     {
         // Send the signal to the monitor.
-        GetMachine()->GetVideoOutput()->OnVSyncEnd();
+        GetMachine()->GetVideoOutput()->OnGateArrayVSyncEnd();
     }
 
     //----------------------------------------------------------------------------
@@ -421,16 +421,16 @@ namespace CPC {
                              (m_nTicksSinceStartOfCrtcHSync >= GATE_ARRAY_HSYNC_DELAY) &&
                              (m_nTicksSinceStartOfCrtcHSync < (GATE_ARRAY_HSYNC_DELAY + GATE_ARRAY_HSYNC_LENGTH));
         // Signal the start/end of HSYNC to the monitor, if required.
-        if (newHSyncState != m_bMonitorHSyncState)
+        if (newHSyncState != m_gateArrayHSyncState)
         {
-            m_bMonitorHSyncState = newHSyncState;
+            m_gateArrayHSyncState = newHSyncState;
             if (newHSyncState)
             {
-                OnMonitorHSyncBegin();
+                OnGateArrayHSyncBegin();
             }
             else
             {
-                OnMonitorHSyncEnd();
+                OnGateArrayHSyncEnd();
             }
         }
     }
@@ -443,19 +443,19 @@ namespace CPC {
     {
         // Determine new activation state of VSYNC.
         bool newVSyncState = GetMachine()->GetCrtc()->GetVSyncState() &&
-                             (m_nMonitorHSyncCountSinceVSync >= GATE_ARRAY_VSYNC_DELAY) &&
-                             (m_nMonitorHSyncCountSinceVSync < (GATE_ARRAY_VSYNC_DELAY + GATE_ARRAY_VSYNC_LENGTH));
+                             (m_gateArrayHSyncCountSinceVSync >= GATE_ARRAY_VSYNC_DELAY) &&
+                             (m_gateArrayHSyncCountSinceVSync < (GATE_ARRAY_VSYNC_DELAY + GATE_ARRAY_VSYNC_LENGTH));
         // Signal the start/end of VSYNC to the monitor, if required.
-        if (newVSyncState != m_bMonitorVSyncState)
+        if (newVSyncState != m_gateArrayVSyncState)
         {
-            m_bMonitorVSyncState = newVSyncState;
+            m_gateArrayVSyncState = newVSyncState;
             if (newVSyncState)
             {
-                OnMonitorVSyncBegin();
+                OnGateArrayVSyncBegin();
             }
             else
             {
-                OnMonitorVSyncEnd();
+                OnGateArrayVSyncEnd();
             }
         }
     }
