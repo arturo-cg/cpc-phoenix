@@ -261,7 +261,7 @@ namespace CPC {
             }
             else
             {
-                m_portOutputValue[PORT_C] = m_portOutputValue[PORT_C] & !(1 << nBit);   // Clear the bit
+                m_portOutputValue[PORT_C] = m_portOutputValue[PORT_C] & ~(1 << nBit);   // Clear the bit
             }
         }
     }
