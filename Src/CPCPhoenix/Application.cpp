@@ -1141,7 +1141,9 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
     }
 
     ImGui::TextDisabled(diskImage.c_str());
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 200.f);       // This aligns the disk drive row to the right and leaves some space for the Speed field.
+    // Take up the rest of the available width minus some space free to display Speed.
+    ImGui::SameLine();
+    ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - 200.f, ImGui::GetTextLineHeight()));
 
     ImGui::EndGroup();
     ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
@@ -1175,7 +1177,9 @@ void Application::DrawTapeDeckBarGui()
     }
 
     ImGui::TextDisabled(tapeImage.c_str());
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 200.f);       // This aligns the tape deck row to the right and leaves some space for the Speed field.
+    // Take up the rest of the available width minus some space free to display Speed.
+    ImGui::SameLine();
+    ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - 200.f, ImGui::GetTextLineHeight()));
 
     ImGui::EndGroup();
     ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
