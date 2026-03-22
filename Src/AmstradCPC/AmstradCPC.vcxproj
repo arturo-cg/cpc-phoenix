@@ -87,6 +87,7 @@
     <ClCompile Include="cpcMachine.cpp" />
     <ClCompile Include="cpcMemory.cpp" />
     <ClCompile Include="cpcMemoryBlock.cpp" />
+    <ClCompile Include="cpcPasteInjector.cpp" />
     <ClCompile Include="cpcPpi.cpp" />
     <ClCompile Include="cpcPsg.cpp" />
     <ClCompile Include="cpcSoundOutput.cpp" />
@@ -124,6 +125,7 @@
     <ClInclude Include="cpcMachine.h" />
     <ClInclude Include="cpcMemory.h" />
     <ClInclude Include="cpcMemoryBlock.h" />
+    <ClInclude Include="cpcPasteInjector.h" />
     <ClInclude Include="cpcPpi.h" />
     <ClInclude Include="cpcPsg.h" />
     <ClInclude Include="cpcSoundOutput.h" />

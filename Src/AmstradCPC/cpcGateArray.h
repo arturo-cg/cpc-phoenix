@@ -105,6 +105,13 @@ namespace CPC {
         /** Returns the color alpha value. */
         cpcByte                 GetColorAlpha(cpcByte alpha) const { return cpcByte(m_alphaMask >> 24); }
 
+        /** Returns true if the lower ROM (the Operating System or firmware ROM) is currently visible on the &0000-&3FFF address range, or false otherwise. */
+        bool                    IsLowerRomVisible() const { return m_bLowerRomVisible; }
+        /** Returns true if the selected upper ROM (BASIC, AMSDOS or expansion ROM) is currently visible on the &C000-&FFFF address range, or false otherwise. */
+        bool                    IsUpperRomVisible() const { return m_bUpperRomVisible; }
+        /** Returns the ID of the currently selected upper ROM (range &C000-&FFFF): typically 0 for BASIC, 7 for AMSDOS and so on. */
+        cpcByte                 GetSelectedUpperRom() const { return m_nSelectedUpperRom; }
+
         /** Returns true if the HSYNC output from the Gate-Array is currently active, or false otherwise. */
         bool                    IsHSyncActive() const { return m_bMonitorHSyncState; }
         /** Returns true if the VSYNC output from the Gate-Array is currently active, or false otherwise. */

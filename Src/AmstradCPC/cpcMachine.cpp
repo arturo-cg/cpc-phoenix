@@ -17,6 +17,7 @@
 #include "cpcTapeDeck.h"
 #include "cpcVideoOutput.h"
 #include "cpcSoundOutput.h"
+#include "cpcPasteInjector.h"
 #include "Stream/kmbMemoryInputStream.h"
 
 
@@ -50,8 +51,9 @@ namespace CPC {
         m_pDiskDrives[0] = new CDiskDrive(this);
         m_pDiskDrives[1] = new CDiskDrive(this);
         m_tapeDeck = (machineSpecifications.tapeDeck ? new CTapeDeck(this) : nullptr);
-        m_pVideoOutput = NULL;       // This object is provided by the front-end
-        m_pSoundOutput = NULL;       // This object is provided by the front-end
+        m_pVideoOutput = nullptr;       // This object is provided by the front-end
+        m_pSoundOutput = nullptr;       // This object is provided by the front-end
+        m_pasteInjector = new PasteInjector(this);
 
         // Figure out the type of this CPC machine by looking at the firmware ROM that it contains.
         if (machineSpecifications.memorySpecifications.lowerRomFileName.compare("OS_464.ROM") == 0)
@@ -92,6 +94,7 @@ namespace CPC {
         m_tapeDeck = nullptr;
         m_pVideoOutput = NULL;
         m_pSoundOutput = NULL;
+        m_pasteInjector = nullptr;
         m_accumulated4MhzCycles = 0;
         m_cachedCpcType = Snapshot::CpcType::Unknown;
     }
@@ -102,6 +105,7 @@ namespace CPC {
     */
     void CMachine::FreeVars()
     {
+        delete m_pasteInjector; m_pasteInjector = nullptr;
         delete m_tapeDeck; m_tapeDeck = nullptr;
         delete m_pDiskDrives[1]; m_pDiskDrives[1] = NULL;
         delete m_pDiskDrives[0]; m_pDiskDrives[0] = NULL;
@@ -200,6 +204,9 @@ namespace CPC {
         {
             // CPU (4Mhz clock)
             GetCpu()->Run(1);
+
+            // Paste injector.
+            GetPasteInjector()->Run();
 
             // Tape (4Mhz clock)
             if (GetTapeDeck() != nullptr)
@@ -314,6 +321,7 @@ namespace CPC {
             { 0, "BASIC_464.ROM" },                                 // Upper ROM bank 0: BASIC
             { 7, "AMSDOS.ROM" },                                    // Upper ROM bank 7: AMSDOS
         };
+        memorySpecifications->routineAddress_KM_WAIT_CHAR = 0x1A3C; // Firmware routine KM WAIT CHAR
     }
 
     //----------------------------------------------------------------------------
@@ -335,6 +343,7 @@ namespace CPC {
             { 0, "BASIC_664.ROM" },                                 // Upper ROM bank 0: BASIC
             { 7, "AMSDOS.ROM" },                                    // Upper ROM bank 7: AMSDOS
         };
+        memorySpecifications->routineAddress_KM_WAIT_CHAR = 0x1BBF; // Firmware routine KM WAIT CHAR
     }
 
     //----------------------------------------------------------------------------
@@ -356,6 +365,7 @@ namespace CPC {
             { 0, "BASIC_6128.ROM" },                                // Upper ROM bank 0: BASIC
             { 7, "AMSDOS.ROM" },                                    // Upper ROM bank 7: AMSDOS
         };
+        memorySpecifications->routineAddress_KM_WAIT_CHAR = 0x1BBF; // Firmware routine KM WAIT CHAR
     }
 
 } //namespace CPC

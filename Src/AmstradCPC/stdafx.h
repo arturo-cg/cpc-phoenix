@@ -56,6 +56,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <deque>
 #include <algorithm>
 #include <functional>
 

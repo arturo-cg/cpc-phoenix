@@ -143,6 +143,7 @@ private:
     void                      DrawStatusBarGui();
     void                      DrawDiskDriveBarGui(char driveLetter, int driveNumber);
     void                      DrawTapeDeckBarGui();
+    void                      DrawPasteTextDialogGui();
 
     void                      InsertDisk(unsigned driveNumber, kmbInputStream& diskImageStream, const std::string& diskImageFileName, const std::string& archiveFilePath);
     void                      EjectDisk(unsigned driveNumber);
@@ -194,6 +195,8 @@ private:
     double                    m_speedEmulatedTime;                     // Used to keep track of how fast the emulation is running.
     float                     m_measuredEmulationSpeed;
 
+    bool                      m_showPasteTextDialog;
+    char                      m_pasteTextBuffer[4096];
     bool                      m_showDearImGuiDemoWindow;
 };
 
