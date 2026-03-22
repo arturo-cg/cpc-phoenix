@@ -22,6 +22,7 @@ namespace CPC {
         numAdditionalRamPages = 0;
         lowerRomFileName.clear();
         upperRomFileNames.clear();
+        routineAddress_KM_WAIT_CHAR = 0xFFFF;
     }
 
     //----------------------------------------------------------------------------
@@ -65,6 +66,9 @@ namespace CPC {
             _snprintf_s(label, sizeof(label), "RAM%d", i);
             m_ramBlocks.push_back(new CMemoryBlock(label));
         }
+
+        // Others.
+        m_routineAddress_KM_WAIT_CHAR = memorySpecifications.routineAddress_KM_WAIT_CHAR;
     }
 
     //----------------------------------------------------------------------------
@@ -76,6 +80,7 @@ namespace CPC {
         m_pLowerRomBlock = NULL;
         m_upperRomBlocks.clear();
         m_ramBlocks.clear();
+        m_routineAddress_KM_WAIT_CHAR = 0xFFFF;
     }
 
     //----------------------------------------------------------------------------

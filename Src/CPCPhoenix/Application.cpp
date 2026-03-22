@@ -10,6 +10,7 @@
 #include "cpcDiskDrive.h"
 #include "cpcDskDisk.h"
 #include "cpcCdtTape.h"
+#include "cpcPasteInjector.h"
 #include "cpcTape.h"
 #include "cpcTapeDeck.h"
 #include "AppWindow.h"
@@ -75,6 +76,8 @@ bool Application::Init(HINSTANCE hInstance)
     // GUI (Dear ImGui).
     if (bRet)
     {
+        m_showPasteTextDialog = false;
+        memset(m_pasteTextBuffer, 0, sizeof(m_pasteTextBuffer));
         m_showDearImGuiDemoWindow = false;
         InitializeGui();
     }
@@ -777,6 +780,11 @@ void Application::DrawGui()
 {
     // Main window.
     DrawMainWindowGui();
+    // Paste text dialog.
+    if (m_showPasteTextDialog)
+    {
+        DrawPasteTextDialogGui();
+    }
     // Debugger.
     if (m_debugger->IsActive())
     {
@@ -883,6 +891,12 @@ void Application::DrawMainMenuGui()
             if (ImGui::MenuItem("Load Snapshot...", "F8"))
             {
                 LoadSnapshotWithFileDialog();
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Paste text..."))
+            {
+                m_showPasteTextDialog = true;
+                memset(m_pasteTextBuffer, 0, sizeof(m_pasteTextBuffer));
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit", "Alt+F4"))
@@ -1236,6 +1250,50 @@ void Application::DrawTapeDeckBarGui()
 
     ImGui::EndGroup();
     ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
+}
+
+void Application::DrawPasteTextDialogGui()
+{
+    if (m_showPasteTextDialog)
+    {
+        ImGui::OpenPopup("Paste Text");
+    }
+
+    ImGui::SetNextWindowSize(ImVec2(400, 250), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(200, 80), ImVec2(FLT_MAX, FLT_MAX));
+    if (ImGui::BeginPopupModal("Paste Text", &m_showPasteTextDialog))
+    {
+        // By default, the input text gets the focus.
+        if (ImGui::IsWindowAppearing())
+        {
+            ImGui::SetKeyboardFocusHere();
+        }
+
+        // The InputTextMultine takes all the available vertical space but always leaving space for the button row below.
+        float inputTextHeight = ImGui::GetContentRegionAvail().y/*All the vertical space available*/ - ImGui::GetFrameHeightWithSpacing()/*Height of the button row*/;
+        ImGui::InputTextMultiline("##PasteText", m_pasteTextBuffer, sizeof(m_pasteTextBuffer), ImVec2(-FLT_MIN, inputTextHeight));
+
+        // Align the button row to the right.
+        static constexpr float ButtonWidth = 80;
+        ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x - (ButtonWidth * 2.f) - ImGui::GetStyle().ItemSpacing.x);
+        if (ImGui::Button("Paste", ImVec2(ButtonWidth, 0)))
+        {
+            // Send m_pasteTextBuffer to the emulated machine.
+            std::deque<cpcByte> cpcAsciiCharacters = CPC::PasteInjector::ConvertHostToCpcAscii(std::string(m_pasteTextBuffer));
+            m_pMachine->GetPasteInjector()->PasteCharacters(cpcAsciiCharacters);
+            // Close the popup window.
+            m_showPasteTextDialog = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(ButtonWidth, 0)))
+        {
+            m_showPasteTextDialog = false;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
 }
 
 void Application::InsertDisk(unsigned driveNumber, kmbInputStream& diskImageStream, const std::string& diskImageFileName, const std::string& archiveFileName)

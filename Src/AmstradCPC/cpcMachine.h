@@ -26,6 +26,7 @@ namespace CPC {
     class CVideoOutput;
     class CSoundOutput;
     class Snapshot;
+    class PasteInjector;
 
     struct MachineSpecifications
     {
@@ -91,6 +92,9 @@ namespace CPC {
         /** Returns the sound output subsystem. */
         CSoundOutput*           GetSoundOutput() { return m_pSoundOutput; }
         const CSoundOutput*     GetSoundOutput() const { return m_pSoundOutput; }
+        /** Returns the paste injector. */
+        PasteInjector*          GetPasteInjector() { return m_pasteInjector; }
+        const PasteInjector*    GetPasteInjector() const { return m_pasteInjector; }
 
         /** Reads a byte from the specified port. */
         cpcByte                 ReadByteFromPort(cpcWord nPort);
@@ -136,6 +140,7 @@ namespace CPC {
         CTapeDeck*              m_tapeDeck;
         CVideoOutput*           m_pVideoOutput;
         CSoundOutput*           m_pSoundOutput;
+        PasteInjector*          m_pasteInjector;
 
         unsigned                m_accumulated4MhzCycles;
         Snapshot::CpcType       m_cachedCpcType;

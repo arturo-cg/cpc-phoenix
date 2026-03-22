@@ -21,6 +21,8 @@ namespace CPC {
         string lowerRomFileName;              // Lower ROM bank file.
         IntToStringMap upperRomFileNames;     // Upper ROM bank files, indexed by their ROM IDs.
 
+        cpcWord routineAddress_KM_WAIT_CHAR;  // Address (in the lower ROM, *not* the jumblock) of the firmware routine KM WAIT CHAR. Used by the Paste Injector feature.
+
         void Reset();
     };
 
@@ -60,6 +62,9 @@ namespace CPC {
         *** The first four are the 64k primary RAM page, the last four the 64k secondary RAM page. */
         const CMemoryBlock* GetRamBlock(int i) const;
 
+        /** Returns the address of the firmware routine KM WAIT CHAR (the routine in the ROM itself, not the jumpblock). 0xFFFF if unknown (e.g. custom firmware ROM). */
+        inline cpcWord GetRoutineAddress_KM_WAIT_CHAR() const { return m_routineAddress_KM_WAIT_CHAR; }
+
     private:
 
         typedef CSubSystem inherited;
@@ -78,6 +83,8 @@ namespace CPC {
         IntToMemoryBlockMap m_upperRomBlocks;
         /** The RAM blocks present in the machine. */
         MemoryBlockList m_ramBlocks;
+        /** The address of the firmware routine KM WAIT CHAR (the routine in the ROM itself, not the jumpblock). 0xFFFF if unknown (e.g. custom firmware ROM). */
+        cpcWord m_routineAddress_KM_WAIT_CHAR;
 
     };
 
