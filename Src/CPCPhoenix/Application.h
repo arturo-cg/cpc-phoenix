@@ -203,7 +203,6 @@ private:
     double                    m_speedEmulatedTime;                     // Used to keep track of how fast the emulation is running.
     float                     m_measuredEmulationSpeed;
 
-    bool                      m_aboutWindowVisible;
     bool                      m_showPasteTextDialog;
     char                      m_pasteTextBuffer[4096];
     bool                      m_aboutWindowVisible;
