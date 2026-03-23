@@ -841,9 +841,8 @@ float Application::CalculateStatusBarHeight()
 {
     int rowCount = 2/*disk drives*/ + (m_pMachine->GetTapeDeck() != nullptr ? 1 : 0);
 
-    static const float rowHeight = 30.f;
-    static const float extra = 3.f;
-    return (rowHeight * rowCount) + extra;
+    static constexpr float extra = 5.f;
+    return (ImGui::GetFrameHeightWithSpacing() * rowCount) + extra + ImGui::GetStyle().WindowPadding.y;
 }
 
 void Application::DrawMainMenuGui()
@@ -1162,24 +1161,37 @@ void Application::DrawTapeDeckMenuGui()
 
 void Application::DrawStatusBarGui()
 {
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
-    ImGui::BeginChild("StatusBar", ImVec2(0, 0)/*size*/, true/*border*/);
+    static const ImVec4 StatusBarBgColor = ImVec4(0.11f, 0.11f, 0.11f, 1.f);
+    static const ImVec4 ColumnBgColor = ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg);
+
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, StatusBarBgColor);
+    ImGui::BeginChild("StatusBar", ImVec2(0, 0)/*size*/, ImGuiChildFlags_AlwaysUseWindowPadding);
     ImGui::PopStyleColor();
 
+    static constexpr float RightColumnWidth = 200.f;
+
     // Disk drives.
-    ImGui::BeginGroup();
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ColumnBgColor);
+    ImGui::BeginChild("StatusBarLeft", ImVec2(ImGui::GetContentRegionAvail().x - RightColumnWidth, 0.f), ImGuiChildFlags_None);
+    ImGui::PopStyleColor();
     DrawDiskDriveBarGui('A', 0);
     DrawDiskDriveBarGui('B', 1);
     if (m_pMachine->GetTapeDeck() != nullptr)
     {
         DrawTapeDeckBarGui();
     }
-    ImGui::EndGroup();
+    ImGui::EndChild();
     // Emulation speed.
     ImGui::SameLine();
-    ImGui::Text("Speed: ");
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ColumnBgColor);
+    ImGui::BeginChild("StatusBarRight", ImVec2(0.f, 0.f), ImGuiChildFlags_AlwaysUseWindowPadding);
+    ImGui::PopStyleColor();
+    // +- Centered vertically.
+    ImGui::SetCursorScreenPos(ImVec2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y + (ImGui::GetContentRegionAvail().y - ImGui::GetTextLineHeight()) * 0.5f));
+    ImGui::Text("Speed ");
     ImGui::SameLine();
     ImGui::TextDisabled("%.1f%%", m_measuredEmulationSpeed);
+    ImGui::EndChild();
 
     ImGui::EndChild();
 }
@@ -1190,7 +1202,6 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
 
     string label = "Drive ";
     label += driveLetter;
-    label += ":";
     if (ImGui::Button(label.c_str()))
     {
         ImGui::OpenPopup(label.c_str());
@@ -1212,12 +1223,8 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
     }
 
     ImGui::TextDisabled(diskImage.c_str());
-    // Take up the rest of the available width minus some space free to display Speed.
-    ImGui::SameLine();
-    ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - 200.f, ImGui::GetTextLineHeight()));
 
     ImGui::EndGroup();
-    ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
 }
 
 void Application::DrawTapeDeckBarGui()
@@ -1248,12 +1255,8 @@ void Application::DrawTapeDeckBarGui()
     }
 
     ImGui::TextDisabled(tapeImage.c_str());
-    // Take up the rest of the available width minus some space free to display Speed.
-    ImGui::SameLine();
-    ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - 200.f, ImGui::GetTextLineHeight()));
 
     ImGui::EndGroup();
-    ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), ImGui::GetColorU32(ImGuiCol_Border));
 }
 
 void Application::DrawPasteTextDialogGui()
