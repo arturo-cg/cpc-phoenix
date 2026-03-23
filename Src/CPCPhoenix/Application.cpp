@@ -1065,7 +1065,7 @@ void Application::DrawMainMenuGui()
 void Application::DrawAboutWindowGui()
 {
     ImGui::SetNextWindowSize(ImVec2(400.f, 300.f));
-    if (ImGui::Begin("About", &m_aboutWindowVisible, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar));
+    if (ImGui::Begin("About", &m_aboutWindowVisible, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar))
     {
         // Placeholder.
         // TODO: Add some fancy animation or something.
