@@ -33,12 +33,12 @@ public:
 
   /** Initializes the object. It doesn't access the file system at all, it just
   *** binds this object to a file name for its use on subsequent operations. */
-  bool                      Init                      (const string& sFileName);
+  bool                      Init                      (const std::string& sFileName);
   virtual void              End                       ();
   bool                      IsOk                      () const  { return m_bOk; }
 
   /** Returns the file name this object is using. */
-  const string&             GetFileName               () const  { return m_sFileName; }
+  const std::string&             GetFileName               () const  { return m_sFileName; }
 
   /** Opens the file. Returns true if successful using the specified flags, or false otherwise. */
   bool                      Open                      (EAccessFlags eAccessFlags, EFileMode eFileMode);
@@ -87,7 +87,7 @@ public:
   /** Writes a string. The file must be open in text mode with write access. */
   bool                      WriteString               (const char* pStr);
   /** Writes a string. The file must be open in text mode with write access. */
-  bool                      WriteString               (const string& sStr)  { return WriteString(sStr.c_str()); }
+  bool                      WriteString               (const std::string& sStr)  { return WriteString(sStr.c_str()); }
 
 
 private:
@@ -98,7 +98,7 @@ private:
 
   bool                      m_bOk;
 
-  string                    m_sFileName;
+  std::string                    m_sFileName;
   FILE*                     m_pFile;
   EAccessFlags              m_eAccessFlags;
   EFileMode                 m_eFileMode;

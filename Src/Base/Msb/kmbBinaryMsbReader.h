@@ -40,7 +40,7 @@ private:
   kmbMsbPtr                 ReadTaggedMsb             ();
   kmbMsbPtr                 ReadEnumeratedMsb         ();
 
-  bool                      ReadVariableLengthString  (string* psString);
+  bool                      ReadVariableLengthString  (std::string* psString);
 
 
   bool                      m_bOk;

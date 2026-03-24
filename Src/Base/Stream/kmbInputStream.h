@@ -55,7 +55,7 @@ public:
   ***       and it is assumed to be encoded in ASCII (one byte). */
   bool                      ReadChar                  (char* pChar);
   /** Reads ASCII characters until it finds a new line character/sequence (supports both Unix and Windows styles). */
-  bool                      ReadLine                  (string* psLine);
+  bool                      ReadLine                  (std::string* psLine);
 
 
 protected:

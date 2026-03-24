@@ -190,7 +190,7 @@ kmbMsbPtr kmbBinaryMsbReader::ReadStringMsb()
 {
   kmbMsbPtr ptrRet;
 
-  string sValue;
+  std::string sValue;
   if ( ReadVariableLengthString(&sValue) )
   {
     ptrRet = kmbMsbManager::Singleton()->CreateStringMsb( sValue );
@@ -221,7 +221,7 @@ kmbMsbPtr kmbBinaryMsbReader::ReadTaggedMsb()
       bOk = false;
 
       // Read child tag
-      string sTag;
+      std::string sTag;
       if ( ReadVariableLengthString(&sTag) )
       {
         // Read child MSB
@@ -288,7 +288,7 @@ kmbMsbPtr kmbBinaryMsbReader::ReadEnumeratedMsb()
 /**
 ** 
 */
-bool kmbBinaryMsbReader::ReadVariableLengthString(string* psString)
+bool kmbBinaryMsbReader::ReadVariableLengthString(std::string* psString)
 {
   bool bRet = false;
 

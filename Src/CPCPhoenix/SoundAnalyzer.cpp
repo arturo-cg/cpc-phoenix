@@ -121,7 +121,7 @@ void SoundAnalyzer::DrawChannel(const char* label, int channelIndex, float* samp
 {
     CPC::CSoundOutput* soundOutput = Application::Singleton()->GetEmulatedMachine()->GetSoundOutput();
     bool channelEnabled = soundOutput->IsChannelEnabled(channelIndex);
-    string checkboxId = string("##Enable_") + string(label);
+    std::string checkboxId = std::string("##Enable_") + std::string(label);
     ImGui::Checkbox(checkboxId.c_str(), &channelEnabled);
     ImGui::SameLine();
     ImGui::PlotLines(label, samples, NumSamples, m_nextPosition, nullptr/*overlay_text*/, -1.f, 1.f, graphSize, 4/*stride*/);

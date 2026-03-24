@@ -25,7 +25,7 @@ public:
                             kmbWindow                 ()  { m_bOk = false; }
   virtual                  ~kmbWindow                 ()  { End(); }
 
-  bool                      Init                      (const string& sWindowText, DWORD dwStyle,
+  bool                      Init                      (const std::string& sWindowText, DWORD dwStyle,
                                                        int x, int y, int nWidth, int nHeight,
                                                        HWND hParentOrOwner);
   virtual void              End                       ();
@@ -41,7 +41,7 @@ public:
   void                      RequestClose              ();
 
   /** Sets the text of the window. If for example the window has a title bar, this is the text that will be changed. */
-  void                      SetText                   (const string& sText);
+  void                      SetText                   (const std::string& sText);
 
   /** Changes the position of the window. */
   void                      SetPosition               (long x, long y);
@@ -129,7 +129,7 @@ private:
   void                      ResetVars                 ();
   void                      FreeVars                  ();
 
-  bool                      CreateWnd                 (const string& sWindowText, DWORD dwStyle,
+  bool                      CreateWnd                 (const std::string& sWindowText, DWORD dwStyle,
                                                        int x, int y, int nWidth, int nHeight,
                                                        HWND hParentOrOwner);
   void                      DestroyWnd                ();

@@ -23,7 +23,6 @@ namespace CPC
     class CMachine;
 }
 
-
 /**
 **
 */
@@ -31,9 +30,9 @@ class Application : public kmbSingleton<Application>
 {
 public:
 
-    static const string StandardCpc464SpecificationsName;
-    static const string StandardCpc664SpecificationsName;
-    static const string StandardCpc6128SpecificationsName;
+    static const std::string StandardCpc464SpecificationsName;
+    static const std::string StandardCpc664SpecificationsName;
+    static const std::string StandardCpc6128SpecificationsName;
 
                               Application() { m_bOk = false; }
     virtual                  ~Application() { End(); }
@@ -46,17 +45,17 @@ public:
     void                      RequestExitApp() { m_bExitApp = true; }
 
     /** Finds the MachineSpecifications with the specified name. */
-    const CPC::MachineSpecifications* FindMachineSpecificationsByName(string name) const;
+    const CPC::MachineSpecifications* FindMachineSpecificationsByName(std::string name) const;
     /** Gets the name of the MachineSpecifications that occupies the specified ordered position, or nullptr if the specified position is out of range. */
-    const string* GetMachineSpecificationsNameAtPosition(unsigned position) const;
+    const std::string* GetMachineSpecificationsNameAtPosition(unsigned position) const;
     /** Finds the ordered position of the specified MachineSpecifications' name. */
-    unsigned                  FindMachineSpecificationsOrderedPosition(string name) const;
+    unsigned                  FindMachineSpecificationsOrderedPosition(std::string name) const;
     /** Returns the application settings. Do not change settings directly, use specific methods like Application::ChangeCpcModelSetting instead. */
     Settings*                 GetSettings() { return &m_settings; }
     /** Returns the application settings (const version). */
     const Settings*           GetSettings() const { return &m_settings; }
 
-    void                      ChangeMachineSpecificationName(string machineSpecificationName);
+    void                      ChangeMachineSpecificationName(std::string machineSpecificationName);
     void                      ChangeMonitorTypeSetting(CPC::CGateArray::ERgbConversionTableType eMonitorType);
     void                      ChangeDisplayScaleSetting(float scale);
     void                      ChangeDrawScanLinesSetting(bool bDrawScanLines);
@@ -113,8 +112,8 @@ private:
     static constexpr double   RENDER_PERIOD = 1.0 / 60.0;       // TODO - Dynamically calculate this using the host monitor's refresh rate.
     static constexpr double   RENDER_PERIOD_WHILE_DEBUGGER_RUNNING = 1.0 / 20.0;
 
-    using StringToMachineSpecificationsMap = map<string, CPC::MachineSpecifications>;
-    using StringList = vector<string>;
+    using StringToMachineSpecificationsMap = std::map<std::string, CPC::MachineSpecifications>;
+    using StringList = std::vector<std::string>;
 
 
     void                      ResetVars();
@@ -164,12 +163,12 @@ private:
     void                      SaveQuickSnapshot();
     void                      LoadSnapshotWithFileDialog();
     void                      SaveSnapshotWithFileDialog();
-    void                      LoadSnapshot(string fullFilePath);
-    void                      SaveSnapshot(string fullFilePath);
+    void                      LoadSnapshot(std::string fullFilePath);
+    void                      SaveSnapshot(std::string fullFilePath);
 
-    bool                      ShowLoadSaveFileDialog(bool isLoad, string relativeInitialDir, const char* filter, string* outFullFilePath) const;
+    bool                      ShowLoadSaveFileDialog(bool isLoad, std::string relativeInitialDir, const char* filter, std::string* outFullFilePath) const;
 
-    static bool               StringEndsWith(string str, string ending);
+    static bool               StringEndsWith(std::string str, std::string ending);
 
     bool                      m_bOk;
 

@@ -56,8 +56,8 @@ private:
     struct FdcOperation
     {
         int/*CPC::CFdc::ECommand*/ command;     // Stored as an int to avoid including cpcFdc.h here.
-        string parameters;
-        string result;
+        std::string parameters;
+        std::string result;
     };
 
     using WordSet = std::unordered_set<cpcWord>;

@@ -11,7 +11,7 @@
 /**
 ** Init
 */
-bool kmbFileOutputStream::Init(const string& sFileName)
+bool kmbFileOutputStream::Init(const std::string& sFileName)
 {
   bool bRet = true;
 

@@ -46,7 +46,7 @@ private:
   bool                      WriteSpaces               (unsigned nNumSpaces);
 
   bool                      IsVecQuat                 (const CEnumeratedMsb* pEnumeratedMsb) const;
-  void                      ConvertDoubleToString     (double dValue, string* pResult);
+  void                      ConvertDoubleToString     (double dValue, std::string* pResult);
 
 
   bool                      m_bOk;

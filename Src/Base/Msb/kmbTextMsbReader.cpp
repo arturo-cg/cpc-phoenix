@@ -51,7 +51,7 @@ bool kmbTextMsbReader::Init(kmbInputStream* pStream)
       bRet = false;
 
       // Print the file name if it is a file stream
-      string sStreamDesc;
+      std::string sStreamDesc;
       if (pStream->GetType() == STREAMTYPE_FILE)
       {
         sStreamDesc = ((kmbFileInputStream*)pStream)->GetSourceFile()->GetFileName();

@@ -93,7 +93,7 @@ bool kmbOutputStream::WriteString(const char* pszString, unsigned nCharCount)
 /**
 ** 
 */
-bool kmbOutputStream::WriteString(const string& sString)
+bool kmbOutputStream::WriteString(const std::string& sString)
 {
   return WriteString( sString.c_str(), sString.length() );
 }

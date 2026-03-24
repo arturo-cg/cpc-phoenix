@@ -374,7 +374,7 @@ namespace CPC {
         return false;
     }
 
-    void CCdtTape::AddMarkerAtNextChunk(string name)
+    void CCdtTape::AddMarkerAtNextChunk(std::string name)
     {
         char numberAndName[100];
         snprintf(numberAndName, sizeof(numberAndName), "%d - %s", m_markers.size(), name.c_str());
@@ -390,7 +390,7 @@ namespace CPC {
         return m_markers.size();
     }
 
-    const string& CCdtTape::GetMarkerName(unsigned markerIndex) const
+    const std::string& CCdtTape::GetMarkerName(unsigned markerIndex) const
     {
         KMASSERT(markerIndex < m_markers.size());
         return m_markers[markerIndex].name;

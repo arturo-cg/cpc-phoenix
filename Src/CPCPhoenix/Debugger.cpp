@@ -272,7 +272,7 @@ void Debugger::DrawExecuteOptions()
     }
     ImGui::SameLine();
     // Run To.
-    string runToButtonLabel = (m_running ? "Stop Running (Shift+F11)" : "Run To (Shift+F11)");
+    std::string runToButtonLabel = (m_running ? "Stop Running (Shift+F11)" : "Run To (Shift+F11)");
     if (ImGui::Button(runToButtonLabel.c_str(), buttonSize))
     {
         m_running = !m_running;

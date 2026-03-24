@@ -68,10 +68,10 @@ namespace CPC {
         // Various utility methods for showing info in a debugger or a plain log.
         static const char* GetPhaseName(EPhase phase);
         static const char* GetCommandName(ECommand command);
-        static void GetParametersLog(ECommand command, const cpcByte* parameters, string* log);
-        void GetCurrentParametersLog(string* log) const;
-        static void GetResultLog(ECommand command, const cpcByte* results, string* log);
-        void GetCurrentResultLog(string* log) const;
+        static void GetParametersLog(ECommand command, const cpcByte* parameters, std::string* log);
+        void GetCurrentParametersLog(std::string* log) const;
+        static void GetResultLog(ECommand command, const cpcByte* results, std::string* log);
+        void GetCurrentResultLog(std::string* log) const;
 
     private:
 

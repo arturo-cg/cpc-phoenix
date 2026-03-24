@@ -72,7 +72,7 @@ unsigned kmbZipArchive::GetNumFiles() const
     return m_mzZipArchive.m_total_files;
 }
 
-unsigned kmbZipArchive::FindFileByName(string fileName)
+unsigned kmbZipArchive::FindFileByName(std::string fileName)
 {
     unsigned ret;
     if (!mz_zip_reader_locate_file_v2(&m_mzZipArchive, fileName.c_str(), nullptr, 0/*flags*/, &ret))
@@ -83,12 +83,12 @@ unsigned kmbZipArchive::FindFileByName(string fileName)
     return ret;
 }
 
-string kmbZipArchive::GetFileName(unsigned fileIndex)
+std::string kmbZipArchive::GetFileName(unsigned fileIndex)
 {
     char buffer[1000];
     mz_zip_reader_get_filename(&m_mzZipArchive, fileIndex, buffer, sizeof(buffer));
 
-    return string(buffer);
+    return std::string(buffer);
 }
 
 unsigned kmbZipArchive::GetUncompressedFileSize(unsigned fileIndex)

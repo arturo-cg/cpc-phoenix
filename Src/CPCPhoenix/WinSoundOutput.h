@@ -38,7 +38,7 @@ public:
     float                   GetVolume() const { return m_linearVolume; }
 
     /** Starts recording to a WAV file. */
-    bool                    StartRecording(const string& sFileName);
+    bool                    StartRecording(const std::string& sFileName);
     /** Stops recording to a WAV file. */
     void                    StopRecording();
     /** Returns true if it is currently recording to a WAV file. */

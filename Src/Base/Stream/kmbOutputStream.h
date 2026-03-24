@@ -41,7 +41,7 @@ public:
   bool                      WriteString               (const char* pszString, unsigned nCharCount);
 
   /** Writes a std::string. No special end-of-string character is written. See additional note in WriteString(const char*, unsigned) method. */
-  bool                      WriteString               (const string& sString);
+  bool                      WriteString               (const std::string& sString);
 
 
 protected:

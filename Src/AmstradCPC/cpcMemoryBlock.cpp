@@ -17,7 +17,7 @@ namespace CPC {
   /**
   ** 
   */
-  CMemoryBlock::CMemoryBlock(const string& sLabel, kmbInputStream* pContentStream/* = NULL*/)
+  CMemoryBlock::CMemoryBlock(const std::string& sLabel, kmbInputStream* pContentStream/* = NULL*/)
   {
     // Reset members
     ResetVars();

@@ -167,7 +167,7 @@ bool kmbTextMsbWriter::WriteRealMsb(const CRealMsb* pRealMsb, unsigned nIndentat
   bRet = WriteSpaces( nIndentation );
   if (bRet)
   {
-    string sBuffer;
+    std::string sBuffer;
     ConvertDoubleToString( pRealMsb->GetDouble(), &sBuffer );
     sBuffer += '\n';
 
@@ -211,7 +211,7 @@ bool kmbTextMsbWriter::WriteTaggedMsb(const CTaggedMsb* pTaggedMsb, unsigned nIn
     pTaggedMsb->GetChildrenIterators( &iter, &iterEnd );
     for (/*EMPTY*/; bRet && (iter != iterEnd); ++iter)
     {
-      const string&    sTag        = iter->first;
+      const std::string&    sTag        = iter->first;
       const kmbMsbPtr& ptrChildMsb = iter->second;
       // Write child indentation
       bRet = WriteSpaces( nIndentation + INDENTATION_INCREMENT );
@@ -327,7 +327,7 @@ bool kmbTextMsbWriter::WriteEnumeratedMsbAsVecQuat(const CEnumeratedMsb* pEnumer
   bRet = bRet && m_pStream->WriteString( "(" );
 
   unsigned i;
-  string sBuffer;
+  std::string sBuffer;
   for (i = 0; bRet && (i < pEnumeratedMsb->GetNumChildren()); i++)
   {
     ConvertDoubleToString( pEnumeratedMsb->GetChild(i)->GetDouble(), &sBuffer );
@@ -384,7 +384,7 @@ bool kmbTextMsbWriter::WriteSpaces(unsigned nNumSpaces)
 /**
 ** 
 */
-void kmbTextMsbWriter::ConvertDoubleToString(double dValue, string* pResult)
+void kmbTextMsbWriter::ConvertDoubleToString(double dValue, std::string* pResult)
 {
   if (pResult != NULL)
   {

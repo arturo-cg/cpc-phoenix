@@ -22,7 +22,7 @@ namespace CPC {
         bool LoadFromStream(kmbInputStream* stream);
 
         virtual unsigned GetMarkerCount() const override;
-        virtual const string& GetMarkerName(unsigned markerIndex) const override;
+        virtual const std::string& GetMarkerName(unsigned markerIndex) const override;
         virtual void SeekToMarker(unsigned markerIndex) override;
         virtual unsigned GetCurrentMarker() const override { return m_nextMarker; }
 
@@ -79,12 +79,12 @@ namespace CPC {
 
         struct Marker
         {
-            string name;
+            std::string name;
             unsigned chunkIndex;                // The chunk that is referenced by this marker.
         };
 
-        using ChunkList = vector<Chunk>;
-        using MarkerList = vector<Marker>;
+        using ChunkList = std::vector<Chunk>;
+        using MarkerList = std::vector<Marker>;
 
         void ResetVars();
         void FreeVars();
@@ -98,7 +98,7 @@ namespace CPC {
         void CreateSilenceChunk(unsigned duration);
         bool DestroyChunk(Chunk& chunk);
 
-        void AddMarkerAtNextChunk(string name);
+        void AddMarkerAtNextChunk(std::string name);
         unsigned FindMarkerByChunk(unsigned chunkIndex) const;
         unsigned FindMarkerByChunk_Rec(unsigned chunkIndex, unsigned fromMarker, unsigned count) const;
 

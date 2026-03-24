@@ -51,8 +51,8 @@ public:
     int                       GetMainWindowWidth() const { return m_mainWindowWidth; }
     int                       GetMainWindowHeight() const { return m_mainWindowHeight; }
 
-    void                      SetMachineSpecificationName(string name) { m_machineSpecificationName = name; }
-    string                    GetMachineSpecificationName() const { return m_machineSpecificationName; }
+    void                      SetMachineSpecificationName(std::string name) { m_machineSpecificationName = name; }
+    std::string                    GetMachineSpecificationName() const { return m_machineSpecificationName; }
 
     void                                     SetMonitorType(CPC::CGateArray::ERgbConversionTableType eType) { m_eMonitorType = eType; }
     CPC::CGateArray::ERgbConversionTableType GetMonitorType() const { return m_eMonitorType; }
@@ -98,7 +98,7 @@ private:
     int                       m_mainWindowY;
     int                       m_mainWindowWidth;
     int                       m_mainWindowHeight;
-    string                    m_machineSpecificationName;
+    std::string                    m_machineSpecificationName;
     CPC::CGateArray::ERgbConversionTableType m_eMonitorType;
     float                     m_displayScale;
     bool                      m_bDrawScanLines;

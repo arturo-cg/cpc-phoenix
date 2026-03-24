@@ -633,7 +633,7 @@ namespace CPC
     /**
     **
     */
-    void CFdc::GetParametersLog(ECommand command, const cpcByte* parameters, string* log)
+    void CFdc::GetParametersLog(ECommand command, const cpcByte* parameters, std::string* log)
     {
         char parameterLog[200] = "";
 
@@ -686,7 +686,7 @@ namespace CPC
     /**
     **
     */
-    void CFdc::GetCurrentParametersLog(string* log) const
+    void CFdc::GetCurrentParametersLog(std::string* log) const
     {
         GetParametersLog(m_eCurrentCommand, m_anParameters, log);
     }
@@ -695,7 +695,7 @@ namespace CPC
     /**
     **
     */
-    void CFdc::GetResultLog(ECommand command, const cpcByte* results, string* log)
+    void CFdc::GetResultLog(ECommand command, const cpcByte* results, std::string* log)
     {
         char resultLog[200] = "";
 
@@ -748,7 +748,7 @@ namespace CPC
     /**
     **
     */
-    void CFdc::GetCurrentResultLog(string* log) const
+    void CFdc::GetCurrentResultLog(std::string* log) const
     {
         GetResultLog(m_eCurrentCommand, m_anResult, log);
     }

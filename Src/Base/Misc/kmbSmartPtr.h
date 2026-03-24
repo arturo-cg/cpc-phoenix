@@ -122,12 +122,12 @@ public:
 
   /// Routes the operator [] that receives a STL string to the encapsulated object.
   /// TODO - This solution is too specific, a more general solution is needed.
-  kmbSmartPtr<TARGET_CLASS> operator[](const string& sStr)
+  kmbSmartPtr<TARGET_CLASS> operator[](const std::string& sStr)
   {
     return m_pObject->operator[]( sStr );
   }
 
-  const kmbSmartPtr<TARGET_CLASS> operator[](const string& sStr) const
+  const kmbSmartPtr<TARGET_CLASS> operator[](const std::string& sStr) const
   {
     return m_pObject->operator[]( sStr );
   }

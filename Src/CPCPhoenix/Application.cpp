@@ -34,12 +34,12 @@
 
 template<> Application* kmbSingleton<Application>::m_pSingleton = NULL;
 
-/*static*/ const string Application::StandardCpc464SpecificationsName = "cpc_464";
-/*static*/ const string Application::StandardCpc664SpecificationsName = "cpc_664";
-/*static*/ const string Application::StandardCpc6128SpecificationsName = "cpc_6128";
+/*static*/ const std::string Application::StandardCpc464SpecificationsName = "cpc_464";
+/*static*/ const std::string Application::StandardCpc664SpecificationsName = "cpc_664";
+/*static*/ const std::string Application::StandardCpc6128SpecificationsName = "cpc_6128";
 
-static const string QuickSnapshotDirectory = "Snapshots";
-static const string QuickSnapshotFile = "QuickSnapshot.sna";
+static const std::string QuickSnapshotDirectory = "Snapshots";
+static const std::string QuickSnapshotFile = "QuickSnapshot.sna";
 
 //----------------------------------------------------------------------------
 /**
@@ -435,7 +435,7 @@ void Application::_OnAppWindowCloseRequest(AppWindow* pAppWindow)
 /**
 **
 */
-const CPC::MachineSpecifications* Application::FindMachineSpecificationsByName(string name) const
+const CPC::MachineSpecifications* Application::FindMachineSpecificationsByName(std::string name) const
 {
     StringToMachineSpecificationsMap::const_iterator iter = m_machineSpecifications.find(name);
     return (iter != m_machineSpecifications.end() ? &iter->second : nullptr);
@@ -445,7 +445,7 @@ const CPC::MachineSpecifications* Application::FindMachineSpecificationsByName(s
 /**
 **
 */
-const string* Application::GetMachineSpecificationsNameAtPosition(unsigned position) const
+const std::string* Application::GetMachineSpecificationsNameAtPosition(unsigned position) const
 {
     return (position < m_orderedMachineSpecificationsNames.size() ? &m_orderedMachineSpecificationsNames[position] : nullptr);
 }
@@ -454,7 +454,7 @@ const string* Application::GetMachineSpecificationsNameAtPosition(unsigned posit
 /**
 **
 */
-unsigned Application::FindMachineSpecificationsOrderedPosition(string name) const
+unsigned Application::FindMachineSpecificationsOrderedPosition(std::string name) const
 {
     unsigned ret;
     for (ret = 0; ret < m_orderedMachineSpecificationsNames.size(); ret++)
@@ -473,7 +473,7 @@ unsigned Application::FindMachineSpecificationsOrderedPosition(string name) cons
 /**
 **
 */
-void Application::ChangeMachineSpecificationName(string machineSpecificationName)
+void Application::ChangeMachineSpecificationName(std::string machineSpecificationName)
 {
     // Change application settings
     GetSettings()->SetMachineSpecificationName(machineSpecificationName);
@@ -873,7 +873,7 @@ void Application::DrawMainMenuGui()
                 unsigned i = 0;
                 for (StringList::iterator iter = m_orderedMachineSpecificationsNames.begin(); iter != m_orderedMachineSpecificationsNames.end(); ++iter)
                 {
-                    string specsName = *iter;
+                    std::string specsName = *iter;
                     if (ImGui::Selectable(specsName.c_str(), i == currentSpecsIndex))
                     {
                         if (i != currentSpecsIndex)
@@ -1027,7 +1027,7 @@ void Application::DrawAboutWindowGui()
     {
         // Placeholder.
         // TODO: Add some fancy animation or something.
-        const char* text = u8"Written by Arturo Colorado Garín";
+        const char* text = u8"Written by Arturo Colorado GarÃ­n";
 
         ImVec2 windowSize = ImGui::GetWindowSize();
         ImVec2 textSize = ImGui::CalcTextSize(text);
@@ -1042,7 +1042,7 @@ void Application::DrawDiskDriveMenuGui(int driveNumber)
 {
     if (ImGui::MenuItem("Insert Disk..."))
     {
-        string fullFilePath;
+        std::string fullFilePath;
         if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Disks", "All supported formats (*.dsk, *.zip)\0*.dsk;*.zip\0DSK disk images (*.dsk)\0*.dsk\0ZIP archives (*.zip)\0*.zip\0\0", &fullFilePath))
         {
             // DSK or ZIP file selected?
@@ -1068,7 +1068,7 @@ void Application::DrawTapeDeckMenuGui()
 
     if (ImGui::MenuItem("Insert Tape..."))
     {
-        string fullFilePath;
+        std::string fullFilePath;
         if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Tapes", "All supported formats (*.cdt, *.zip)\0*.cdt;*.zip\0CDT tape images (*.cdt)\0*.cdt\0ZIP archives (*.zip)\0*.zip\0\0", &fullFilePath))
         {
             // CDT or ZIP file selected?
@@ -1090,7 +1090,7 @@ void Application::DrawTapeDeckMenuGui()
 
     CPC::CTapeDeck* tapeDeck = m_pMachine->GetTapeDeck();
     bool playPressed = tapeDeck->IsPlayButtonPressed();
-    string label = (playPressed ? "Release Play###PlayButtonState" : "Press Play###PlayButtonState");
+    std::string label = (playPressed ? "Release Play###PlayButtonState" : "Press Play###PlayButtonState");
     if (ImGui::Checkbox(label.c_str(), &playPressed))
     {
         tapeDeck->SetPlayButtonPressed(playPressed);
@@ -1103,7 +1103,7 @@ void Application::DrawTapeDeckMenuGui()
             tape->Rewind();
         }
     }
-    string markerPreview = (tape->GetCurrentMarker() < tape->GetMarkerCount() ? tape->GetMarkerName(tape->GetCurrentMarker()) : "<N/A>");
+    std::string markerPreview = (tape->GetCurrentMarker() < tape->GetMarkerCount() ? tape->GetMarkerName(tape->GetCurrentMarker()) : "<N/A>");
     if (ImGui::BeginCombo("Jump To...", markerPreview.c_str(), ImGuiComboFlags_HeightLargest))
     {
         for (unsigned i = 0; i < tape->GetMarkerCount(); i++)
@@ -1158,7 +1158,7 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
 {
     ImGui::BeginGroup();
 
-    string label = "Drive ";
+    std::string label = "Drive ";
     label += driveLetter;
     if (ImGui::Button(label.c_str()))
     {
@@ -1170,7 +1170,7 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
         ImGui::EndPopup();
     }
     ImGui::SameLine();
-    string diskImage = m_settings.GetDiskImage(driveNumber);
+    std::string diskImage = m_settings.GetDiskImage(driveNumber);
     if (diskImage.empty())
     {
         diskImage = "<EMPTY>";
@@ -1191,7 +1191,7 @@ void Application::DrawTapeDeckBarGui()
 
     ImGui::BeginGroup();
 
-    string label = (m_pMachine->GetTapeDeck()->IsPlayButtonPressed() ? "Tape (Play pressed)" : "Tape");
+    std::string label = (m_pMachine->GetTapeDeck()->IsPlayButtonPressed() ? "Tape (Play pressed)" : "Tape");
     if (ImGui::Button(label.c_str()))
     {
         ImGui::OpenPopup("TapeButton");
@@ -1202,7 +1202,7 @@ void Application::DrawTapeDeckBarGui()
         ImGui::EndPopup();
     }
     ImGui::SameLine();
-    string tapeImage = m_settings.GetTapeImage();
+    std::string tapeImage = m_settings.GetTapeImage();
     if (tapeImage.empty())
     {
         tapeImage = "<EMPTY>";
@@ -1340,7 +1340,7 @@ void Application::SetDiskFromArchive(unsigned driveNumber, const std::string& ar
             // Find the first disk image file in the archive.
             for (unsigned i = 0; i < archive.GetNumFiles(); i++)
             {
-                string diskImageFileName = archive.GetFileName(i);
+                std::string diskImageFileName = archive.GetFileName(i);
                 if (StringEndsWith(diskImageFileName, ".dsk"))
                 {
                     // Disk image found.
@@ -1480,7 +1480,7 @@ void Application::SetTapeFromArchive(const std::string& archiveFilePath)
             // Find the first tape image file in the archive.
             for (unsigned i = 0; i < archive.GetNumFiles(); i++)
             {
-                string tapeImageFileName = archive.GetFileName(i);
+                std::string tapeImageFileName = archive.GetFileName(i);
                 if (StringEndsWith(tapeImageFileName, ".cdt"))
                 {
                     // Tape image found.
@@ -1550,7 +1550,7 @@ void Application::LoadQuickSnapshot()
 {
     char directoryFullPath[MAX_PATH];
     GetFullPathName(QuickSnapshotDirectory.c_str(), sizeof(directoryFullPath), directoryFullPath, nullptr);
-    string fileFullPath = string(directoryFullPath) + '\\' + QuickSnapshotFile;
+    std::string fileFullPath = std::string(directoryFullPath) + '\\' + QuickSnapshotFile;
 
     LoadSnapshot(fileFullPath);
 }
@@ -1561,14 +1561,14 @@ void Application::SaveQuickSnapshot()
     GetFullPathName(QuickSnapshotDirectory.c_str(), sizeof(directoryFullPath), directoryFullPath, nullptr);
     // Create the directory if necessary.
     CreateDirectory(directoryFullPath, nullptr);
-    string fileFullPath = string(directoryFullPath) + '\\' + QuickSnapshotFile;
+    std::string fileFullPath = std::string(directoryFullPath) + '\\' + QuickSnapshotFile;
 
     SaveSnapshot(fileFullPath);
 }
 
 void Application::LoadSnapshotWithFileDialog()
 {
-    string fullFilePath;
+    std::string fullFilePath;
     if (ShowLoadSaveFileDialog(true/*isLoad*/, "\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
     {
         // Load the selected snapshot.
@@ -1578,7 +1578,7 @@ void Application::LoadSnapshotWithFileDialog()
 
 void Application::SaveSnapshotWithFileDialog()
 {
-    string fullFilePath;
+    std::string fullFilePath;
     if (ShowLoadSaveFileDialog(false/*isLoad*/, "\\Snapshots", "SNA Snapshots (*.sna)\0*.sna\0\0", &fullFilePath))
     {
         // Save the selected snapshot.
@@ -1586,7 +1586,7 @@ void Application::SaveSnapshotWithFileDialog()
     }
 }
 
-void Application::LoadSnapshot(string fullFilePath)
+void Application::LoadSnapshot(std::string fullFilePath)
 {
     // Open the file.
     kmbFileInputStream stream;
@@ -1597,7 +1597,7 @@ void Application::LoadSnapshot(string fullFilePath)
         if (SnaSnapshotReadWrite::LoadSnapshot(stream, &snapshot))
         {
             // Create the new machine.
-            string machineSpecsName;
+            std::string machineSpecsName;
             switch (snapshot.GetCpcType())
             {
                 case CPC::Snapshot::CpcType::Cpc464: machineSpecsName = StandardCpc464SpecificationsName; break;
@@ -1620,7 +1620,7 @@ void Application::LoadSnapshot(string fullFilePath)
     }
 }
 
-void Application::SaveSnapshot(string fullFilePath)
+void Application::SaveSnapshot(std::string fullFilePath)
 {
     // Take a snapshot of the machine.
     CPC::Snapshot snapshot;
@@ -1634,7 +1634,7 @@ void Application::SaveSnapshot(string fullFilePath)
     }
 }
 
-bool Application::ShowLoadSaveFileDialog(bool isLoad, string relativeInitialDir, const char* filter, string* outFullFilePath) const
+bool Application::ShowLoadSaveFileDialog(bool isLoad, std::string relativeInitialDir, const char* filter, std::string* outFullFilePath) const
 {
     bool ret;
 
@@ -1642,7 +1642,7 @@ bool Application::ShowLoadSaveFileDialog(bool isLoad, string relativeInitialDir,
     char currentDir[2000];
     ::GetCurrentDirectory(sizeof(currentDir), currentDir);
 
-    string initialDir;
+    std::string initialDir;
     initialDir = currentDir + relativeInitialDir;
 
     char fileFullPath[2000];
@@ -1688,7 +1688,7 @@ bool Application::ShowLoadSaveFileDialog(bool isLoad, string relativeInitialDir,
     return ret;
 }
 
-bool Application::StringEndsWith(string str, string ending)
+bool Application::StringEndsWith(std::string str, std::string ending)
 {
     bool ret = false;
     const size_t strLength = str.length();

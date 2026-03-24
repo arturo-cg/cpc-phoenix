@@ -63,7 +63,7 @@ public:
   virtual unsigned          GetUnsigned               (unsigned uDefaultValue = 0) const                      { return uDefaultValue; }
   virtual float             GetFloat                  (float fDefaultValue = 0.f) const                       { return fDefaultValue; }
   virtual double            GetDouble                 (double dDefaultValue = 0.0) const                      { return dDefaultValue; }
-  virtual std::string       GetString                 (const string& sDefaultValue = string("")) const        { return sDefaultValue; }
+  virtual std::string       GetString                 (const std::string& sDefaultValue = std::string("")) const        { return sDefaultValue; }
 
   //
   // Child management
@@ -229,7 +229,7 @@ public:
 
   virtual EType             GetType                   () const  { return TYPE_STRING; }
 
-  virtual std::string       GetString                 (const string& sDefaultValue) const  { return m_sValue; }
+  virtual std::string       GetString                 (const std::string& sDefaultValue) const  { return m_sValue; }
 
 
 protected:
@@ -256,7 +256,7 @@ class CTaggedMsb : public kmbMsb
 {
 public:
 
-  typedef                   unordered_map<string, kmbMsbPtr> TMsbMap;
+  typedef                   std::unordered_map<std::string, kmbMsbPtr> TMsbMap;
 
 
                             CTaggedMsb                ()  { }
@@ -331,7 +331,7 @@ protected:
 private:
 
   typedef                   kmbMsb                      inherited;
-  typedef                   vector<kmbMsbPtr>           TMsbList;
+  typedef                   std::vector<kmbMsbPtr>           TMsbList;
 
 
   TMsbList                  m_lChildren;

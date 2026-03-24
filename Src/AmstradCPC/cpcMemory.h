@@ -15,10 +15,10 @@ namespace CPC {
 
     struct MemorySpecifications
     {
-        using IntToStringMap = unordered_map<int, string>;
+        using IntToStringMap = std::unordered_map<int, std::string>;
 
         unsigned numAdditionalRamPages;       // How many *additional* 64Kb RAM pages are present. Standard CPC 464 & 664 have none (only the built-in 64KB RAM); standard CPC 6128 has one (128KB in total). RAM expansion devices can be connected to provide additional 64KB pages.
-        string lowerRomFileName;              // Lower ROM bank file.
+        std::string lowerRomFileName;              // Lower ROM bank file.
         IntToStringMap upperRomFileNames;     // Upper ROM bank files, indexed by their ROM IDs.
 
         cpcWord routineAddress_KM_WAIT_CHAR;  // Address (in the lower ROM, *not* the jumblock) of the firmware routine KM WAIT CHAR. Used by the Paste Injector feature.
@@ -69,13 +69,13 @@ namespace CPC {
 
         typedef CSubSystem inherited;
 
-        using IntToMemoryBlockMap = unordered_map<int, CMemoryBlock*>;
-        using MemoryBlockList = vector<CMemoryBlock*>;
+        using IntToMemoryBlockMap = std::unordered_map<int, CMemoryBlock*>;
+        using MemoryBlockList = std::vector<CMemoryBlock*>;
 
         void ResetVars();
         void FreeVars();
 
-        CMemoryBlock* CreateRomBankFromFile(string fileName) const;
+        CMemoryBlock* CreateRomBankFromFile(std::string fileName) const;
 
         /** The lower ROM block (operating system / firmware ROM). */
         CMemoryBlock* m_pLowerRomBlock;

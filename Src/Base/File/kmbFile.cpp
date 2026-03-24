@@ -11,7 +11,7 @@
 /**
 ** Init
 */
-bool kmbFile::Init(const string& sFileName)
+bool kmbFile::Init(const std::string& sFileName)
 {
   bool bRet = true;
 
@@ -82,7 +82,7 @@ bool kmbFile::Open(EAccessFlags eAccessFlags, EFileMode eFileMode)
   Close();
 
   // Convert open flags
-  string sOpenFlags;
+  std::string sOpenFlags;
 
   if (bRet)
   {

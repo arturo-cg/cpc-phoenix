@@ -22,7 +22,7 @@ public:
 
   /** Initializes the stream to write to the file with the specified name.
   *** The file is automatically opened and, in the end, closed. */
-  bool                      Init                      (const string& sFileName);
+  bool                      Init                      (const std::string& sFileName);
   /** Initializes the stream to write to the given file.
   *** The caller is responsible for opening the file with write access before calling this method and,
   *** after the kmbFileOutputStream is destroyed, closing it. */

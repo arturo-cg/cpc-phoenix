@@ -51,8 +51,6 @@
 
 
 // STL includes
-// TODO: Remove when "using namespace std" is removed. Prevents C++17 std::byte from conflicting with Windows SDK's byte typedef.
-#define _HAS_STD_BYTE 0
 #include <string>
 #include <vector>
 #include <list>
@@ -61,8 +59,8 @@
 #include <unordered_set>
 #include <algorithm>
 #include <functional>
+#include <filesystem>
 
-using namespace std;    // No need to specify std:: for STL symbols
 
 // Standard C includes
 #include <stdio.h>

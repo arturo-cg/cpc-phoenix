@@ -22,9 +22,9 @@ public:
 *   File indexes go from 0 to GetNumFiles() - 1. */
     virtual unsigned GetNumFiles() const = 0;
     /** Returns the index of the file with the specified name, or InvalidFileIndex if it doesn't exist. */
-    virtual unsigned FindFileByName(string fileName) = 0;
+    virtual unsigned FindFileByName(std::string fileName) = 0;
     /** Returns the name of a file specified by its index in the archive. */
-    virtual string GetFileName(unsigned fileIndex) = 0;
+    virtual std::string GetFileName(unsigned fileIndex) = 0;
     /** Returns the uncompressed size in bytes of the specified file. */
     virtual unsigned GetUncompressedFileSize(unsigned fileIndex) = 0;
     /** Extracts a file to a user-allocated memory buffer. Make sure that the memory buffer is at least the size returned by GetUncompressedFileSize. */

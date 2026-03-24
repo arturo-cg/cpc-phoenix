@@ -43,7 +43,7 @@ namespace CPC {
         for (const MemorySpecifications::IntToStringMap::value_type& kvp : memorySpecifications.upperRomFileNames)
         {
             int id = kvp.first;
-            string fileName = kvp.second;
+            std::string fileName = kvp.second;
             // Load the ROM file.
             CMemoryBlock* romBank = CreateRomBankFromFile(fileName);
             KMASSERTM(romBank != NULL, ("Could not load ROM file '%s' for Upper ROM ID '%d'.", fileName.c_str(), id));
@@ -118,7 +118,7 @@ namespace CPC {
     /**
     **
     */
-    CMemoryBlock* CMemory::CreateRomBankFromFile(string fileName) const
+    CMemoryBlock* CMemory::CreateRomBankFromFile(std::string fileName) const
     {
         CMemoryBlock* ret = nullptr;
         // Open the ROM file.

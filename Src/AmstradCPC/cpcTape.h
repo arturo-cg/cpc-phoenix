@@ -13,7 +13,7 @@ namespace CPC {
         virtual ~CTape() { FreeVars(); }
 
         virtual unsigned GetMarkerCount() const = 0;
-        virtual const string& GetMarkerName(unsigned markerIndex) const = 0;
+        virtual const std::string& GetMarkerName(unsigned markerIndex) const = 0;
         virtual void SeekToMarker(unsigned markerIndex) = 0;
         virtual unsigned GetCurrentMarker() const = 0;
 

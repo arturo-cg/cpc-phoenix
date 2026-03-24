@@ -195,7 +195,7 @@ bool kmbBinaryMsbWriter::WriteTaggedMsb(const CTaggedMsb* pTaggedMsb)
     pTaggedMsb->GetChildrenIterators( &iter, &iterEnd );
     for (/*EMPTY*/; bRet && (iter != iterEnd); ++iter)
     {
-      const string&    sTag        = iter->first;
+      const std::string&    sTag        = iter->first;
       const kmbMsbPtr& ptrChildMsb = iter->second;
       // Write child tag
       bRet = bRet && WriteVariableLengthString( sTag );
@@ -239,7 +239,7 @@ bool kmbBinaryMsbWriter::WriteEnumeratedMsb(const CEnumeratedMsb* pEnumeratedMsb
 /**
 ** 
 */
-bool kmbBinaryMsbWriter::WriteVariableLengthString(const string& sString)
+bool kmbBinaryMsbWriter::WriteVariableLengthString(const std::string& sString)
 {
   bool bRet = true;
 

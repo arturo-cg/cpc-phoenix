@@ -93,7 +93,7 @@ bool kmbInputStream::ReadChar(char* pChar)
 /**
 ** 
 */
-bool kmbInputStream::ReadLine(string* psLine)
+bool kmbInputStream::ReadLine(std::string* psLine)
 {
   bool bRet = false;
   if (psLine != NULL)

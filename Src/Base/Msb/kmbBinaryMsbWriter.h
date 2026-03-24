@@ -40,7 +40,7 @@ private:
   bool                      WriteTaggedMsb            (const CTaggedMsb* pTaggedMsb);
   bool                      WriteEnumeratedMsb        (const CEnumeratedMsb* pEnumeratedMsb);
 
-  bool                      WriteVariableLengthString (const string& sString);
+  bool                      WriteVariableLengthString (const std::string& sString);
 
 
   bool                      m_bOk;

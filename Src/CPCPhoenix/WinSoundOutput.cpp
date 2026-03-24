@@ -325,7 +325,7 @@ float CWinSoundOutput::ComputeExponentialVolumeFromLinear(float linearVolume) co
 /**
 **
 */
-bool CWinSoundOutput::StartRecording(const string& sFileName)
+bool CWinSoundOutput::StartRecording(const std::string& sFileName)
 {
     bool bRet = true;
 

@@ -279,7 +279,7 @@ LRESULT CALLBACK kmbWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 /**
 ** Init
 */
-bool kmbWindow::Init(const string& sWindowText, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hParentOrOwner)
+bool kmbWindow::Init(const std::string& sWindowText, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hParentOrOwner)
 {
   bool bRet = true;
 
@@ -389,7 +389,7 @@ void kmbWindow::FreeVars()
 /**
 ** 
 */
-bool kmbWindow::CreateWnd(const string& sWindowText, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hParentOrOwner)
+bool kmbWindow::CreateWnd(const std::string& sWindowText, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hParentOrOwner)
 {
   KMASSERTM( ms_bWindowClassRegistered, ("The static function kmbWindow::RegisterWindowClass must be called once before creating any kmbWindow.") );
 
@@ -426,7 +426,7 @@ void kmbWindow::RequestClose()
 /**
 ** 
 */
-void kmbWindow::SetText(const string& sText)
+void kmbWindow::SetText(const std::string& sText)
 {
   ::SetWindowText( m_hWnd, sText.c_str() );
 }
