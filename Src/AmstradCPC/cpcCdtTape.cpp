@@ -377,17 +377,17 @@ namespace CPC {
     void CCdtTape::AddMarkerAtNextChunk(std::string name)
     {
         char numberAndName[100];
-        snprintf(numberAndName, sizeof(numberAndName), "%d - %s", m_markers.size(), name.c_str());
+        snprintf(numberAndName, sizeof(numberAndName), "%zu - %s", m_markers.size(), name.c_str());
 
         Marker marker;
         marker.name = numberAndName;
-        marker.chunkIndex = m_chunks.size();
+        marker.chunkIndex = static_cast<unsigned>(m_chunks.size());
         m_markers.push_back(marker);
     }
 
     unsigned CCdtTape::GetMarkerCount() const
     {
-        return m_markers.size();
+        return static_cast<unsigned>(m_markers.size());
     }
 
     const std::string& CCdtTape::GetMarkerName(unsigned markerIndex) const
@@ -404,7 +404,7 @@ namespace CPC {
 
     unsigned CPC::CCdtTape::FindMarkerByChunk(unsigned chunkIndex) const
     {
-        return FindMarkerByChunk_Rec(chunkIndex, 0, m_markers.size());
+        return FindMarkerByChunk_Rec(chunkIndex, 0, static_cast<unsigned>(m_markers.size()));
     }
 
     unsigned CPC::CCdtTape::FindMarkerByChunk_Rec(unsigned chunkIndex, unsigned fromMarker, unsigned count) const
@@ -537,7 +537,7 @@ namespace CPC {
 
     void CPC::CCdtTape::SeekToChunk(unsigned chunkIndex)
     {
-        m_nextChunk = (chunkIndex < m_chunks.size() ? chunkIndex : m_chunks.size());    // Note that it allows m_nextChunk to go past the last chunk index, which means it is at the end of the tape.
+        m_nextChunk = (chunkIndex < m_chunks.size() ? chunkIndex : static_cast<unsigned>(m_chunks.size()));    // Note that it allows m_nextChunk to go past the last chunk index, which means it is at the end of the tape.
         m_nextCycle = 0;
         m_nextPulse = 0;
         m_nextMarker = FindMarkerByChunk(m_nextChunk);

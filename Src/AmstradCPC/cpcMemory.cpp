@@ -154,7 +154,7 @@ namespace CPC {
     */
     unsigned CMemory::GetNumRamPages() const
     {
-        return (m_ramBlocks.size() >> 2);       // Note that m_ramBlocks.size() is always a multiple of 4.
+        return static_cast<unsigned>(m_ramBlocks.size() >> 2);       // Note that m_ramBlocks.size() is always a multiple of 4.
     }
 
     //----------------------------------------------------------------------------

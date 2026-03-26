@@ -1857,7 +1857,7 @@ namespace CPC {
             opcodeDisassemblyInfo->displacementTagPos = -1;
             opcodeDisassemblyInfo->immediateTagPos = -1;
             // Parse the operands part of the mnemonic in search of tags.
-            int mnemonicLength = strlen(opcodeDisassemblyInfo->mnemonicOperands);
+            int mnemonicLength = static_cast<int>(strlen(opcodeDisassemblyInfo->mnemonicOperands));
             int pos = 0;
             while (pos < mnemonicLength)
             {

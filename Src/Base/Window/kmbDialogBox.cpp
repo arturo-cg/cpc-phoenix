@@ -12,7 +12,7 @@
 
 #define EXTRACT_KMBDIALOGBOX_PTR(hWnd)   (reinterpret_cast<kmbDialogBox*>( ::GetWindowLongPtr(hWnd, GWLP_USERDATA) ))
 
-BOOL CALLBACK kmbDialogProc(HWND hDlgWnd, UINT nMessage, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK kmbDialogProc(HWND hDlgWnd, UINT nMessage, WPARAM wParam, LPARAM lParam)
 { 
   switch (nMessage)
   { 
@@ -31,7 +31,7 @@ BOOL CALLBACK kmbDialogProc(HWND hDlgWnd, UINT nMessage, WPARAM wParam, LPARAM l
 
         // Pass the message notification to the kmbDialogProc object
         pDlg->_OnDlgInitDialog();
-        return FALSE;    // Returns FALSE to prevent the system from setting the default keyboard focus.
+        return 0;    // Returns 0 to prevent the system from setting the default keyboard focus.
       }
       break;
 
@@ -68,12 +68,12 @@ BOOL CALLBACK kmbDialogProc(HWND hDlgWnd, UINT nMessage, WPARAM wParam, LPARAM l
         pHdr = (LPNMHDR) lParam;
         switch (pHdr->code)
         {
-          case LVN_GETDISPINFO:   pDlg->_OnListViewGetDispInfo( (NMLVDISPINFO*) lParam, pHdr->idFrom, pHdr->hwndFrom ); break;
-          case LVN_ITEMCHANGING:  return pDlg->_OnListViewItemChanging( (NMLISTVIEW*) lParam, pHdr->idFrom, pHdr->hwndFrom ); break;  // Should return FALSE to allow the change, or TRUE to prevent the change.
-          case LVN_ITEMCHANGED:   pDlg->_OnListViewItemChanged( (NMLISTVIEW*) lParam, pHdr->idFrom, pHdr->hwndFrom ); break;
-          case LVN_ITEMACTIVATE:  pDlg->_OnListViewItemActivate( (NMITEMACTIVATE*) lParam, pHdr->idFrom, pHdr->hwndFrom ); break;
-          case NM_CLICK:          pDlg->_OnGenericControlClick( (void*) lParam, pHdr->idFrom, pHdr->hwndFrom ); break;
-          case NM_DBLCLK:         pDlg->_OnGenericControlDoubleClick( (void*) lParam, pHdr->idFrom, pHdr->hwndFrom ); break;
+          case LVN_GETDISPINFO:   pDlg->_OnListViewGetDispInfo( (NMLVDISPINFO*) lParam, static_cast<WORD>(pHdr->idFrom), pHdr->hwndFrom ); break;
+          case LVN_ITEMCHANGING:  return pDlg->_OnListViewItemChanging( (NMLISTVIEW*) lParam, static_cast<WORD>(pHdr->idFrom), pHdr->hwndFrom ); break;
+          case LVN_ITEMCHANGED:   pDlg->_OnListViewItemChanged( (NMLISTVIEW*) lParam, static_cast<WORD>(pHdr->idFrom), pHdr->hwndFrom ); break;
+          case LVN_ITEMACTIVATE:  pDlg->_OnListViewItemActivate( (NMITEMACTIVATE*) lParam, static_cast<WORD>(pHdr->idFrom), pHdr->hwndFrom ); break;
+          case NM_CLICK:          pDlg->_OnGenericControlClick( (void*) lParam, static_cast<WORD>(pHdr->idFrom), pHdr->hwndFrom ); break;
+          case NM_DBLCLK:         pDlg->_OnGenericControlDoubleClick( (void*) lParam, static_cast<WORD>(pHdr->idFrom), pHdr->hwndFrom ); break;
         }
       }
       break;
@@ -222,7 +222,7 @@ void kmbDialogBox::FreeVars()
 kmbDialogBox::EModalReturnValue kmbDialogBox::ShowModal()
 {
   EModalReturnValue eRet;
-  int               nResult;
+  INT_PTR          nResult;
 
   // Create and show the modal dialog box. The call doesn't return until the user closes the dialog box.
   nResult = ::DialogBoxParam( GetModuleHandle(NULL), m_lpModalTemplate, m_hOwnerWnd, kmbDialogProc, (LPARAM) this );

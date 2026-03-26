@@ -114,7 +114,7 @@ size_t ReadFromInputStream(void* pOpaque, mz_uint64 file_ofs, void* pBuf, size_t
     kmbInputStream* inputStream = (kmbInputStream*)pOpaque;
     inputStream->Seek(unsigned(file_ofs));      // Warning: Converting from 64-bit uint to 32-bit uint...
     unsigned bytesReadBefore = inputStream->GetReadBytesCount();
-    inputStream->Read(pBuf, n);
+    inputStream->Read(pBuf, static_cast<unsigned>(n));
 
     return size_t(inputStream->GetReadBytesCount() - bytesReadBefore);
 }

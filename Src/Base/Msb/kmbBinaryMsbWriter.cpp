@@ -249,7 +249,7 @@ bool kmbBinaryMsbWriter::WriteVariableLengthString(const std::string& sString)
   // Write the string itself (if it is not empty)
   if (bRet && !sString.empty())
   {
-    bRet = m_pStream->Write( sString.c_str(), sString.length() );
+    bRet = m_pStream->Write( sString.c_str(), static_cast<unsigned>(sString.length()) );
   }
 
   return bRet;

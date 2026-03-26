@@ -144,21 +144,21 @@ LRESULT CALLBACK kmbWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
   case WM_KEYDOWN:
     {
       pWindow = EXTRACT_APPWINDOW_PTR( hWnd );
-      return pWindow->_OnKeyDown( wParam );
+      return pWindow->_OnKeyDown( static_cast<unsigned>(wParam) );
     }
     break;
 
   case WM_KEYUP:
     {
       pWindow = EXTRACT_APPWINDOW_PTR( hWnd );
-      return pWindow->_OnKeyUp( wParam );
+      return pWindow->_OnKeyUp( static_cast<unsigned>(wParam) );
     }
     break;
 
   case WM_CHAR:
     {
       pWindow = EXTRACT_APPWINDOW_PTR( hWnd );
-      return pWindow->_OnCharKey( wParam, (lParam & 0x1000)!=0/*bit 24*/ );
+      return pWindow->_OnCharKey( static_cast<unsigned>(wParam), (lParam & 0x1000)!=0/*bit 24*/ );
     }
     break;
 

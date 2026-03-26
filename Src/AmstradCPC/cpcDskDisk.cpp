@@ -210,7 +210,7 @@ namespace CPC {
         const SDskTrack* track = GetDskTrack(sideNumber, trackNumber);
         if (track != nullptr)
         {
-            ret = track->lSectors.size();
+            ret = static_cast<unsigned>(track->lSectors.size());
         }
 
         return ret;
