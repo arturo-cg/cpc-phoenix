@@ -124,7 +124,10 @@ namespace CPC {
         ECpcKey eCurrentKey;
         eCurrentKey = s_aeKeyboardMatrix[nBit][m_nSelectedLine];
 
-        nRet |= (m_pKeyStateProvider->GetKeyState(eCurrentKey) << nBit);
+        if (eCurrentKey != CPCKEY_INVALID)
+        {
+          nRet |= (m_pKeyStateProvider->GetKeyState(eCurrentKey) << nBit);
+        }
       }
     }
     else
