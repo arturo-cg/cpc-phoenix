@@ -177,8 +177,7 @@ namespace CPC {
 
     void CPpi::WritePortC(cpcByte nValue)
     {
-        KMASSERTM((m_portDirections[PORT_C_UPPER] == DIRECTION_OUTPUT) && (m_portDirections[PORT_C_LOWER] == DIRECTION_OUTPUT),
-            ("Trying to write to PPI port C when it is currently configured as INPUT."));
+        // Allow writing to each nibble independently
         if (m_portDirections[PORT_C_UPPER] == DIRECTION_OUTPUT)
         {
             // Save the value into the internal register, preserving lower bits
@@ -244,9 +243,23 @@ namespace CPC {
             m_portDirections[PORT_C_LOWER] = eDirection;
 
             // Every time the control word is written, port internal registers are cleared
-            m_portOutputValue[PORT_A] = 0x00;
-            m_portOutputValue[PORT_B] = 0x00;
-            m_portOutputValue[PORT_C] = 0x00;
+            m_portOutputValue[PORT_A] = 0;
+            if (m_portDirections[PORT_A] == DIRECTION_OUTPUT)
+            {
+                WritePortA(0);
+            }
+
+            m_portOutputValue[PORT_B] = 0;
+            if (m_portDirections[PORT_B] == DIRECTION_OUTPUT)
+            {
+                WritePortB(0);
+            }
+
+            m_portOutputValue[PORT_C] = 0;
+            if (m_portDirections[PORT_C] == DIRECTION_OUTPUT)
+            {
+                WritePortC(0);
+            }
         }
         else
         {
@@ -262,6 +275,12 @@ namespace CPC {
             else
             {
                 m_portOutputValue[PORT_C] = m_portOutputValue[PORT_C] & ~(1 << nBit);   // Clear the bit
+            }
+
+            // Update connected chips.
+            if (m_portDirections[PORT_C] == DIRECTION_OUTPUT)
+            {
+                WritePortC(m_portOutputValue[PORT_C]);
             }
         }
     }
