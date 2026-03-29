@@ -343,7 +343,7 @@ namespace CPC {
         {
             case CPC::CCpu::MCYCLE_FETCH: ConsumeTStatesWithWait(tstates, 1); break;
             case CPC::CCpu::MCYCLE_MEM: ConsumeTStatesWithWait(tstates, 1); break;
-            case CPC::CCpu::MCYCLE_IO: ConsumeTStatesWithWait(tstates + 1, 2); break;   // A wait state is always inserted.
+            case CPC::CCpu::MCYCLE_IO: ConsumeTStatesWithWait(tstates, 2); break;
             case CPC::CCpu::MCYCLE_INTERNAL: ConsumeTStates(tstates); break;
             default: KMASSERTM(false, ("Unhandled case")); break;
         }
@@ -360,20 +360,15 @@ namespace CPC {
 
     void CCpu::ConsumeTStatesWithWait(int tstates, int when)
     {
-        KMASSERT(when < tstates);
-        int tstatesBeforeWhen = when;
-        int tstatesAfterWhen = tstates - 1 - when;
         // Before 'when'.
-        ConsumeTStates(tstatesBeforeWhen);
+        ConsumeTStates(when);
         // During 'when'. Insert wait states if necessary.
-        bool wait;
         do
         {
-            wait = IsWaitActive();
             ConsumeTStates(1);
-        } while (wait);
+        } while (IsWaitActive());
         // After 'when'.
-        ConsumeTStates(tstatesAfterWhen);
+        ConsumeTStates(tstates - when - 1);
     }
 
     void CCpu::ProcessPrefixByte(cpcByte prefixByte)
