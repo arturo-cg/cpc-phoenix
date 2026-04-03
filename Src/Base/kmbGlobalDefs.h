@@ -22,12 +22,12 @@
 
 
 //
-// Macro para saber el número de elementos que hay en un array.
+// Macro para saber el nÃºmero de elementos que hay en un array.
 // Ejemplo:
 //   struct Pepe aPepes[] = { {...}, {...}, {...} };
 //
 //   sizeof(aPepes) da los bytes totales que ocupa el array aPepes
-//   ARRAY_COUNT(aPepes) da 3 (el número de elementos Pepe que hay en el array aPepes)
+//   ARRAY_COUNT(aPepes) da 3 (el nÃºmero de elementos Pepe que hay en el array aPepes)
 //
 #define ARRAY_COUNT(array_var)  (sizeof(array_var) / sizeof(array_var[0]))
 
