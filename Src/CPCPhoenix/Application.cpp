@@ -45,7 +45,7 @@ static const std::string QuickSnapshotFile = "QuickSnapshot.sna";
 /**
 ** Init
 */
-bool Application::Init(HINSTANCE hInstance)
+bool Application::Init(const SettingsOverrides& settingsOverrides)
 {
     bool bRet = true;
 
@@ -93,7 +93,7 @@ bool Application::Init(HINSTANCE hInstance)
         m_pSoundOutput->Init(m_settings.GetSoundChannelCount());
         m_pSoundOutput->SetVolume(m_settings.GetVolume());
         // Emulated machine.
-        CreateMachine();
+        CreateMachine(settingsOverrides);
     }
     // Debugger, sound analyzer.
     if (bRet)
@@ -211,7 +211,7 @@ void Application::InitializeMachineSpecifications()
 /**
 **
 */
-void Application::CreateMachine()
+void Application::CreateMachine(const SettingsOverrides& settingsOverrides)
 {
     // Destroy current machine, if any
     DestroyMachine();
@@ -230,12 +230,49 @@ void Application::CreateMachine()
         // Monitor color output type (color, green).
         m_pMachine->GetGateArray()->SetRgbConversionTable(GetSettings()->GetMonitorType());
         // Insert disks and tape into the drives, if required.
-        SetDisk(0, m_settings.GetDiskImage(0), m_settings.GetDiskImageArchive(0));
-        SetDisk(1, m_settings.GetDiskImage(1), m_settings.GetDiskImageArchive(1));
+        if (m_pMachine->GetDiskDrive(0) != nullptr)
+        {
+            if (!settingsOverrides.diskA.empty())
+            {
+                SetDisk(0, settingsOverrides.diskA, settingsOverrides.diskA_archive);
+            }
+            else
+            {
+                SetDisk(0, m_settings.GetDiskImage(0), m_settings.GetDiskImageArchive(0));
+            }
+        }
+
+        if (m_pMachine->GetDiskDrive(1) != nullptr)
+        {
+            if (!settingsOverrides.diskB.empty())
+            {
+                SetDisk(1, settingsOverrides.diskB, settingsOverrides.diskB_archive);
+            }
+            else
+            {
+                SetDisk(1, m_settings.GetDiskImage(1), m_settings.GetDiskImageArchive(1));
+            }
+        }
+
         if (m_pMachine->GetTapeDeck() != nullptr)
         {
-            SetTape(m_settings.GetTapeImage(), m_settings.GetTapeImageArchive());
+            if (!settingsOverrides.tape.empty())
+            {
+                SetTape(settingsOverrides.tape, settingsOverrides.tape_archive);
+            }
+            else
+            {
+                SetTape(m_settings.GetTapeImage(), m_settings.GetTapeImageArchive());
+            }
         }
+        // Inject auto-type text.
+        if (!settingsOverrides.autotype.empty())
+        {
+            std::deque<cpcByte> charactersToInject = CPC::PasteInjector::ConvertHostToCpcAscii(settingsOverrides.autotype);
+            m_pMachine->GetPasteInjector()->PasteCharacters(charactersToInject);
+            m_pMachine->GetPasteInjector()->PasteEnter();
+        }
+
         // Let the debugger know about the new machine.
         if (m_debugger != nullptr)
         {

@@ -23,6 +23,19 @@ namespace CPC
     class CMachine;
 }
 
+struct SettingsOverrides
+{
+    SettingsOverrides() : diskA(), diskB(), tape(), autotype() {}
+
+    std::string diskA;          // File path to the disk image to insert in disk drive A. Leave empty to skip override.
+    std::string diskA_archive;  // File path to the archive file that contains the disk image specified by diskA. Leave empty if diskA is an actual file that is not in an archive.
+    std::string diskB;          // File path to the disk image to insert in disk drive B. Leave empty to skip override.
+    std::string diskB_archive;  // File path to the archive file that contains the disk image specified by diskB. Leave empty if diskB is an actual file that is not in an archive.
+    std::string tape;           // File path to the tape image to insert in tape unit. Leave empty to skip override.
+    std::string tape_archive;   // File path to the archive file that contains the tape image specified by tape. Leave empty if tape is an actual file that is not in an archive.
+    std::string autotype;       // Text (BASIC code) to inject on machine startup. Leave empty to skip override.
+};
+
 /**
 **
 */
@@ -37,7 +50,7 @@ public:
                               Application() { m_bOk = false; }
     virtual                  ~Application() { End(); }
 
-    bool                      Init(HINSTANCE hInstance);
+    bool                      Init(const SettingsOverrides& settingsOverrides);
     virtual void              End();
     bool                      IsOk() const { return m_bOk; }
 
@@ -120,7 +133,7 @@ private:
     void                      FreeVars();
 
     void                      InitializeMachineSpecifications();
-    void                      CreateMachine();
+    void                      CreateMachine(const SettingsOverrides& settingsOverrides = SettingsOverrides());
     void                      DestroyMachine();
     void                      InitializeGui();
     void                      ShutdownGui();

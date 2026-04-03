@@ -1,10 +1,7 @@
-//-------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------
-
 #include "stdafx.h"
 #include "Application.h"
 
-
+void ParseCommandLine(SettingsOverrides* overrides);
 
 //----------------------------------------------------------------------------
 /**
@@ -14,9 +11,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
     bool bOk = true;
 
+    // Parse the command line.
+    SettingsOverrides overridesFromCommandLine;
+    ParseCommandLine(&overridesFromCommandLine);
+
     // Initialize the application
     new Application;
-    bOk = Application::Singleton()->Init(hInstance);
+    bOk = Application::Singleton()->Init(overridesFromCommandLine);
 
     if (bOk)
     {
@@ -31,4 +32,42 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     delete Application::Singleton();
 
     return (bOk ? 0 : 1);
+}
+
+void ParseCommandLine(SettingsOverrides* overrides)
+{
+    if (overrides != nullptr)
+    {
+        // Reset overrides.
+        *overrides = SettingsOverrides();
+
+        // Read values from the command line.
+        for (int i = 1; i < __argc; i++)
+        {
+            if (strcmp(__argv[i], "--diskA") == 0)
+            {
+                overrides->diskA.assign(__argv[i + 1]);
+            }
+            else if (strcmp(__argv[i], "--diskA_archive") == 0)
+            {
+                overrides->diskA_archive.assign(__argv[i + 1]);
+            }
+            else if (strcmp(__argv[i], "--diskB") == 0)
+            {
+                overrides->diskB.assign(__argv[i + 1]);
+            }
+            else if (strcmp(__argv[i], "--diskB_archive") == 0)
+            {
+                overrides->diskB_archive.assign(__argv[i + 1]);
+            }
+            else if (strcmp(__argv[i], "--tape") == 0)
+            {
+                overrides->tape.assign(__argv[i + 1]);
+            }
+            else if (strcmp(__argv[i], "--autotype") == 0)
+            {
+                overrides->autotype.assign(__argv[i + 1]);
+            }
+        }
+    }
 }
