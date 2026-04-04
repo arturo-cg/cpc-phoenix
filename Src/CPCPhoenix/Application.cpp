@@ -1119,38 +1119,43 @@ void Application::DrawTapeDeckMenuGui()
             }
         }
     }
-    if (ImGui::MenuItem("Eject Tape"))
-    {
-        EjectTape();
-    }
-    ImGui::Separator();
 
     CPC::CTapeDeck* tapeDeck = m_pMachine->GetTapeDeck();
-    bool playPressed = tapeDeck->IsPlayButtonPressed();
-    std::string label = (playPressed ? "Release Play###PlayButtonState" : "Press Play###PlayButtonState");
-    if (ImGui::Checkbox(label.c_str(), &playPressed))
+    CPC::CTape* tape = (tapeDeck != nullptr ? tapeDeck->GetTape() : nullptr);
+
+    if (tape != nullptr)
     {
-        tapeDeck->SetPlayButtonPressed(playPressed);
-    }
-    CPC::CTape* tape = tapeDeck->GetTape();
-    if (ImGui::MenuItem("Rewind Tape"))
-    {
-        if (tape != nullptr)
+        if (ImGui::MenuItem("Eject Tape"))
         {
-            tape->Rewind();
+            EjectTape();
         }
-    }
-    std::string markerPreview = (tape->GetCurrentMarker() < tape->GetMarkerCount() ? tape->GetMarkerName(tape->GetCurrentMarker()) : "<N/A>");
-    if (ImGui::BeginCombo("Jump To...", markerPreview.c_str(), ImGuiComboFlags_HeightLargest))
-    {
-        for (unsigned i = 0; i < tape->GetMarkerCount(); i++)
+        ImGui::Separator();
+
+        bool playPressed = tapeDeck->IsPlayButtonPressed();
+        std::string label = (playPressed ? "Release Play###PlayButtonState" : "Press Play###PlayButtonState");
+        if (ImGui::Checkbox(label.c_str(), &playPressed))
         {
-            if (ImGui::Selectable(tape->GetMarkerName(i).c_str(), i == tape->GetCurrentMarker()))
+            tapeDeck->SetPlayButtonPressed(playPressed);
+        }
+        if (ImGui::MenuItem("Rewind Tape"))
+        {
+            if (tape != nullptr)
             {
-                tape->SeekToMarker(i);
+                tape->Rewind();
             }
         }
-        ImGui::EndCombo();
+        std::string markerPreview = (tape->GetCurrentMarker() < tape->GetMarkerCount() ? tape->GetMarkerName(tape->GetCurrentMarker()) : "<N/A>");
+        if (ImGui::BeginCombo("Jump To...", markerPreview.c_str(), ImGuiComboFlags_HeightLargest))
+        {
+            for (unsigned i = 0; i < tape->GetMarkerCount(); i++)
+            {
+                if (ImGui::Selectable(tape->GetMarkerName(i).c_str(), i == tape->GetCurrentMarker()))
+                {
+                    tape->SeekToMarker(i);
+                }
+            }
+            ImGui::EndCombo();
+        }
     }
 }
 
@@ -1207,17 +1212,32 @@ void Application::DrawDiskDriveBarGui(char driveLetter, int driveNumber)
         ImGui::EndPopup();
     }
     ImGui::SameLine();
-    std::string diskImage = m_settings.GetDiskImage(driveNumber);
-    if (diskImage.empty())
+    std::string diskPath = m_settings.GetDiskImage(driveNumber);
+    std::string diskFileName;
+    if (diskPath.empty())
     {
-        diskImage = "<EMPTY>";
+        diskFileName = "<EMPTY>";
     }
-    else if (!m_settings.GetDiskImageArchive(driveNumber).empty())
+    else
     {
-        diskImage = m_settings.GetDiskImageArchive(driveNumber) + " (" + diskImage + ")";
+        if (!m_settings.GetDiskImageArchive(driveNumber).empty())
+        {
+            diskFileName = std::filesystem::path(m_settings.GetDiskImageArchive(driveNumber)).filename().u8string() + " -> " + std::filesystem::path(diskPath).filename().u8string();
+            diskPath = m_settings.GetDiskImageArchive(driveNumber) + " -> " + diskPath;
+        }
+        else
+        {
+            diskFileName = std::filesystem::path(diskPath).filename().u8string();
+        }
     }
 
-    ImGui::TextDisabled(diskImage.c_str());
+    // Only the file name in the status bar.
+    ImGui::TextDisabled(diskFileName.c_str());
+    // Complete path in the tooltip.
+    if (!diskPath.empty())
+    {
+        ImGui::SetItemTooltip(diskPath.c_str());
+    }
 
     ImGui::EndGroup();
 }
@@ -1239,17 +1259,32 @@ void Application::DrawTapeDeckBarGui()
         ImGui::EndPopup();
     }
     ImGui::SameLine();
-    std::string tapeImage = m_settings.GetTapeImage();
-    if (tapeImage.empty())
+    std::string tapePath = m_settings.GetTapeImage();
+    std::string tapeFileName;
+    if (tapePath.empty())
     {
-        tapeImage = "<EMPTY>";
+        tapeFileName = "<EMPTY>";
     }
-    else if (!m_settings.GetTapeImageArchive().empty())
+    else
     {
-        tapeImage = m_settings.GetTapeImageArchive() + " (" + tapeImage + ")";
+        if (!m_settings.GetTapeImageArchive().empty())
+        {
+            tapeFileName = std::filesystem::path(m_settings.GetTapeImageArchive()).filename().u8string() + " -> " + std::filesystem::path(tapePath).filename().u8string();
+            tapePath = m_settings.GetTapeImageArchive() + " -> " + tapePath;
+        }
+        else
+        {
+            tapeFileName = std::filesystem::path(tapePath).filename().u8string();
+        }
     }
 
-    ImGui::TextDisabled(tapeImage.c_str());
+    // Only the file name in the status bar.
+    ImGui::TextDisabled(tapeFileName.c_str());
+    // Complete path in the tooltip.
+    if (!tapePath.empty())
+    {
+        ImGui::SetItemTooltip(tapePath.c_str());
+    }
 
     ImGui::EndGroup();
 }
