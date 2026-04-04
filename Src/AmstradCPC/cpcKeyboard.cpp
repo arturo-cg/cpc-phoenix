@@ -121,13 +121,9 @@ namespace CPC {
       unsigned nBit;
       for (nBit = KEYS_PER_LINE-1; nBit < KEYS_PER_LINE; nBit--)
       {
-        ECpcKey eCurrentKey;
-        eCurrentKey = s_aeKeyboardMatrix[nBit][m_nSelectedLine];
-
-        if (eCurrentKey != CPCKEY_INVALID)
-        {
-          nRet |= (m_pKeyStateProvider->GetKeyState(eCurrentKey) << nBit);
-        }
+        ECpcKey eCurrentKey = s_aeKeyboardMatrix[nBit][m_nSelectedLine];
+        ECpcKeyState keyState = (eCurrentKey != CPCKEY_INVALID ? m_pKeyStateProvider->GetKeyState(eCurrentKey) : CPCKEYSTATE_RELEASED);
+        nRet |= (keyState << nBit);
       }
     }
     else
