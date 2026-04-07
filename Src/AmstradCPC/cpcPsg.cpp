@@ -157,10 +157,6 @@ namespace CPC {
             {
                 int registerLow = (reg & 0xFE);
                 cpcWord period = ((m_anRegisters[registerLow + 1] & 0x0F) << 8) | m_anRegisters[registerLow];
-                if (period == 0)
-                {
-                    period = 1;
-                }
                 int channel = (reg >> 1);
                 m_toneGenerator[channel].SetPeriod(period);
                 break;
@@ -181,6 +177,8 @@ namespace CPC {
             {
                 m_envelopeGenerator.counter = 0;
                 m_envelopeGenerator.cycle = 0;
+                const Envelope& selectedEnvelope = Envelopes[m_anRegisters[REG_ENVELOPE_SHAPE] & 0x0F];
+                m_envelopeGenerator.ComputeAmplitude(selectedEnvelope);
                 break;
             }
         }
@@ -326,29 +324,36 @@ namespace CPC {
 
     void CPC::CPsg::ToneGenerator::Reset()
     {
-        programmedCount = 0;
+        SetPeriod(0);
         counter = 0;
         state = false;
     }
 
     void CPsg::ToneGenerator::SetPeriod(uint32_t period)
     {
-        programmedCount = period << (4 - 1);
+        if (period > 0)
+        {
+            programmedCount = period << (4 - 1);
+        }
+        else
+        {
+            programmedCount = 1;
+        }
     }
 
-    void CPC::CPsg::ToneGenerator::Tick()
+    void CPsg::ToneGenerator::Tick()
     {
         counter++;
-        if (counter >= programmedCount)
+        while (counter >= programmedCount)
         {
-            counter = 0;
+            counter -= programmedCount;
             state = !state;
         }
     }
 
     void CPC::CPsg::NoiseGenerator::Reset()
     {
-        programmedCount = 0;
+        SetPeriod(0);
         counter = 0;
         shiftRegister = 0x1FFFF;
         state = false;
@@ -356,15 +361,22 @@ namespace CPC {
 
     void CPsg::NoiseGenerator::SetPeriod(uint32_t period)
     {
-        programmedCount = period << (4 - 1);
+        if (period > 0)
+        {
+            programmedCount = period << (4 - 1);
+        }
+        else
+        {
+            programmedCount = 1;
+        }
     }
 
     void CPC::CPsg::NoiseGenerator::Tick()
     {
         counter++;
-        if (counter >= programmedCount)
+        while (counter >= programmedCount)
         {
-            counter = 0;
+            counter -= programmedCount;
 
             // Update state.
             uint32_t bit0 = shiftRegister & 0x01;
@@ -380,7 +392,7 @@ namespace CPC {
 
     void CPC::CPsg::EnvelopeGenerator::Reset()
     {
-        programmedCount = 0;
+        SetPeriod(0);
         counter = 0;
         cycle = 0;
         amplitude = 0;
@@ -388,20 +400,19 @@ namespace CPC {
 
     void CPsg::EnvelopeGenerator::SetPeriod(uint32_t period)
     {
-        programmedCount = period << 8;
+        // Period 0 is half the duration of period 1: period 1 -> 256 ticks, period 0 -> 128 ticks.
+        if (period > 0)
+        {
+            programmedCount = period << 8;
+        }
+        else
+        {
+            programmedCount = 128;
+        }
     }
 
-    void CPC::CPsg::EnvelopeGenerator::Tick(const Envelope& selectedEnvelope)
+    void CPsg::EnvelopeGenerator::ComputeAmplitude(const Envelope& selectedEnvelope)
     {
-        counter++;
-        if (counter >= programmedCount)
-        {
-            // Cycle completed.
-            counter = 0;
-            cycle = (selectedEnvelope.repeatBothCycles ? (cycle + 1) % 2 : 1);
-        }
-
-        // Update amplitude.
         uint32_t stepDuration = (programmedCount >> 4);        // 16 steps per cycle.
         stepDuration = (stepDuration > 0 ? stepDuration : 1);
         uint32_t step = counter / stepDuration;
@@ -412,6 +423,20 @@ namespace CPC {
             case EnvelopeCycle::LowToHigh: amplitude = step; break;  // From 0 to 15.
             case EnvelopeCycle::HighToLow: amplitude = 15 - step; break;   // From 15 to 0.
         }
+    }
+
+    void CPC::CPsg::EnvelopeGenerator::Tick(const Envelope& selectedEnvelope)
+    {
+        counter++;
+        while (counter >= programmedCount)
+        {
+            // Cycle completed.
+            counter -= programmedCount;
+            cycle = (selectedEnvelope.repeatBothCycles ? (cycle + 1) % 2 : 1);
+        }
+
+        // Update amplitude.
+        ComputeAmplitude(selectedEnvelope);
     }
 
 } //namespace CPC

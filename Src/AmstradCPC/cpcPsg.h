@@ -150,6 +150,7 @@ namespace CPC {
 
             void Reset();
             void SetPeriod(uint32_t period);
+            void ComputeAmplitude(const Envelope& selectedEnvelope);
             void Tick(const Envelope& selectedEnvelope);
         };
 
