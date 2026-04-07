@@ -28,6 +28,7 @@
 #include "Stream/kmbFileInputStream.h"
 #include "Stream/kmbFileOutputStream.h"
 #include "Stream/kmbMemoryInputStream.h"
+#include "resource.h"
 
 #include <CommCtrl.h>
 
@@ -62,7 +63,8 @@ bool Application::Init(const SettingsOverrides& settingsOverrides)
     m_settings.LoadFromFile();
     // Application main window.
     ImGui_ImplWin32_EnableDpiAwareness();
-    kmbWindow::RegisterWindowClass();    // This must be called only once, before creating any kmbWindow
+    HICON appIcon = ::LoadIcon(::GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_APPWINDOW));
+    kmbWindow::RegisterWindowClass(appIcon);    // This must be called only once, before creating any kmbWindow
     m_pAppWindow = new AppWindow;
     m_pAppWindow->Init(m_settings.GetMainWindowX(), m_settings.GetMainWindowY(), m_settings.GetMainWindowWidth(), m_settings.GetMainWindowHeight());
     // Rendering API (Direct3D 11).

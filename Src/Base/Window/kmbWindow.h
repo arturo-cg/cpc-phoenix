@@ -113,7 +113,7 @@ public:
   void                      _SetHWnd                  (HWND hWnd)  { m_hWnd = hWnd; }
 
   /** Important: This static function must be called once before creating any kmbWindow. */
-  static void               RegisterWindowClass       ();
+  static void               RegisterWindowClass       (HICON iconHandle = nullptr);
 
 
 protected:

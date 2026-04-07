@@ -242,7 +242,7 @@ LRESULT CALLBACK kmbWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 /**
 ** 
 */
-/*static*/ void kmbWindow::RegisterWindowClass()
+/*static*/ void kmbWindow::RegisterWindowClass(HICON iconHandle)
 {
   KMASSERTM( !ms_bWindowClassRegistered, ("The static function kmbWindow::RegisterWindowClass must be called just once.") );
   if (!ms_bWindowClassRegistered)
@@ -256,7 +256,7 @@ LRESULT CALLBACK kmbWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     WndClass.cbClsExtra = 0;
     WndClass.cbWndExtra = 0;
     WndClass.hInstance = GetModuleHandle(NULL);
-    WndClass.hIcon = NULL;
+    WndClass.hIcon = iconHandle;
     WndClass.hCursor = NULL;
     WndClass.hbrBackground = NULL; //(HBRUSH)GetStockObject(LTGRAY_BRUSH);
     WndClass.lpszMenuName = NULL;
