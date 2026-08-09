@@ -11,6 +11,39 @@ public:
 };
 
 /**
+** This class abstracts an isolated audio channel to use in CWinSoundOutput.
+**
+** The PSG is clocked at 1 MHz, far faster than the rate at which samples are sent to the sound device, so a
+** channel is fed the value it has on every PSG cycle and returns one sample per output sample, averaging the
+** cycles each one covers. It also keeps that output free of the DC offset the PSG carries.
+*/
+class CWinSoundChannel
+{
+public:
+    CWinSoundChannel()      { Reset(); }
+
+    /** Clears the window being accumulated and the DC offset estimation. */
+    void        Reset()                 { ResetWindow(); ResetDcOffset(); }
+    /** Clears the DC offset estimation only. Used when the emulated machine is reset. */
+    void        ResetDcOffset()         { m_dcAverage = 0.f; }
+    /** Resets window samples being accumulated */
+    void        ResetWindow()           { m_accum = 0.f; m_accumCount = 0; }
+
+    /** Accumulates the value the channel has during one PSG cycle. */
+    void        Write(float value) { m_accum += value; m_accumCount++; }
+
+    /** Averages everything accumulated since the last call, removes the DC offset from the result and returns
+    *** the sample to be sent to the sound device. Starts accumulating a new window. */
+    float       Read();
+
+private:
+
+    float       m_accum;        // Sum of the mix over the PSG cycles covered by the sample being built.
+    unsigned    m_accumCount;   // Number of PSG cycles accumulated so far, used to average them.
+    float       m_dcAverage;    // Running average of the output, subtracted from it to remove its DC offset.
+};
+
+/**
 ** This class implements the CPC::CSoundOutput interface to provide sound output functionality to the emulator
 ** using the low-level sound functions of the Windows SDK. Additionally, it allows recording the sound to
 ** a .WAV file.
@@ -55,6 +88,7 @@ private:
     using inherited = CPC::CSoundOutput;
 
     static const unsigned   BYTES_PER_SAMPLE = 2;                         // 16-bit samples
+    static const unsigned   MAX_OUTPUT_CHANNELS = 2;                      // Mono uses channel 0 only, stereo uses both
 
     static const unsigned   NUM_BLOCKS = 3;                               // Triple buffer
     static const unsigned   SAMPLES_PER_BLOCK_AND_CHANNEL = SAMPLES_PER_SEC / 20;     // 50 ms of sound data per block
@@ -99,10 +133,10 @@ private:
     void                    CreateSoundBlocks();
     void                    DestroySoundBlocks();
 
-    void                    WriteSample(float leftSample, float rightSample = 0.f);
+    void                    WriteSample(const std::array<float, MAX_OUTPUT_CHANNELS> &samples);
     void                    SendSoundBlockToDevice(SSoundBlock* pBlock);
 
-    void                    MixSamplesFromPsgAndTape(float* leftSample, float* rightSample);
+    void                    MixSamplesFromPsgAndTape(std::array<float, MAX_OUTPUT_CHANNELS> &samples);
     float                   ComputeExponentialVolumeFromLinear(float linearVolume) const;
 
 
@@ -120,4 +154,5 @@ private:
     unsigned                m_nRecordedSampleCount;
 
     float                   m_accumCycles;           // Used to determine when to write a new sample.
+    CWinSoundChannel        m_channels[MAX_OUTPUT_CHANNELS];   // Channel 0 is the mono/left one, channel 1 the right one.
 };

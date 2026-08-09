@@ -44,8 +44,48 @@ void CALLBACK WinSoundOutput_waveOutProc(HWAVEOUT hDevice, UINT uMsg, DWORD_PTR 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-
 /*static*/ const float CWinSoundOutput::CYCLES_PER_SAMPLE = 1000000.f / 44100.f;  // chip_clock/sample_rate = 1Mhz/44.1kHz = 22.675737
+
+namespace
+{
+
+    /**
+     ** Converts a sample in the [-1, 1] range to the 16-bit format the sound device takes.
+     */
+    static short ToDeviceSample(float sample)
+    {
+        // Clamp first: removing the DC offset overshoots the range for a moment after a large step, and casting an
+        // out-of-range value to short wraps around, which is heard as a loud crack.
+        return (short)(std::clamp(sample, -1.f, 1.f) * 32767.f);
+    }
+
+}
+
+//----------------------------------------------------------------------------
+/**
+**
+*/
+float CWinSoundChannel::Read()
+{
+    // Average the accumulated window, instead of taking the value the channel had at one instant
+    const float sample = (m_accumCount > 0 ? m_accum / float(m_accumCount) : 0.f);
+    ResetWindow();
+
+    // The PSG output is unipolar, so it carries a DC offset: it sits at 0 while the channel is silent instead of
+    // at the centre of the output range. Subtracting a running average of the signal removes it, and is also what
+    // leaves the result centred on zero, so no explicit remapping to the [-1, 1] range is needed. That average has
+    // to be measured rather than assumed: the centre of the signal is not a constant, it moves with what is being
+    // played, so any fixed value picked for it would be wrong for some of the content.
+    constexpr float pi = 3.14159265f;
+    // Cut-off of the high-pass that removes the DC offset from a channel. It is deliberately this low: a higher
+    // one droops within a half-cycle of the lowest notes the PSG can play, and the resulting overshoot clips.
+    constexpr float dcCutoffHz = 2.f;
+    // Rate at which the running average behind that high-pass has to follow the signal to place the cut-off there.
+    constexpr float dcAverageRate = (2.f * pi * dcCutoffHz) / float(CWinSoundOutput::SAMPLES_PER_SEC);
+    m_dcAverage += (sample - m_dcAverage) * dcAverageRate;
+
+    return (sample - m_dcAverage);
+}
 
 
 //----------------------------------------------------------------------------
@@ -154,6 +194,10 @@ void CWinSoundOutput::ResetVars()
     m_nCurrPos = 0;
     m_pRecordFile = NULL;
     m_accumCycles = 0.f;
+    for (CWinSoundChannel& channel : m_channels)
+    {
+        channel.Reset();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -235,14 +279,17 @@ void CWinSoundOutput::DestroySoundBlocks()
 */
 /*virtual*/ void CWinSoundOutput::Reset()
 {
-    //...
+    for (CWinSoundChannel& channel : m_channels)
+    {
+        channel.ResetDcOffset();
+    }
 }
 
 //----------------------------------------------------------------------------
 /**
 **
 */
-void CWinSoundOutput::WriteSample(float leftSample, float rightSample)
+void CWinSoundOutput::WriteSample(const std::array<float, MAX_OUTPUT_CHANNELS> &samples)
 {
     SSoundBlock& writeBlock = m_soundBlocks[m_nCurrBlock];
 
@@ -250,16 +297,10 @@ void CWinSoundOutput::WriteSample(float leftSample, float rightSample)
     // If it is being played, ignore the sample. This will happen when the emulator is executing faster than 100%.
     if (!writeBlock.bIsPlaying)    // If the block to be written is not being used by the device...
     {
-        // Write mono/left sample to the block
-        short deviceSample;
-        deviceSample = (short)(leftSample * m_exponentialVolume * 32767.f);
-        *(writeBlock.pSamples + m_nCurrPos) = deviceSample;
-        m_nCurrPos++;
-        // Write right sample to the block, if stereo is being used
-        if (m_numOutputChannels >= 2)
+        // Write the sample of every output channel to the block
+        for (unsigned channel = 0; channel < m_numOutputChannels; channel++)
         {
-            deviceSample = (short)(rightSample * m_exponentialVolume * 32767.f);
-            *(writeBlock.pSamples + m_nCurrPos) = deviceSample;
+            *(writeBlock.pSamples + m_nCurrPos) = ToDeviceSample(samples[channel] * m_exponentialVolume);
             m_nCurrPos++;
         }
 
@@ -278,15 +319,9 @@ void CWinSoundOutput::WriteSample(float leftSample, float rightSample)
     // If recording is active, write the sample to the file
     if (IsRecording())
     {
-        // Mono/left sample
-        short wavSample;
-        wavSample = short(leftSample * 32767.f);
-        m_pRecordFile->WriteBytes(wavSample);
-        m_nRecordedSampleCount++;
-        // Right sample, if stereo is used.
-        if (m_numOutputChannels >= 2)
+        for (unsigned channel = 0; channel < m_numOutputChannels; channel++)
         {
-            wavSample = short(rightSample * 32767.f);
+            short wavSample = ToDeviceSample(samples[channel]);
             m_pRecordFile->WriteBytes(wavSample);
             m_nRecordedSampleCount++;
         }
@@ -396,32 +431,28 @@ void CWinSoundOutput::StopRecording()
 /**
 **
 */
-void CWinSoundOutput::MixSamplesFromPsgAndTape(float* leftSample, float* rightSample)
+void CWinSoundOutput::MixSamplesFromPsgAndTape(std::array<float, MAX_OUTPUT_CHANNELS> &samples)
 {
-    *leftSample = 0.f;
-    *rightSample = 0.f;
     CPC::CPsg* psg = GetMachine()->GetPsg();
     float channelA = IsChannelEnabled(0) ? psg->GetChannelOutput(0) : 0.f;
     float channelB = IsChannelEnabled(1) ? psg->GetChannelOutput(1) : 0.f;
     float channelC = IsChannelEnabled(2) ? psg->GetChannelOutput(2) : 0.f;
+    // Mono and stereo are not the same mix repeated per channel, they are different ones: mono adds the three
+    // PSG channels together, stereo sends A to one side, C to the other and B to both. Hence the branch.
     if (m_numOutputChannels == 1)
     {
-        *leftSample = (channelA + channelB + channelC) / 3.f;
+        samples[0] = (channelA + channelB + channelC) / 3.f;
     }
     else
     {
         // Left output channel = PSG A + some % of PSG B
         // Right output channel = PSG C + some % of PSG B
+        // Divided by the largest value the sum can reach, so the mix uses as much of the output range as it can
+        // without clipping once its DC offset is removed (see CWinSoundChannel::Read).
         constexpr float CHANNEL_B_LEVEL = 0.75f;
-        *leftSample = (channelA + channelB * CHANNEL_B_LEVEL) / 2.f;
-        *rightSample = (channelC + channelB * CHANNEL_B_LEVEL) / 2.f;
-    }
-
-    // Transform samples range from [0, 1] to [-1, 1].
-    *leftSample = (*leftSample * 2.f) - 1.f;
-    if (m_numOutputChannels >= 2)
-    {
-        *rightSample = (*rightSample * 2.f) - 1.f;
+        constexpr float MAX_CHANNEL_SUM = 1.f + CHANNEL_B_LEVEL;
+        samples[0] = (channelA + channelB * CHANNEL_B_LEVEL) / MAX_CHANNEL_SUM;
+        samples[1] = (channelC + channelB * CHANNEL_B_LEVEL) / MAX_CHANNEL_SUM;
     }
 
     // Mix tape audio in.
@@ -430,10 +461,9 @@ void CWinSoundOutput::MixSamplesFromPsgAndTape(float* leftSample, float* rightSa
     if (isTapePlaying)
     {
         float tapeSample = (tapeDeck->GetDataReadSignal() ? 1.f : -1.f);
-        *leftSample = (*leftSample + tapeSample) / 2.f;
-        if (m_numOutputChannels >= 2)
+        for (unsigned channel = 0; channel < m_numOutputChannels; channel++)
         {
-            *rightSample = (*rightSample + tapeSample) / 2.f;
+            samples[channel] = (samples[channel] + tapeSample) / 2.f;
         }
     }
 }
@@ -446,26 +476,36 @@ void CWinSoundOutput::Run(unsigned numCycles)
 {
     if (GetMachine() != nullptr)
     {
-        m_accumCycles += (float)numCycles;
-
-        while (m_accumCycles >= CYCLES_PER_SAMPLE)
+        for (unsigned cycle = 0; cycle < numCycles; cycle++)
         {
-            // Mix samples from the PSG channels.
-            float leftSample;
-            float rightSample;
-            MixSamplesFromPsgAndTape(&leftSample, &rightSample);
-
-            // Send the sample to the host audio system.
-            WriteSample(leftSample, rightSample);
+            // Mix samples from the PSG channels and feed them to the output channels, which accumulate them.
+            std::array<float, MAX_OUTPUT_CHANNELS> samples;
+            MixSamplesFromPsgAndTape(samples);
+            for (unsigned channel = 0; channel < m_numOutputChannels; channel++)
+            {
+                m_channels[channel].Write(samples[channel]);
+            }
 
             // Update cycle accumulator.
-            m_accumCycles -= CYCLES_PER_SAMPLE;
-
-            // Pass the sample to the listener, if any.
-            if (m_listener != nullptr)
+            m_accumCycles += 1.f;
+            if (m_accumCycles >= CYCLES_PER_SAMPLE)
             {
-                CPC::CPsg* psg = GetMachine()->GetPsg();
-                m_listener->OnNewSoundSample(leftSample, (psg->GetChannelOutput(0) * 2.f) - 1.f, (psg->GetChannelOutput(1) * 2.f) - 1.f, (psg->GetChannelOutput(2) * 2.f) - 1.f);
+                m_accumCycles -= CYCLES_PER_SAMPLE;
+
+                for (unsigned channel = 0; channel < m_numOutputChannels; channel++)
+                {
+                    samples[channel] = m_channels[channel].Read();
+                }
+
+                // Send the sample to the host audio system.
+                WriteSample(samples);
+
+                // Pass the sample to the listener, if any.
+                if (m_listener != nullptr)
+                {
+                    CPC::CPsg* psg = GetMachine()->GetPsg();
+                    m_listener->OnNewSoundSample(samples[0], (psg->GetChannelOutput(0) * 2.f) - 1.f, (psg->GetChannelOutput(1) * 2.f) - 1.f, (psg->GetChannelOutput(2) * 2.f) - 1.f);
+                }
             }
         }
     }
