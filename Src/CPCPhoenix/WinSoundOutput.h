@@ -90,8 +90,8 @@ private:
     static const unsigned   BYTES_PER_SAMPLE = 2;                         // 16-bit samples
     static const unsigned   MAX_OUTPUT_CHANNELS = 2;                      // Mono uses channel 0 only, stereo uses both
 
-    static const unsigned   NUM_BLOCKS = 3;                               // Triple buffer
-    static const unsigned   SAMPLES_PER_BLOCK_AND_CHANNEL = SAMPLES_PER_SEC / 20;     // 50 ms of sound data per block
+    static const unsigned   NUM_BLOCKS = 12;                              // Blocks in the ring buffer
+    static const unsigned   SAMPLES_PER_BLOCK_AND_CHANNEL = SAMPLES_PER_SEC / 100;    // 10 ms of sound data per block
 
     static const float      CYCLES_PER_SAMPLE;        // Every how many cycles we need to generate a sample (chip_clock/sample_rate = 1Mhz/44.1kHz).
 

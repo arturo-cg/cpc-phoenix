@@ -132,11 +132,14 @@ bool CWinSoundOutput::Init(OutputChannelCount outputChannelCount)
     {
         CreateSoundBlocks();
 
-        // Send blocks 0 and 1 to the device and mark block 2 as the next to be written
-        SendSoundBlockToDevice(&m_soundBlocks[0]);
-        SendSoundBlockToDevice(&m_soundBlocks[1]);
+        // Blocks of silence queued on startup: 50 ms of margin for ~60 ms of latency
+        constexpr unsigned primedBlocks = 5;
+        for (unsigned i = 0; i < primedBlocks; i++)
+        {
+            SendSoundBlockToDevice(&m_soundBlocks[i]);
+        }
 
-        m_nCurrBlock = 2;
+        m_nCurrBlock = primedBlocks;
         m_nCurrPos = 0;
     }
 
