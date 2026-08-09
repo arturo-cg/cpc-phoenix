@@ -52,7 +52,7 @@ namespace
     /**
      ** Converts a sample in the [-1, 1] range to the 16-bit format the sound device takes.
      */
-    static short ToDeviceSample(float sample)
+    short ToDeviceSample(float sample)
     {
         // Clamp first: removing the DC offset overshoots the range for a moment after a large step, and casting an
         // out-of-range value to short wraps around, which is heard as a loud crack.
@@ -482,7 +482,7 @@ void CWinSoundOutput::Run(unsigned numCycles)
         for (unsigned cycle = 0; cycle < numCycles; cycle++)
         {
             // Mix samples from the PSG channels and feed them to the output channels, which accumulate them.
-            std::array<float, MAX_OUTPUT_CHANNELS> samples;
+            std::array<float, MAX_OUTPUT_CHANNELS> samples = {};
             MixSamplesFromPsgAndTape(samples);
             for (unsigned channel = 0; channel < m_numOutputChannels; channel++)
             {
