@@ -507,7 +507,7 @@ void CWinSoundOutput::Run(unsigned numCycles)
                 if (m_listener != nullptr)
                 {
                     CPC::CPsg* psg = GetMachine()->GetPsg();
-                    m_listener->OnNewSoundSample(samples[0], (psg->GetChannelOutput(0) * 2.f) - 1.f, (psg->GetChannelOutput(1) * 2.f) - 1.f, (psg->GetChannelOutput(2) * 2.f) - 1.f);
+                    m_listener->OnNewSoundSample(samples[0], psg->GetChannelOutput(0), psg->GetChannelOutput(1), psg->GetChannelOutput(2));
                 }
             }
         }
