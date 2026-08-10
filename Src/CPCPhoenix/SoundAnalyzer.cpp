@@ -124,7 +124,8 @@ void SoundAnalyzer::DrawChannel(const char* label, int channelIndex, float* samp
     std::string checkboxId = std::string("##Enable_") + std::string(label);
     ImGui::Checkbox(checkboxId.c_str(), &channelEnabled);
     ImGui::SameLine();
-    ImGui::PlotLines(label, samples, NumSamples, m_nextPosition, nullptr/*overlay_text*/, -1.f, 1.f, graphSize, 4/*stride*/);
+    // Plotted over [0, 1], not [-1, 1] like the mixed output
+    ImGui::PlotLines(label, samples, NumSamples, m_nextPosition, nullptr/*overlay_text*/, 0.f, 1.f, graphSize, 4/*stride*/);
 
     if (channelEnabled != soundOutput->IsChannelEnabled(channelIndex))
     {
