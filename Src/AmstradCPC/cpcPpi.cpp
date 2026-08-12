@@ -124,7 +124,9 @@ namespace CPC {
 
             // All 8 bits are connected to the PSG data bus
 
-            // TODO
+            CPsg::EFunction ePsgFunction;
+            ePsgFunction = (CPsg::EFunction)((m_portOutputValue[PORT_C] & 0xC0) >> 6);
+            GetMachine()->GetPsg()->SelectFunction(ePsgFunction);
         }
     }
 
