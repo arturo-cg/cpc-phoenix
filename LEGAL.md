@@ -27,19 +27,18 @@ The required attribution statement is:
 ## Locomotive Software (BASIC ROM)
 
 The BASIC ROM was written by Locomotive Software and is their copyright, not
-Amstrad's. Locomotive's position is stricter than Amstrad's:
+Amstrad's. Locomotive's stated position is that distribution is permitted for
+**non-profit** use only — any charge may only cover distribution costs. This
+project is free and open source, and no charge is made for the ROM images, so
+it falls within that allowance.
 
-- Distribution is permitted for **non-profit** use only; any charge may cover
-  distribution costs only.
-- Locomotive has requested that anyone wishing to distribute their code write
-  to them to obtain formal written permission.
-
-To be fully covered, it is recommended that you contact Locomotive Software and
-obtain written permission before redistributing the BASIC ROM.
+> Note: Locomotive Software Ltd has since gone into liquidation, so it is no
+> longer possible to contact them for formal written permission. Their
+> non-profit distribution allowance is the operative permission here.
 
 ## Summary
 
 - Do not modify the copyright strings contained in the ROM files.
 - Do not charge for the ROM images themselves.
-- Contact Locomotive Software for written permission to redistribute the BASIC
-  ROM if you intend to distribute it.
+- The BASIC ROM is redistributed for non-profit use under Locomotive
+  Software's allowance.

@@ -9,21 +9,30 @@ CPCPhoenix is an Amstrad CPC 464/664/6128 emulator for Windows, written in C++.
 - Disk (`.dsk`) and tape (`.cdt`) support
 - Integrated debugger and sound analyzer
 - Snapshot save/load (`.sna`)
-- Copy text from the host machine (e.g. a BASIC listing) and paste it into the emulated CPC
+- Copy text on the host (e.g. a BASIC listing) and paste it into the emulated CPC
+
+## Limitations
+
+- The emulator supports custom ROMs and RAM expansions, but there's no UI for
+  adding them yet — they can only be configured in code.
+- Disk and tape emulation only supports read operations. Write operations are not
+  supported for now.
 
 ## Building
 
-Open `Src\CPCPhoenix.sln` in Visual Studio 2022, select the desired platform and configuration and build.
+Open `Src\CPCPhoenix.sln` in Visual Studio 2022, pick your platform and
+configuration, and build.
 
 Output executables are named `CPCPhoenix_{Platform}_{Configuration}.exe`
 (e.g. `CPCPhoenix_x64_Release.exe`).
 
 ### Runtime requirements
 
-The system ROM files (`OS`, `BASIC` and `AMSDOS`) must be present relative to
-the executable's working directory, under `Bin\CPCPhoenix\Roms\`.
+The system ROM files (`OS`, `BASIC` and `AMSDOS`) must be present under
+`Bin\CPCPhoenix\Roms\`, relative to the executable's working directory.
 
-Make sure that you change the working directory to `Bin\CPCPhoenix\`; otherwise, CPCPhoenix won't be able to find the ROMs.
+Make sure your working directory is set to `Bin\CPCPhoenix\` when you run it —
+otherwise CPCPhoenix won't find the ROMs.
 
 ## Command-line options
 
@@ -35,6 +44,13 @@ Make sure that you change the working directory to `Bin\CPCPhoenix\`; otherwise,
 | `--diskB_archive <path>` | Load a disk image for drive B from an archive |
 | `--tape <path>` | Load a tape image |
 | `--autotype <text>` | Inject text into the emulated CPC |
+
+## Thanks
+
+Special thanks to everyone who has contributed in any form, including:
+
+- [Daniel Varela](https://github.com/danielvarelagil2) — fixed bugs and
+  improved the audio emulation
 
 ## Legal
 
