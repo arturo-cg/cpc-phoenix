@@ -11,6 +11,10 @@ CPCPhoenix is an Amstrad CPC 464/664/6128 emulator for Windows, written in C++.
 - Snapshot save/load (`.sna`)
 - Copy text on the host (e.g. a BASIC listing) and paste it into the emulated CPC
 
+## Download
+
+Get the latest release [here](https://github.com/arturo-cg/cpc-phoenix/releases/latest).
+
 ## Limitations
 
 - The emulator supports custom ROMs and RAM expansions, but there's no UI for
